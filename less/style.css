@@ -1,0 +1,46 @@
+.v-pad-20 {
+  padding: 20px 0;
+}
+.m-b-20 {
+  margin: bottom: 20px;
+}
+.m-t-md {
+  margin-top: 25px;
+}
+header {
+  background: #34495e;
+  border-top: 3px solid #2b3c4e;
+  border-bottom: 3px solid #2b3c4e;
+  padding: 20px 0;
+  color: white;
+}
+tr {
+  padding-left: 10px;
+}
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 0px 0px 15px;
+  background-color: #fff;
+  border: none;
+}
+.list-group {
+  margin-bottom: 0px;
+  box-shadow: none;
+}
+.gridWrapper {
+  border: 1px solid #ccc;
+  margin-top: 50px;
+  padding: 25px;
+  height: 600px;
+  overflow: scroll;
+}
+.form-comp {
+  margin: 0 25px;
+}
+.highlight {
+  background-color: rgba(255, 255, 0, 0.53);
+}
+.btn {
+  margin: 5px;
+}
