@@ -1377,7 +1377,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 @media print{.visible-print-inline-block{display:inline-block!important}}
 @media print{.hidden-print{display:none!important}}
 .v-pad-20{padding:20px 0}
-.m-b-20{margin:20px}
+.m-b-20{margin:bottom:20px}
 .m-t-md{margin-top:25px}
 header{background:#34495e;border-top:3px solid #2b3c4e;border-bottom:3px solid #2b3c4e;padding:20px 0;color:#fff}
 tr{padding-left:10px}

@@ -10,7 +10,7 @@ var paths = {
     jsfiles : [ "./bower_components/jquery/dist/*.min.js", "./bower_components/jquery-ui/*.min.js", "./bower_components/bootstrap/dist/js/*.min.js", "./node_modules/mithril/*.min.js", "./scripts/*.js"],
     json : "./sample.json",
     less : "./less/*.less"
-}
+};
 
 gulp.task('generate-max', function() {
     // gulp.src -- get html template
@@ -18,7 +18,7 @@ gulp.task('generate-max', function() {
         // pipe through plugin
         .pipe(generate(20000, 0))
         // set destination
-        .pipe(gulp.dest("./dist"))
+        .pipe(gulp.dest("./dist"));
 });
 
 gulp.task('generate-min', function() {
@@ -28,7 +28,7 @@ gulp.task('generate-min', function() {
         .pipe(generate(100, 5))
         .pipe(rename("small.json"))
         // set destination
-        .pipe(gulp.dest("./dist"))
+        .pipe(gulp.dest("./dist"));
 });
 
 
@@ -42,13 +42,13 @@ gulp.task('css', ["less"], function(){
     return gulp.src(paths.cssfiles)
         .pipe(concat('bundle.css'))
         .pipe(minifyCSS({keepBreaks:true}))
-        .pipe(gulp.dest('./dist/'))
+        .pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('js', function(){
     return gulp.src(paths.jsfiles)
         .pipe(concat('bundle.js'))
-        .pipe(gulp.dest('./dist/'))
+        .pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('watch', function() {
