@@ -4,7 +4,7 @@ var PluginError = gutil.PluginError;
 
 const PLUGIN_NAME = 'jsontree-generator';
 
-module.exports =  function outputJSON (totalItems, depth, width){
+module.exports =  function outputJSON (totalItems, depth){
 
     var stream = through.obj(function(file, enc, callback) {
 
@@ -133,8 +133,9 @@ module.exports =  function outputJSON (totalItems, depth, width){
         /*
          Construct your json object
          */
-        var obj = function (id){
+        var obj = function (id, parent){
             this.id = id;
+            this.parent = parent;
             this.person =  randomPerson();
             this.desc = styledString("sentence", 14);
             this.name = styledString("title", 5);
@@ -150,7 +151,7 @@ module.exports =  function outputJSON (totalItems, depth, width){
          Build a json object going down "level" number of levels.
          */
         var counter = 0;
-        var buildJSON = function redo (level){
+        var buildJSON = function redo (level, parent){
             if(counter < totalItems){
                 var childarray = [];
                 var totalIteration;
@@ -159,10 +160,11 @@ module.exports =  function outputJSON (totalItems, depth, width){
                 var remainingItems = totalItems-counter;
                 if(remainingItems<5){ iteration = remainingItems}
                 for(var i  = 0; i < iteration; i++){
-                    var thisObj = new obj(counter);
+                    var thisObj = new obj(counter, parent);
+                    var parent = counter;
                     counter++;
                     if( level > 0 && iteration != remainingItems) {
-                        thisObj.children = redo (level-1);
+                        thisObj.children = redo (level-1, parent);
                     }
                     childarray.push( thisObj);
                 }

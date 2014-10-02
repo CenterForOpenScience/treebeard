@@ -46,7 +46,7 @@ grid.model = function (level){
         loadUrl : "small.json",
         name  : "JohnnyB. Goode",
         title  :  "Around the World in 80 Days",
-        date : new Date,
+        date : "Date",
         filtered : false,
         children : []
     }
@@ -55,383 +55,364 @@ grid.model = function (level){
 
 grid.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "sample_s.json"}).then(flatten);
-    this.temp = {}; // temporary object
-    this.filterText = m.prop("");
-    this.totalItems = m.prop(0);
+    this.data = m.request({method: "GET", url: "sample_50.json"}).then(flatten);
     this.flatData = [];
+    this.filterText = m.prop("");
+    this.showRange = [];
+    this.showTotal = 20;
+    this.filterOn = false;
+    this.rowHeight = 35;
 
     /*
      *  Turns the tree structure into a flat index of nodes
      */
-    function flatten(value){
+    function flatten(value) {
         var recursive = function redo(data) {
             var length = data.length;
-            for(var i = 0; i < length; i++){
+            for (var i = 0; i < length; i++) {
+                var children = data[i].children;
+                var childIDs = [];
                 var item = {
-                    id : data[i].id,
-                    row : data[i]
+                    id: data[i].id,
+                    row: data[i]
                 }
+                for(var j = 0; j < data[i].children.length; j++){
+                    childIDs.push(data[i].children[j].id);
+                }
+                item.row.children = childIDs;
                 self.flatData.push(item);
-                if(data[i].children){
-                    redo(data[i].children);
+                if (children) {
+                    redo(children);
                 }
             }
         };
         recursive(value);
-        console.log(self.flatData);
+        self.initialize_range();
         return value;
     }
 
     /*
-     *  Returns the full node on the tree based on the flat index
+     *  Deletes a single node from view; child nodes are handles at node_action
      */
-    this.returnNode = function(indexArray){
-        var index = 0, array = [], levelArray, len, row;
-        levelArray = indexArray.split(",");
-        len = levelArray.length;
-        row = this.data()[levelArray[0]];
-        index = levelArray[0];
+    this.delete_node = function(index){
+        self.flatData.splice(index, 1);
+    };
 
-        for(var i = 1; i < len; i++){
-            if(i == len-1){
-                index = levelArray[i];
-                array = row;
-            }
-            row = row.children[levelArray[i]];
-        }
+    /*
+     *  Adds a new node;
+     */
+    this.add_node = function(index){
+        var item = self.flatData[index].row;
+        var level = item.level+1;
+        var newItem = new grid.model(level);
         var node = {
-            row : row,
-            index : parseInt(index),
-            array : array
+            id: newItem.id,
+            row: newItem
         }
-        return node;
-    }
+        item.children.push(newItem.id);
+        var insert = self.return_last_childrow(index, item.level);
+        self.flatData.splice(insert, 0, node);
+        console.log("insert", insert, "newItem", node);
+        console.log(self.flatData[insert]);
+    };
+
     /*
-     *  Renders the table row requested from the flat view
+     *  Finds the last row within the nodes to add a node to the end of the appropriate rows;
      */
-    this.renderRow = function(item, flatIndex){
-        var row = self.returnNode(item.level).row;
-        var subFix = function(item){
-            if(item.children.length > 0 ){
-                if(item.status){
-                    for(var child = 0; child < item.children.length; child++){
-                        $("[data-id="+item.children[child].id+"]").show();
-                    }
-                    return "[-] ";
-                } else {
-                    for(var child = 0; child < item.children.length; child++){
-                        $("[data-id="+item.children[child].id+"]").hide();
-                    }
-                    return "[+] ";
-                }
-            } else {
-                return m.trust("");
+    this.return_last_childrow = function(index, level){
+        var len = self.flatData.length;
+        var lastIndex = index+1;
+        for(var i = index+1; i < len; i++) {
+            var o = self.flatData[i];
+            lastIndex = i;
+            console.log("i", i, "len", len, "level", level, "o-level", o.row.level);
+            if(o.row.level <= level) {
+                return lastIndex;
+            }
+            if(i === len-1){
+                return lastIndex;
             }
         }
-
-        var view = function(item){
-            var padding = item.level*20;
-            padding = "padding-left: "+padding+"px";
-            return   m("tr", { "data-id" : item.id, "data-level": item.level, "data-index" : flatIndex}, [
-                m("td.tdTitle", {"data-id" : item.id, style : padding},  [
-                    m("span.tdFirst", {"data-id" : item.id, "data-level": item.level, onclick: function() { item.status = !item.status; }}, subFix(item)),
-                    m("span", item.id+" "),
-                    m("span", item.title+" ")
-                ]),
-                m("td", item.name + " "),
-                m("td", item.date + " "),
-                m("td", { width : "150"}, [
-                    m("button.btn.btn-danger.btn-sm", {"data-id" : item.id, onclick: function(){ self.delete(flatIndex) }},  " X "),
-                    m("button.btn.btn-success.btn-sm", {"data-id" : item.id, onclick: m.withAttr("data-id", self.add)},  " Add ")
-                ])
-            ])
+        if(index+1 >= len)  {
+            return self.flatData.length;
         }
-        console.log("Row", row);
-        return view(row);
-
-
     }
 
     /*
-     *  Row crud functions
+     *  Returns the index of an item in the flat row list
      */
-    this.delete = function(index){
-        var array;
-        var item = self.flatData[index];
-        var node = self.returnNode(item.level);
-//        console.log("Returned node", node);
-//        console.log("Item level", item.level);
-        if(node.array.length == 0){
-            array = self.data();
-        } else {
-            array = node.array.children;
-        }
-        self.flatData[index] = "";  // Delete from the flat data as well.
-        console.log(array, node.index);
-        array.splice(node.index, 1);
-    }
-    this.insertInto = function(){
-
-    }
-
-    /*
-     *  What to show for toggle state, this will simplify with the use of icons
-     */
-    this.subFix = function(item){
-        if(item.children.length > 0 ){
-            if(item.status){
-                for(var child = 0; child < item.children.length; child++){
-                    $("[data-id="+item.children[child].id+"]").show();
-                }
-                return "[-] ";
-            } else {
-                for(var child = 0; child < item.children.length; child++){
-                    $("[data-id="+item.children[child].id+"]").hide();
-                }
-                return "[+] ";
+    this.return_index = function(id){
+        var len = self.flatData.length;
+        for(var i = 0; i < len; i++) {
+            var o = self.flatData[i];
+            if(o.row.id === id) {
+                return i;
             }
-        } else {
-            return m.trust("");
         }
     }
 
+
+    /*
+     *  Completes an action on selected node and children if there are any
+     */
+    this.node_action = function(id, action, scope, selector){
+        var scope = scope || "all";
+        var len = self.flatData.length;
+        var i, j, k, index;
+        var children = [];
+        for(i = 0; i < len; i++){
+            var o = self.flatData[i];
+            if(o.row.id === id){
+                if(o.row.children && scope == "all"){
+                    for(j = 0; j < o.row.children.length; j++){
+                        children.push(o.row.children[j]);
+                    }
+                }
+                index = i;
+                break;
+            }
+        }
+        if(index){ action(index, id); }
+
+        if(children.length > 0){
+            for(k = 0; k < children.length; k++){
+                var doit = true;
+                if(selector){
+                    doit = false;
+                    if(children[k] === selector){
+                        doit = true;
+                    }
+                }
+                if(doit){ self.node_action(children[k], self.delete_node); }
+            }
+        }
+    };
+
+    /*
+     *  Shows the initial number of rows as the page loads or resetting from other views
+     */
+    this.initialize_range = function(){
+        var len = self.flatData.length;
+        var range = [];
+        for ( var i = 0; i < len; i++){
+            if(range.length === self.showTotal){ break; }
+            var o = self.flatData[i];
+            if(o.row.show){
+                range.push(i);
+            }
+        }
+        self.showRange = range;
+    }
+
+    /*
+     *  Refreshes the view as the user scrolls down
+     */
+    this.add_to_bottom = function(amount){
+        var amount = amount || 1;
+        var index = self.showRange[self.showRange.length-1];
+        var len = self.flatData.length;
+        var totalAdded = 0;
+        if(len-(index) < amount ){
+            amount = len-(index);
+        }
+        // remove the first rows from range
+        self.showRange.splice(0, amount);
+        // add the next visible row to range
+        for ( var i = index+1; i < len; i++){
+            var o = self.flatData[i];
+            console.log(i);
+            if(o.row.show){
+                self.showRange.push(i);
+                totalAdded++;
+                if(totalAdded === amount ){
+                    break;
+                }
+            }
+        }
+        console.log("bottom");
+        console.log(self.showRange);
+        m.redraw(true);
+    }
+
+    /*
+     *  Refreshes the view as the user scrolls up
+     */
+    this.add_to_top = function(amount){
+        var amount = amount || 1;
+        var index = self.showRange[0];
+        var totalRemoved = 0;
+        if(index < amount ){
+            amount = index;
+        }
+        // remove the last rows from range
+        console.log("Amount", self.showRange.length-1-amount);
+        self.showRange.splice(self.showRange.length-1-amount, amount);
+        // add the previous visible row to range
+        var index = self.showRange[0];
+        console.log("Index", index);
+        for ( var i = index-1; i > -1 ; i--){
+            var o = self.flatData[i];
+            console.log("i", i);
+            if(o.row.show){
+                self.showRange.unshift(i);
+                totalRemoved++;
+                if(totalRemoved === amount){
+                    break;
+                }
+            }
+        }
+        console.log("bottom");
+        console.log(self.showRange);
+        m.redraw(true);
+    }
+
+    /*
+     *  Initializes the first rows for the filtering function
+     */
+    this.initialize_filter = function (){
+        var len = self.flatData.length;
+        var range = [];
+        for ( var i = 0; i < len; i++){
+            if(range.length === self.showTotal){ break; }
+            var o = self.flatData[i].row;
+            if(self.row_filter_result(o)){
+                range.push(i);
+            }
+        }
+        self.showRange = range;
+        m.redraw();
+    }
+
+    /*
+     *  Returns whether a single row contains the filtered items
+     */
+    this.row_filter_result = function(row){
+        var filter = self.filterText().toLowerCase();
+        var titleResult = row.title.toLowerCase().indexOf(filter);
+        var authorResult = row.name.toLowerCase().indexOf(filter);
+        if (titleResult > -1 || authorResult > -1){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /*
+     *  runs filter functions and resets depending on whether there is a filter word
+     */
+    this.filter = function(e){
+        m.withAttr("value", self.filterText)(e);
+        var filter = self.filterText().toLowerCase();
+        if(filter.length === 0){
+            self.filterOn = false;
+            self.initialize_range();
+        } else {
+            self.filterOn = true;
+            self.initialize_filter();
+        }
+    }
+
+    /*
+     *  Toggles weather a folder is collapes or opn
+     */
+    this.toggle_folder = function(){
+
+    }
+
+    /*
+     *  Toggles all row views to expand everything or collapse everything
+     */
+    this.toggle_expand = function(){
+
+    }
+
+    this.calculate_visible = function(){
+        var len = self.flatData.length;
+        var total = 0;
+        for ( var i = 0; i < len; i++){
+            var o = self.flatData[i].row;
+            if(o.show){
+                total++;
+            }
+        }
+        return total;
+    }
+
+    /*
+     *  Initializes after the view
+     */
+    this.init = function(el, isInit){
+        if (isInit) return;
+        var visible = self.calculate_visible();
+        $('.gridInner').height(visible*self.rowHeight);
+        $('.gridWrapper').scroll(function(){
+            var scrollTop = $(this).scrollTop();
+            var innerHeight = $(this).children('.gridInner').outerHeight();
+            var location = scrollTop/innerHeight*100;
+            console.log("Location", location);
+            var index = location/100*visible;
+            console.log("Index", index);
+//            var height = $(this).height();
 //
-//
-//    this.add = function(addid){ self.traverse(self.add, addid)};
-//    this.expand = function(){ self.traverse("expand")};
-//    this.collapse = function(){ self.traverse("collapse")};
-//
-//    // One traverse function to rule them all
-//    this.traverse = function (action, id, id2){
-//        var recursive = function redo(data){
-//            var data = data || self.data();
-//            var length = data.length;
-//            for(var i = 0; i < length; i++){
-//                var item = data[i];
-//                var index = i;
-//                var array = data;
-//                if (item.id == id){
-//                    // if item is found do things
-//                    action(array, index, id2);
-//                    switch(action){
-//                        case "pull":
-//                            self.pull(array, index, id2);
-//                            break;
-//                        case "push":
-//                            self.push(item);
-//                            break;
-//                        case "add" :
-//                            self.add(item);
-//                            break;
-//                        case "load":
-//                            // if item load is true
-//                            self.load(item);
-//
-//                            break;
-//                        case "levels":
-//                            self.adjustLevels(item);
-//                            break;
-//                    }
-//                } else {
-//                    // if item isn't found keep looking
-//                    if(item.children.length > 0){
-//                        redo(item.children);
-//                    }
-//                }
-//                if(action == "collapse"){
-//                    item.status = false;
-//                }
-//                if(action == "expand"){
-//                    item.status = true;
-//                }
+//            if(innerHeight-scrollTop < height ){
+//                self.add_to_bottom(3);
 //            }
-//
-//
-//        }
-//        recursive(self.data());
-//    }
-//
-//    this.pull = function(array, index, arg){
-//        var item = array[index];
-//        array.splice(index, 1);
-//        self.temp = item;
-//        self.traverse("push",arg);
-//        m.redraw();
-//    };
-//    this.push = function(item){
-//        self.temp.level = item.level+1;
-//        item.children.push(self.temp);
-//    };
-//    this.add = function(item){
-//        var level = item.level+1;
-//        var newItem = new grid.model(level);
-//        item.children.push(newItem);
-//        self.traverse("load", newItem.id);
-//    }
-//    this.load = function(item){
-//        if (item.load){
-//            var children = m.prop([]);
-//            m.request({method: "GET", url: item.loadUrl}).then(children).then(function(){
-//                children().map(function(child){
-//                    item.children.push(child);
-//                });
-//                self.adjustLevels(item, self.totalItems());
-//                m.redraw();
-//            })
-//        }
-//    }
-//    this.collapse = function(item){
-//        item.status = false;
-//    }
-//    this.expand = function(item){
-//        item.status = true;
-//    }
-//
-//    this.adjustLevels = function redo (container, baseID){
-//        var topLevel = container.level;
-//        var iterid = 0;
-//        container.children.map(function(item, index, array){
-//            item.level = topLevel + 1;
-//            item.id = baseID+1+iterid;
-//            redo(item, item.id);
-//            iterid++;
-//        })
-//    }
-//
-//    this.order = function (type){
-//        var titleASC = function (a, b) {
-//            var titleA = a.title.toLowerCase().replace(/\s+/g, " ");
-//            var titleB = b.title.toLowerCase().replace(/\s+/g, " ");
-//            if (titleA < titleB){
-//                return -1;
+//            if(scrollTop < 100 && self.showRange[0] !== 0){
+//                self.add_to_top(3);
 //            }
-//            if (titleA > titleB){
-//                return 1;
-//            }
-//            return 0;
-//        };
-//        var titleDESC = function (a, b) {
-//            var titleA = a.title.toLowerCase().replace(/\s/g, '');
-//            var titleB = b.title.toLowerCase().replace(/\s/g, '');
-//            if (titleA > titleB){
-//                return -1;
-//            }
-//            if (titleA < titleB){
-//                return 1;
-//            }
-//            return 0;
-//        };
-//        var recursive = function redo(data){
-//            data.map( function(item, index, array){
-//                if(type === "asc"){
-//                    item.children.sort(titleASC);
-//                } else {
-//                    item.children.sort(titleDESC);
-//                }
-//                if(item.children.length > 0 ){ redo(item.children) } ;
-//            });
-//        }
-//        // First reorder the top data
-//        if(type === "asc"){
-//            self.data().sort(titleASC);
-//        } else {
-//            self.data().sort(titleDESC);
-//        }
-//        // Then start recursive loop
-//        recursive(self.data());
-//    }
-//    this.ui = function (){
-//        $(".tdTitle").draggable({ helper: "clone" });
-//        $("tr").droppable({
-//            tolerance : "pointer",
-//            hoverClass : "highlight",
-//            drop: function( event, ui ) {
-//                var to = $(this).attr("data-id");
-//                var from = ui.draggable.attr("data-id");
-//                if (to != from ){
-//                    self.traverse("pull", from, to);
-//                }
-//            }
-//        });
-//        //self.count(self.data());
-//    }
-//
-//    this.filterRun = function (){
-//        self.flatData([]);
-//        var titleResult = -1;
-//        var authorResult = -1;
-//        var filter = self.filterText().toLowerCase();
-//        var recursive = function redo(data){
-//            data.map( function(item, index, array){
-//                if(self.filterText()){
-//                    titleResult = item.title.toLowerCase().indexOf(filter);
-//                    authorResult = item.title.toLowerCase().indexOf(filter);
-//                    if (titleResult > -1 || authorResult > -1){
-//                        item.show = true;
-//                        item.flat = true;
-//                    } else {
-//                        item.show = false;
-//                    }
-//                } else {
-//                    item.show = true;
-//                    item.flat = false;
-//                }
-//                redo(item.children);
-//            });
-//        }
-//        recursive(self.data());
-//    }
-//
-//    this.filter = function(e){
-//        m.withAttr("value", self.filterText)(e);
-//        self.filterRun();
-//    }
+        })
+    };
 
 }
 
-// Table view
+
 grid.view = function(ctrl){
+console.log(ctrl.showRange);
     return [ m(".row", [ m(".col-xs-12", [
         m("input.form-control[placeholder='filter'][type='text']", { style:"width:300px", onkeyup: ctrl.filter, value : ctrl.filterText()} ),
         m("button.btn.btn-default", { onclick: ctrl.expand}, "Expand All"),
         m("button.btn.btn-default",{ onclick: ctrl.collapse}, "Collapse All")
     ])
     ]),
-        m("div.gridWrapper",{config : ctrl.ui}, [ m("table.table", [
-            m("thead", [
-                m("th", { width : "50%"}, [
-                    m("span", "Title"),
-                    m("i", { "data-order" :"asc", onclick : m.withAttr("data-order", ctrl.order)}, " [asc]"),
-                    m("i", { "data-order" :"desc", onclick : m.withAttr("data-order", ctrl.order)}, " [desc]")
+        m('.gridWrapper',{config : ctrl.init}, [
+            m(".gridInner", [ m("table.table", [
+                m("thead", [
+                    m("th", { width : "50%"}, [
+                        m("span", "Title"),
+                        m("i", { "data-order" :"asc", onclick : m.withAttr("data-order", ctrl.order)}, " [asc]"),
+                        m("i", { "data-order" :"desc", onclick : m.withAttr("data-order", ctrl.order)}, " [desc]")
+                    ]),
+                    m("th", "Person"),
+                    m("th", "Date"),
+                    m("th", "Actions")
                 ]),
-                m("th", "Person"),
-                m("th", "Date"),
-                m("th", "Actions")
-            ]),
-            m("tbody",[
-                ctrl.flatData.map(function(item, index) {
-                    if(item){
-                        console.log(item, index);
-                        var row = item.row;
-                        return  m("tr", { "data-id" : row.id, "data-level": row.level, "data-index" : index}, [
-                            m("td.tdTitle", {"data-id" : item.id, style : "padding-left: "+row.level*20+"px" },  [
-                                m("span.tdFirst", { onclick: function() { row.status = !row.status; }}, ctrl.subFix(row)),
+                m("tbody", [
+                    m(".tb-paddingRow"),
+                    ctrl.showRange.map(function(item){
+                        var row = ctrl.flatData[item].row;
+                        var padding;
+                        if(ctrl.filterOn){
+                            padding = 0;
+                        } else {
+                            padding = row.level*20;
+                        }
+                        return  m("tr.tb-row", { "data-id" : row.id, "data-level": row.level, style : "height: "+ctrl.rowHeight+"px"}, [
+                            m("td.tdTitle", {"data-id" : item.id, style : "padding-left: "+padding+"px" },  [
+                                m("span.tdFirst", { onclick: function() { row.status = !row.status; }}, "--"),
                                 m("span", row.id+" "),
                                 m("span", row.title+" ")
                             ]),
                             m("td", row.name + " "),
                             m("td", row.date + " "),
                             m("td", { width : "150"}, [
-                                m("button.btn.btn-danger.btn-sm", {"data-id" : row.id, onclick: function(){ ctrl.delete(index) }},  " X "),
-                                m("button.btn.btn-success.btn-sm", {"data-id" : row.id, onclick: m.withAttr("data-id", ctrl.add)},  " Add ")
+                                m("button.btn.btn-danger.btn-xs", {"data-id" : row.id, onclick: function(){ ctrl.node_action(row.id, ctrl.delete_node) }},  " X "),
+                                m("button.btn.btn-success.btn-xs", {"data-id" : row.id, onclick: function(){ ctrl.node_action(row.id, ctrl.add_node, "top"); } },  " Add ")
                             ])
                         ])
-                    } else {
-                        return "";
-                    }
-                })
-            ])
+                    }),
+                    m(".tb-paddingRow")
+                ])
+                ])
             ])
         ])
     ]

@@ -7,7 +7,7 @@ var rename = require('gulp-rename');
 
 var paths = {
     cssfiles : ["./bower_components/bootstrap/dist/css/*.min.css", "./less/*.css"],
-    jsfiles : [ "./bower_components/jquery/dist/*.min.js", "./bower_components/jquery-ui/*.min.js", "./bower_components/bootstrap/dist/js/*.min.js", "./node_modules/mithril/*.min.js", "./scripts/*.js"],
+    jsfiles : [ "./bower_components/jquery/dist/*.min.js", "./bower_components/jquery-ui/*.min.js", "./bower_components/bootstrap/dist/js/*.min.js", "./node_modules/mithril/*.min.js", "./scripts/grid.js"],
     json : "./sample.json",
     less : "./less/*.less"
 };
@@ -16,7 +16,7 @@ gulp.task('generate-max', function() {
     // gulp.src -- get html template
     return gulp.src(paths.json)
         // pipe through plugin
-        .pipe(generate(100, 5))
+        .pipe(generate(20000, 20))
         // set destination
         .pipe(gulp.dest("./dist"));
 });
