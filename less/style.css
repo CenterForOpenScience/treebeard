@@ -30,7 +30,6 @@ tr {
 }
 .gridWrapper {
   border: 1px solid #ccc;
-  margin-top: 50px;
   padding: 25px;
   height: 600px;
   overflow: scroll;
@@ -53,4 +52,9 @@ tr {
   border-left: 1px solid #ccc;
   font-size: 11px;
   padding-left: 5px;
+}
+.expand-icon-holder {
+  height: 10px;
+  width: 20px;
+  display: inline-block;
 }

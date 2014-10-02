@@ -1,5 +1,5 @@
 
-// Initialize the module
+// Initialize the fodule
 var grid = {};
 
 // Set property for data and get the data
@@ -23,7 +23,7 @@ grid.model = function (level){
 
 grid.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "sample_s.json"}).then(flatten);
+    this.data = m.request({method: "GET", url: "large.json"}).then(flatten);
     this.temp = {}; // temporary object
     this.filterText = m.prop("");
     this.totalItems = m.prop(0);
@@ -78,48 +78,48 @@ grid.controller = function () {
     /*
      *  Renders the table row requested from the flat view
      */
-    this.renderRow = function(item, flatIndex){
-        var row = self.returnNode(item.level).row;
-        var subFix = function(item){
-            if(item.children.length > 0 ){
-                if(item.status){
-                    for(var child = 0; child < item.children.length; child++){
-                        $("[data-id="+item.children[child].id+"]").show();
-                    }
-                    return "[-] ";
-                } else {
-                    for(var child = 0; child < item.children.length; child++){
-                        $("[data-id="+item.children[child].id+"]").hide();
-                    }
-                    return "[+] ";
-                }
-            } else {
-                return m.trust("");
-            }
-        }
+    // this.renderRow = function(item, flatIndex){
+        // var row = self.returnNode(item.indent).row;
+        // var subFix = function(item){
+        //     if(item.children.length > 0 ){
+        //         if(item.status){
+        //             for(var child = 0; child < item.children.length; child++){
+        //                 $("[data-id="+item.children[child].id+"]").show();
+        //             }
+        //             return m("i.fa.fa-minus-square-o");
+        //         } else {
+        //             for(var child = 0; child < item.children.length; child++){
+        //                 $("[data-id="+item.children[child].id+"]").hide();
+        //             }
+        //             return m("i.fa.fa-plus-square-o");
+        //         }
+        //     } else {
+        //         return m.trust("");
+        //     }
+        // }
 
-        var view = function(item){
-            var padding = item.level*20;
-            padding = "padding-left: "+padding+"px";
-            return   m("tr", { "data-id" : item.id, "data-level": item.level, "data-index" : flatIndex}, [
-                m("td.tdTitle", {"data-id" : item.id, style : padding},  [
-                    m("span.tdFirst", {"data-id" : item.id, "data-level": item.level, onclick: function() { item.status = !item.status; }}, subFix(item)),
-                    m("span", item.id+" "),
-                    m("span", item.title+" ")
-                ]),
-                m("td", item.name + " "),
-                m("td", item.date + " "),
-                m("td", { width : "150"}, [
-                    m("button.btn.btn-danger.btn-sm", {"data-id" : item.id, onclick: function(){ self.delete(flatIndex) }},  " X "),
-                    m("button.btn.btn-success.btn-sm", {"data-id" : item.id, onclick: m.withAttr("data-id", self.add)},  " Add ")
-                ])
-            ])
-        }
-        console.log("Row", row);
-        return view(row);
+        // var view = function(item){
+        //     var padding = item.indent*20;
+        //     padding = "padding-left: "+padding+"px";
+        //     return   m("tr", { "data-id" : item.id, "data-level": item.indent, "data-index" : flatIndex}, [
+        //         m("td.tdTitle", {"data-id" : item.id, style : padding},  [
+        //             m("span.tdFirst", {"data-id" : item.id, "data-level": item.indent, onclick: function() { item.status = !item.status; }}, subFix(item)),
+        //             m("span", item.id+" "),
+        //             m("span", item.title+" ")
+        //         ]),
+        //         m("td", item.name + " "),
+        //         m("td", item.date + " "),
+        //         m("td", { width : "150"}, [
+        //             m("button.btn.btn-danger.btn-sm", {"data-id" : item.id, onclick: function(){ self.delete(flatIndex) }},  " X "),
+        //             m("button.btn.btn-success.btn-sm", {"data-id" : item.id, onclick: m.withAttr("data-id", self.add)},  " Add ")
+        //         ])
+        //     ])
+        // }
+        // console.log("Row", row);
+        // return view(row);
 
 
-    }
+    // }
 
     /*
      *  Row crud functions
@@ -147,22 +147,36 @@ grid.controller = function () {
      *  What to show for toggle state, this will simplify with the use of icons
      */
     this.subFix = function(item){
-        if(item.children.length > 0 ){
-            if(item.status){
-                for(var child = 0; child < item.children.length; child++){
-                    $("[data-id="+item.children[child].id+"]").show();
+        if(item.children){
+            if(item.children.length > 0 ){
+                if(item.status){
+                    for(var child = 0; child < item.children.length; child++){
+                        $("[data-id="+item.children[child].id+"]").show();
+                    }
+
+                    if(child > 0){
+                        return [m("span.expand-icon-holder", m("i.fa.fa-minus-square-o", " ")), m("span.expand-icon-holder", m("i.fa.fa-folder-o", " "))];
+                    }else{
+                        return [m("span.expand-icon-holder", m("i.fa.fa-minus-square-o", " ")), m("span.expand-icon-holder", m("i.fa."+item.icon, " "))];
+                    }
+
+                } else {
+                    for(var child = 0; child < item.children.length; child++){
+                        $("[data-id="+item.children[child].id+"]").hide();
+                    }
+                    if(child > 0){
+                        return [m("span.expand-icon-holder", m("i.fa.fa-plus-square-o", " ")), m("span.expand-icon-holder", m("i.fa.fa-folder-o", " "))];
+                    }else{
+                        console.log(item.icon);
+                        return [m("span.expand-icon-holder", m("i.fa.fa-plus-square-o", " ")), m("span.expand-icon-holder", m("i.fa."+item.icon, " "))];
+                    }
                 }
-                return "[-] ";
             } else {
-                for(var child = 0; child < item.children.length; child++){
-                    $("[data-id="+item.children[child].id+"]").hide();
-                }
-                return "[+] ";
-            }
-        } else {
-            return m.trust("");
+                return [m("span.expand-icon-holder"), m("span.expand-icon-holder", m("i.fa."+item.icon, " "))];
+            }            
         }
-    }
+
+    };
 
 //
 //
@@ -361,9 +375,9 @@ grid.controller = function () {
 // Table view
 grid.view = function(ctrl){
     return [ m(".row", [ m(".col-xs-12", [
-        m("input.form-control[placeholder='filter'][type='text']", { style:"width:300px", onkeyup: ctrl.filter, value : ctrl.filterText()} ),
-        m("button.btn.btn-default", { onclick: ctrl.expand}, "Expand All"),
-        m("button.btn.btn-default",{ onclick: ctrl.collapse}, "Collapse All")
+        m("input.pull-left.form-control[placeholder='filter'][type='text']", { style:"width:300px", onkeyup: ctrl.filter, value : ctrl.filterText()} ),
+        m("button.btn.btn-default.pull-right", { onclick: ctrl.expand}, "Expand All"),
+        m("button.btn.btn-default.pull-right",{ onclick: ctrl.collapse}, "Collapse All")
     ])
     ]),
         m("div.gridWrapper",{config : ctrl.ui}, [ m("table.table", [
@@ -379,17 +393,16 @@ grid.view = function(ctrl){
             ]),
             m("tbody",[
                 ctrl.flatData.map(function(item, index) {
+                    
                     if(item){
-                        console.log(item, index);
                         var row = item.row;
-                        return  m("tr", { "data-id" : row.id, "data-level": row.level, "data-index" : index}, [
-                            m("td.tdTitle", {"data-id" : item.id, style : "padding-left: "+row.level*20+"px" },  [
+                        return  m("tr", { "data-id" : row.id, "data-level": row.indent, "data-index" : index}, [
+                            m("td.tdTitle", {"data-id" : item.id, style : "padding-left: "+row.indent*20+"px" },  [
                                 m("span.tdFirst", { onclick: function() { row.status = !row.status; }}, ctrl.subFix(row)),
                                 m("span", row.id+" "),
                                 m("span", row.title+" ")
                             ]),
                             m("td", row.name + " "),
-                            m("td", row.date + " "),
                             m("td", { width : "150"}, [
                                 m("button.btn.btn-danger.btn-sm", {"data-id" : row.id, onclick: function(){ ctrl.delete(index) }},  " X "),
                                 m("button.btn.btn-success.btn-sm", {"data-id" : row.id, onclick: m.withAttr("data-id", ctrl.add)},  " Add ")
