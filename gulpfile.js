@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var concat = require("gulp-concat")
 var minifyCSS = require('gulp-minify-css');
 var less = require('gulp-less');
-var generate = require('jsontree-generator');
+var generate = require('./scripts/generate');
 var rename = require('gulp-rename');
 
 var paths = {
@@ -16,7 +16,7 @@ gulp.task('generate-max', function() {
     // gulp.src -- get html template
     return gulp.src(paths.json)
         // pipe through plugin
-        .pipe(generate(20000, 0))
+        .pipe(generate(100, 5))
         // set destination
         .pipe(gulp.dest("./dist"));
 });
@@ -25,7 +25,7 @@ gulp.task('generate-min', function() {
     // gulp.src -- get html template
     return gulp.src(paths.json)
         // pipe through plugin
-        .pipe(generate(100, 5))
+        .pipe(generate(50, 2))
         .pipe(rename("small.json"))
         // set destination
         .pipe(gulp.dest("./dist"));
@@ -58,4 +58,4 @@ gulp.task('watch', function() {
 });
 
 
-gulp.task("default", ["css", "js", "generate-max", "generate-min", "watch"]);
+gulp.task("default", ["css", "js", "watch"]);
