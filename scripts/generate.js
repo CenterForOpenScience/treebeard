@@ -22,7 +22,7 @@ module.exports =  function outputJSON (totalItems, depth){
         var randomNumber = function(top){
             var top = top || 100000;
             return Math.floor(Math.random()*(top+1));
-        }
+        };
 
         /*
          Generate random strings from string block list, define number of strings with "number" parameter
@@ -32,10 +32,10 @@ module.exports =  function outputJSON (totalItems, depth){
             var output = "";
             for(var i = 0; i < number; i++){
                 var randomPlace = randomNumber(stringArray.length);
-                output += stringArray[randomPlace] + " "
+                output += stringArray[randomPlace] + " ";
             }
             return output;
-        }
+        };
 
         /*
          Connect strings into different string types, define "type" and "number" of strings
@@ -65,14 +65,14 @@ module.exports =  function outputJSON (totalItems, depth){
                 output += word + end;
             }
             return output;
-        }
+        };
 
         /*
          Get a random person name from name array
          */
         var randomPerson = function(){
             return nameArray[randomNumber(nameArray.length)];
-        }
+        };
 
         /*
          Return a random boolean
@@ -84,7 +84,7 @@ module.exports =  function outputJSON (totalItems, depth){
             } else {
                 return true;
             }
-        }
+        };
 
         /*
          Return a random option from those defined, (mimicking multiple choice), "options" is a string with comma separated items
@@ -93,7 +93,7 @@ module.exports =  function outputJSON (totalItems, depth){
             var list = options.split(",");
             var choice = list[randomNumber(list.length)];
             return choice;
-        }
+        };
 
         /*
          Return an array of certain "type" and "length"
@@ -128,50 +128,57 @@ module.exports =  function outputJSON (totalItems, depth){
                 }
             }
             return randomArray;
-        }
+        };
 
         /*
          Construct your json object
          */
-        var obj = function (id, parent){
+        var obj = function (id, parent, indent){
             this.id = id;
             this.parent = parent;
+            this.indent = indent;
             this.person =  randomPerson();
             this.desc = styledString("sentence", 14);
-            this.name = styledString("title", 5);
+            this.title = styledString("title", 5);
             this.kind = randomOption("item,folder");
             this.age = randomNumber(60);
             this.skills = randomOption("js,css,html,python");
-            this.status = randomBoolean();
+            this.open = randomBoolean();
             this.stuff = randomArray("mixed", randomNumber(8));
+            this.show = true;
+            this.open = randomBoolean();
+            this.date = new Date();
+            this.icon = randomOption("fa-file-archive-o,fa-file-audio-o,fa-file-code-o,fa-file-excel-o,fa-file-image-o,fa-file-movie-o,fa-file-o,fa-file-pdf-o,fa-file-photo-o,fa-file-picture-o,fa-file-powerpoint-o,fa-file-sound-o,fa-file-text,fa-file-text-o,fa-file-video-o,fa-file-word-o,fa-file-zip-o");
             this.children = [];
-        }
+        };
 
         /*
          Build a json object going down "level" number of levels.
          */
-        var counter = 0;
-        var buildJSON = function redo (level, parent){
+        var counter = 1;
+        var buildJSON = function redo (level, parent, indent){
             if(counter < totalItems){
                 var childarray = [];
                 var totalIteration;
-                if(totalItems < 50){ totalIteration = 3} else { totalIteration = 5}
+                if(totalItems < 50){ totalIteration = 5; } else { totalIteration = 20; }
                 var iteration = randomNumber(totalIteration);
                 var remainingItems = totalItems-counter;
                 if(remainingItems<5){ iteration = remainingItems}
                 for(var i  = 0; i < iteration; i++){
-                    var thisObj = new obj(counter, parent);
+                    var thisObj = new obj(counter, parent, indent);
+                    if( counter === 1){ thisObj.open = true; }
                     var parent = counter;
                     counter++;
                     if( level > 0 && iteration != remainingItems) {
-                        thisObj.children = redo (level-1, parent);
+                        thisObj.children = redo (level-1, parent, indent+1);
                     }
                     childarray.push( thisObj);
                 }
                 return childarray;
             }
-        }
-        var output = buildJSON(depth);
+            return [];
+        };
+        var output = buildJSON(depth, 0, 0);
 
         var outputBuffer = new Buffer(JSON.stringify(output));
         if (file.isNull()) {

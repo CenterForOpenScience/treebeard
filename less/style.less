@@ -11,6 +11,9 @@
   padding: 20px 0;
 }
 
+.padder-10 {
+  padding: 10px;
+}
 .m-b-20{
   margin-bottom: 20px;
 }
@@ -42,12 +45,41 @@ tr {
   margin-bottom: 0px;
   box-shadow: none;
 }
-.gridWrapper {
+.tb-tbody {
   border: 1px solid #ccc;
-  margin-top: @large;
-  padding: @medium;
-  height: 600px;
-  overflow: scroll;
+  height: 500px;
+  overflow: auto;
+}
+.tb-tbody-inner{
+  overflow : hidden;
+}
+.tb-rowTitles {
+  background: #EEE;
+  padding: 10px 0px 5px 16px;
+  border: 1px solid #CCC;
+  border-bottom: none;
+}
+.tb-th, .tb-td {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tb-th {
+  font-weight: bold;
+}
+.tb-details {
+  background: #ADD8E6;
+  height: 623px;
+  border: 1px solid #EEE;
+  padding: 20px;
+}
+.tb-row-active {
+  background: #ADD8E6;
+}
+.tb-footer {
+  background: rgba(239, 239, 239, 0.51);
+  border: 1px solid #CCC;
+  border-top: none;
 }
 
 .form-comp {
@@ -55,13 +87,11 @@ tr {
 }
 .highlight {
   background-color: rgba(255, 255, 0, 0.53);
+}
 
-}
-.btn {
-  margin : @small;
-}
-.table>tbody>tr>td { border : none; padding: 0px;}
-.table>tbody>tr>td>span.tdFirst{ border-left: 1px solid #ccc; font-size: 11px; padding-left: 5px; }
-.tb-paddingRow {
-  height: 30px;
+
+.expand-icon-holder{
+  height:10px;
+  width:20px;
+  display:inline-block;
 }
