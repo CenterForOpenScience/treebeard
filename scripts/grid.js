@@ -42,7 +42,7 @@ grid.layout = {
 
 grid.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "sample.json"}).then(flatten);
+    this.data = m.request({method: "GET", url: "small.json"}).then(flatten);
     this.flatData = [];
     this.filterData = [];
     this.filterText = m.prop("");
@@ -60,7 +60,7 @@ grid.controller = function () {
      *  Turns the tree structure into a flat index of nodes
      */
     function flatten(value) {
-        var recursive = function redo(data, show) {
+        var recursive = function redo(data) {
             var length = data.length;
             for (var i = 0; i < length; i++) {
                 var children = data[i].children;
@@ -73,11 +73,9 @@ grid.controller = function () {
                     childIDs.push(data[i].children[j].id);
                 }
                 item.row.children = childIDs;
-                item.row.show = show;
                 self.flatData.push(item);
-                if(show && !data[i].open){ show = false; }
                 if (children.length > 0) {
-                    redo(children, show);
+                    redo(children);
                 }
             }
         };
@@ -108,6 +106,19 @@ grid.controller = function () {
             self.refresh_range(index);
             m.redraw(true);
        });
+
+        $(".tdTitle").draggable({ helper: "clone" });
+        $(".tb-row").droppable({
+            tolerance : "pointer",
+            hoverClass : "highlight",
+            drop: function( event, ui ) {
+                var to = $(this).attr("data-id");
+                var from = ui.draggable.attr("data-id");
+                if (to != from ){
+                    self.move(from, to);
+                }
+            }
+        });
     };
 
     /*
@@ -136,23 +147,34 @@ grid.controller = function () {
     /*
      *  Finds the last row within the nodes to add a node to the end of the appropriate rows;
      */
-    this.return_last_childrow = function(index, level){
-        var len = self.flatData.length;
-        var lastIndex = index+1;
-        for(var i = index+1; i < len; i++) {
-            var o = self.flatData[i];
-            lastIndex = i;
-            console.log("i", i, "len", len, "level", level, "o-level", o.row.indent);
-            if(o.row.indent <= level) {
-                return lastIndex;
+    this.return_last_childrow = function(index){
+        var row = self.flatData[index].row;
+        if(row.children.length > 0 ){
+            var len = self.flatData.length;
+            var level = row.indent;
+            var lastIndex = index+1;
+            for(var i = index+1; i < len; i++) {
+                var o = self.flatData[i];
+                if(o.row.indent <= level){
+                    return lastIndex;
+                }
+                if(o.row.indent == level+1 ){
+                    lastIndex = i;
+                }
+                if(o.row.indent > level+1){
+                    continue; 
+                }
+                if(i === len-1){
+                    return lastIndex;
+                }
             }
-            if(i === len-1){
-                return lastIndex;
-            }
+            if(index+1 >= len)  {
+                return null;
+            } 
+        } else {
+            return index; 
         }
-        if(index+1 >= len)  {
-            return self.flatData.length;
-        }
+
     };
 
     /*
@@ -162,7 +184,7 @@ grid.controller = function () {
         var len = self.flatData.length;
         for(var i = 0; i < len; i++) {
             var o = self.flatData[i];
-            if(o.row.id === id) {
+            if(o.row.id == id) {
                 return i;
             }
         }
@@ -300,6 +322,33 @@ grid.controller = function () {
         self.expandAllState = false;
     };
 
+    this.move = function(from, to){
+        var fromIndex = self.return_index(from);
+        var toIndex = self.return_index(to);
+
+        var tempData = self.flatData[fromIndex]
+
+        var fromData = self.flatData[fromIndex].row;
+        var toData = self.flatData[toIndex].row;
+
+        self.flatData.splice(fromIndex, 1);
+        fromData.indent = toData.indent + 1;
+        toData.children.push(fromData.id);
+
+        var insert = self.return_last_childrow(toIndex);
+        self.flatData.splice(insert, 0, tempData);
+
+        if (fromData.children.length > 0){
+            console.log(fromData.children.length);
+            for (var child = 0; child < fromData.children.length; child++){
+                console.log(child);
+                var childId = fromData.children[child];
+                self.move(childId, fromData.id);
+            }
+        }
+
+        m.redraw();
+    };
 
     /*
      *  Sets the item that willl be shared on the right side with details
@@ -342,7 +391,7 @@ grid.controller = function () {
                         range.push(i);
                         counter++;
                     }
-                    if(!o.open){
+                    if(!o.open && o.children.length > 0){
                         skipLevel = o.indent;
                         skip = true;
                     }
@@ -456,7 +505,7 @@ grid.view = function(ctrl){
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
                                 ctrl.showRange.map(function(item){
                                     var row = ctrl.flatData[item].row;
-                                    console.log("id:", row.id, "open:", row.open, "show", row.show, "indent", row.indent);
+                                    // console.log("id:", row.id, "open:", row.open, "show", row.show, "indent", row.indent);
                                     var cols = ctrl.layout.columns;
                                     var padding, css;
                                     if(ctrl.filterOn){
