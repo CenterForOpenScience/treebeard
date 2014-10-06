@@ -1377,6 +1377,8 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 @media print{.visible-print-inline-block{display:inline-block!important}}
 @media print{.hidden-print{display:none!important}}
 .v-pad-20{padding:20px 0}
+.h-pad-20{padding:0 20px}
+.h-mar-10{margin:0 10px}
 .padder-10{padding:10px}
 .m-b-20{margin-bottom:20px}
 .m-t-md{margin-top:25px}

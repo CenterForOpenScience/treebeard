@@ -35,7 +35,6 @@ Mithril=m=new function a(b,c){function d(a){return{}.toString.call(a)}function e
 var grid = {};
 
 // Set property for data and get the data
-
 grid.model = function (level){
     return {
         level :  level,
@@ -55,6 +54,7 @@ grid.model = function (level){
 grid.layout = {
     rowHeight : 35,
     showTotal : 15,
+    paginate : false,
     columns : [
         {
             title: "Title",
@@ -84,6 +84,8 @@ grid.controller = function () {
     this.rangeMargin = 0;
     this.detailItem = {};
     this.visibleCache = 0;
+    this.expandAllState = false;
+    this.collapseAllState = false;
 
 
     /*
@@ -200,7 +202,7 @@ grid.controller = function () {
 
 
     /*
-     *  Completes an action on selected node and children if there are any
+     *  Completes an action on selected node and children if there are any: think of the children!
      */
     this.node_action = function(id, action, scope, selector){
         var scope = scope || "all";
@@ -230,7 +232,7 @@ grid.controller = function () {
                         doit = true;
                     }
                 }
-                if(doit){ self.node_action(children[k], self.delete_node); }
+                if(doit){ self.node_action(children[k], action); }
             }
         }
     };
@@ -321,9 +323,14 @@ grid.controller = function () {
     /*
      *  Toggles all row views to expand everything or collapse everything
      */
-    this.toggle_expand = function(){
-
+    this.expand_all = function(){
+        self.expandAllState = true;
     };
+
+    this.collapse_all = function(){
+        self.expandAllState = false;
+    };
+
 
     /*
      *  Sets the item that willl be shared on the right side with details
@@ -349,10 +356,18 @@ grid.controller = function () {
                     counter++;
                 }
             } else {
-                if(o.show){
+                if(self.expandAllState) {
+                    o.show = true;
+                    o.open = true;
                     range.push(i);
                     counter++;
+                } else {
+                    if(o.show){
+                        range.push(i);
+                        counter++;
+                    }
                 }
+
             }
         }
         console.log(self.showRange[0] === range[0]);
@@ -387,7 +402,23 @@ grid.controller = function () {
         return total;
     };
 
+    /*
+     *  Changes view to continous scroll
+     */
+    this.toggle_scroll = function(){
+        self.layout.paginate = false;
+        $('.tb-paginate').removeClass('active');
+        $('.tb-scroll').addClass('active');
+    };
 
+    /*
+     *  Changes view to paginate
+     */
+    this.toggle_paginate = function(){
+        self.layout.paginate = true;
+        $('.tb-scroll').removeClass('active');
+        $('.tb-paginate').addClass('active');
+    };
 
     /*
      *  What to show for toggle state, this will simplify with the use of icons
@@ -490,11 +521,24 @@ grid.view = function(ctrl){
                         m(".row", [
                             m(".col-xs-4",
                                 m('.btn-group.padder-10', [
-                                    m("button.btn.btn-default.btn-sm","Paginate"),
-                                    m("button.btn.btn-default.btn-sm", "Scroll")
+                                    m("button.btn.btn-default.btn-sm.active.tb-scroll",
+                                        { onclick : ctrl.toggle_scroll },
+                                        "Scroll"),
+                                    m("button.btn.btn-default.btn-sm.tb-paginate",
+                                        { onclick : ctrl.toggle_paginate },
+                                        "Paginate")
                                 ])
                             ),
-                            m('.col-xs-8', [ m('.padder-10', "Pages")])
+                            m('.col-xs-8', [ m('.padder-10', [
+                                (function(){
+                                    if(ctrl.layout.paginate){
+                                        return m('.pull-right', [ m('button.btn.btn-default.btn-sm', [ m('i.fa.fa-chevron-left')]),
+                                        m('input.h-mar-10', { type : "text", style : "width: 30px;", value : "1"} ),
+                                        m('button.btn.btn-default.btn-sm', [ m('i.fa.fa-chevron-right')])
+                                        ]);
+                                    }
+                                }())
+                            ])])
                         ])
                     ])
                 ])
