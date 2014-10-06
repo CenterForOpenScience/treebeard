@@ -270,6 +270,7 @@ grid.controller = function () {
      *  Toggles weather a folder is collapes or opn
      */
     this.toggle_folder = function(topIndex, index){
+        console.log(topIndex, index);
         var len = self.flatData.length;
         var item = self.flatData[index].row;
         var level = item.indent;
@@ -313,11 +314,18 @@ grid.controller = function () {
      */
     this.refresh_range = function(begin){
         var len = self.flatData.length;
+        var skip = false;
+        var skipLevel = 0;
         var range = [];
         var counter = begin;
         for ( var i = begin; i < len; i++){
             if(range.length === self.layout.showTotal ){break;}
             var o = self.flatData[i].row;
+
+            // Should we skip this (i.e. if the folder is closed)
+            if(skip && o.indent > skipLevel){ continue;}
+            if(o.indent === skipLevel){ skip = false; }
+
             if(self.filterOn){
                 if(self.row_filter_result(o)) {
                     range.push(i);
@@ -334,17 +342,21 @@ grid.controller = function () {
                         range.push(i);
                         counter++;
                     }
+                    if(!o.open){
+                        skipLevel = o.indent;
+                        skip = true;
+                    }
                 }
 
             }
         }
-        console.log(self.showRange[0] === range[0]);
-        if(self.showRange[0] === range[0]){
-            console.log("Range", range[1]);
-            self.refresh_range(range[1]);
-        } else {
+//        console.log(self.showRange[0] === range[0]);
+//        if(self.showRange[0] === range[0]){
+//            console.log("Range", range[1]);
+//            self.refresh_range(range[1]);
+//        } else {
             self.showRange = range;
-        }
+//        }
     };
 
     /*
@@ -444,6 +456,7 @@ grid.view = function(ctrl){
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
                                 ctrl.showRange.map(function(item){
                                     var row = ctrl.flatData[item].row;
+                                    console.log("id:", row.id, "open:", row.open, "show", row.show, "indent", row.indent);
                                     var cols = ctrl.layout.columns;
                                     var padding, css;
                                     if(ctrl.filterOn){
