@@ -55,18 +55,22 @@ grid.layout = {
     rowHeight : 35,
     showTotal : 15,
     paginate : false,
+    lazyLoad : false,
     columns : [
         {
             title: "Title",
-            width : "60%"
+            width : "60%",
+            sort : true
         },
         {
             title: "Author",
-            width : "30%"
+            width : "30%",
+            sort : false
         },
         {
             title: "Actions",
-            width : "10%"
+            width : "10%",
+            sort : false
         }
     ]
 };
@@ -74,9 +78,9 @@ grid.layout = {
 
 grid.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "sample.json"}).then(flatten);
+    this.data = m.request({method: "GET", url: "small.json"}).then(flatten);
     this.flatData = [];
-    this.filterData = [];
+    this.filterIndexes = [];
     this.filterText = m.prop("");
     this.showRange = [];
     this.filterOn = false;
@@ -84,8 +88,12 @@ grid.controller = function () {
     this.rangeMargin = 0;
     this.detailItem = {};
     this.visibleCache = 0;
+    this.visibleIndexes = [];
     this.expandAllState = false;
     this.collapseAllState = false;
+    this.lastLocation = 0; // The last scrollTop location, updates on every scroll.
+    this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
+    this.currentPage = m.prop(1);
 
 
     /*
@@ -106,21 +114,29 @@ grid.controller = function () {
                 }
                 item.row.children = childIDs;
                 item.row.show = show;
+                if(data[i].children.length > 0 && !data[i].open ){
+                    show = false;
+                }
                 self.flatData.push(item);
-                if(show && !data[i].open){ show = false; }
                 if (children.length > 0) {
                     redo(children, show);
                 }
             }
         };
         recursive(value, true);
-        self.initialize_range();
+        self.refresh_range(0);
         return value;
     }
 
     this.calculate_height = function(){
-        var visible = self.calculate_visible();
-        var itemsHeight = visible*self.layout.rowHeight;
+        var itemsHeight;
+        if(!self.paginate){
+            var visible = self.calculate_visible();
+            itemsHeight = visible*self.layout.rowHeight;
+        }else {
+            itemsHeight = self.layout.showTotal*self.layout.rowHeight;
+            self.rangeMargin = 0;
+        }
         $('.tb-tbody-inner').height(itemsHeight);
         return itemsHeight;
     };
@@ -129,17 +145,43 @@ grid.controller = function () {
      */
     this.init = function(el, isInit){
         if (isInit) { return; }
-        $('.tb-tbody').scroll(function(){
-            var itemsHeight = self.calculate_height();
+        var containerHeight = $('#tb-tbody').height();
+        self.layout.showTotal = Math.floor(containerHeight/self.layout.rowHeight);
+        console.log("ShowTotal", self.layout.showTotal);
+        self.calculate_visible();
+        self.refresh_range(0);
+
+        $('#tb-tbody').scroll(function(){
+            // snap scrolling to intervals of items;
+            // get current scroll top
             var scrollTop = $(this).scrollTop();
+            // are we going up or down? Compare to last scroll location
+            var diff = scrollTop - self.lastLocation;
+            console.log(diff);
+            // going down, increase index
+            if (diff > 0 && diff < self.layout.rowHeight){
+                $(this).scrollTop(self.lastLocation+self.layout.rowHeight);
+            }
+            // going up, decrease index
+            if (diff < 0 && diff > -self.layout.rowHeight){
+                $(this).scrollTop(self.lastLocation-self.layout.rowHeight);
+            }
+
+            var itemsHeight = self.calculate_height();
             var innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
+            scrollTop = $(this).scrollTop();
             var location = scrollTop/innerHeight*100;
+            console.log("Visible cache", self.visibleCache);
             var index = Math.round(location/100*self.visibleCache);
-            console.log("Visible", self.visibleCache);
+//            console.log("Visible", self.visibleCache);
             self.rangeMargin = Math.round(itemsHeight*(scrollTop/innerHeight));
+//            console.log("ScrollTop", scrollTop, "Location", location, "Index", index);
             self.refresh_range(index);
             m.redraw(true);
+            self.lastLocation = scrollTop;
        });
+
+
     };
 
     /*
@@ -205,7 +247,7 @@ grid.controller = function () {
      *  Completes an action on selected node and children if there are any: think of the children!
      */
     this.node_action = function(id, action, scope, selector){
-        var scope = scope || "all";
+        scope = scope || "all";
         var len = self.flatData.length;
         var i, j, k, index;
         var children = [];
@@ -238,39 +280,6 @@ grid.controller = function () {
     };
 
     /*
-     *  Shows the initial number of rows as the page loads or resetting from other views
-     */
-    this.initialize_range = function(){
-        var len = self.flatData.length;
-        var range = [];
-        for ( var i = 0; i < len; i++){
-            if(range.length === self.layout.showTotal){ break; }
-            var o = self.flatData[i];
-            if(o.row.show){
-                range.push(i);
-            }
-        }
-        self.showRange = range;
-    };
-
-    /*
-     *  Initializes the first rows for the filtering function
-     */
-    this.initialize_filter = function (){
-        var len = self.flatData.length;
-        var range = [];
-        for ( var i = 0; i < len; i++){
-            if(range.length === self.layout.showTotal){ break; }
-            var o = self.flatData[i].row;
-            if(self.row_filter_result(o)){
-                range.push(i);
-            }
-        }
-        self.showRange = range;
-        m.redraw();
-    };
-
-    /*
      *  Returns whether a single row contains the filtered items
      */
     this.row_filter_result = function(row){
@@ -291,47 +300,103 @@ grid.controller = function () {
         var filter = self.filterText().toLowerCase();
         if(filter.length === 0){
             self.filterOn = false;
-            self.initialize_range();
+            self.refresh_range(0);
+            // restore location of scroll
+            $('#tb-tbody').scrollTop(self.lastNonFilterLocation);
         } else {
-            self.filterOn = true;
-            self.initialize_filter();
+            if(!self.filterOn){
+                self.filterOn = true;
+                self.lastNonFilterLocation = self.lastLocation;
+            }
+            var index = self.showRange[0];
+            if(!self.showRange[0]){
+                index = 0;
+            }
+            self.refresh_range(index);
+            console.log(index);
+            self.calculate_visible();
         }
     };
+
+
+    /*
+     *  During pagination jumps to specific page
+     */
+    this.jump_to_page = function(e){
+        m.withAttr("value", self.currentPage)(e);
+        var page = parseInt(self.currentPage());
+        var index = (self.layout.showTotal*page)+1;
+        self.refresh_range(self.visibleIndexes[index]);
+    };
+
 
     /*
      *  Toggles weather a folder is collapes or opn
      */
+
     this.toggle_folder = function(topIndex, index){
-        console.log(topIndex, index);
         var len = self.flatData.length;
+        console.log(topIndex, index);
         var item = self.flatData[index].row;
-        var level = item.indent;
-        for ( var i = index+1; i < len; i++){
-            var o = self.flatData[i].row;
-            if(o.indent <= level){ break; }
-            if(item.open){
-                o.show = false;
-            } else {
-                o.show = true;
-            }
+
+
+        function lazy_flatten(value, topIndex, index, level){
+
+            var recursive = function redo(data, show, level) {
+                var length = data.length;
+
+                for (var i = 0; i < length; i++) {
+                    var children = data[i].children;
+                    var childIDs = [];
+                    var item = {
+                        id: data[i].id,
+                        row: data[i]
+                    };
+                    for(var j = 0; j < data[i].children.length; j++){
+                        childIDs.push(data[i].children[j].id);
+                    }
+                    item.row.children = childIDs;
+                    item.row.show = show;
+                    item.row.indent = level;
+                    if(data[i].children.length > 0 && !data[i].open ){
+                        show = false;
+                    }
+                    self.flatData.splice(index, 0, item);
+                    if (children.length > 0) {
+                        redo(children, show, level+1);
+                    }
+                    index++;
+                }
+            };
+            recursive(value, true, level);
+            self.refresh_range(topIndex);
+            m.redraw(true);
+            return value;
         }
-        item.open = !item.open;
-        self.calculate_height();
-        self.refresh_range(topIndex);
-        m.redraw(true);
-    };
 
-    /*
-     *  Toggles all row views to expand everything or collapse everything
-     */
-    this.expand_all = function(){
-        self.expandAllState = true;
-    };
+        // lazy loading
+        if(item.kind === "folder" && item.children.length === 0){
+            var newitems = m.request({method: "GET", url: "small.json"}).then(function(value){ lazy_flatten(value, topIndex, index, item.indent+1); });
+        } else {
+            var level = item.indent;
+            for ( var i = index+1; i < len; i++){
+                var o = self.flatData[i].row;
+                if(o.indent <= level){ break; }
+                if(item.open){
+                    o.show = false;
+                } else {
+                    o.show = true;
+                }
+            }
+            item.open = !item.open;
+            self.calculate_height();
+            self.refresh_range(topIndex);
+            m.redraw(true);
+        }
 
-    this.collapse_all = function(){
-        self.expandAllState = false;
-    };
 
+
+    };
 
     /*
      *  Sets the item that willl be shared on the right side with details
@@ -346,6 +411,7 @@ grid.controller = function () {
      */
     this.refresh_range = function(begin){
         var len = self.flatData.length;
+        if(self.filterOn){ begin = self.filterIndexes[begin];}
         var skip = false;
         var skipLevel = 0;
         var range = [];
@@ -374,7 +440,7 @@ grid.controller = function () {
                         range.push(i);
                         counter++;
                     }
-                    if(!o.open){
+                    if(!o.open && o.children.length > 0){
                         skipLevel = o.indent;
                         skip = true;
                     }
@@ -382,8 +448,10 @@ grid.controller = function () {
 
             }
         }
-//        console.log(self.showRange[0] === range[0]);
-//        if(self.showRange[0] === range[0]){
+//        console.log("Begin", begin);
+//        console.log("Prev range:", self.showRange);
+//        console.log("New range:", range);
+//        if(self.filterOn && self.showRange[self.layout.showTotal-1] === range[self.layout.showTotal-1]){
 //            console.log("Range", range[1]);
 //            self.refresh_range(range[1]);
 //        } else {
@@ -397,14 +465,18 @@ grid.controller = function () {
     this.calculate_visible = function(){
         var len = self.flatData.length;
         var total = 0;
+        self.filterIndexes = [];
+        self.visibleIndexes = [];
         for ( var i = 0; i < len; i++){
             var o = self.flatData[i].row;
             if(self.filterOn){
                 if(self.row_filter_result(o)) {
                     total++;
+                    self.filterIndexes.push(i);
                 }
             } else {
                 if(o.show){
+                    self.visibleIndexes.push(i);
                     total++;
                 }
             }
@@ -430,14 +502,37 @@ grid.controller = function () {
         self.layout.paginate = true;
         $('.tb-scroll').removeClass('active');
         $('.tb-paginate').addClass('active');
+        var first = self.showRange[0];
+        var pagesBehind = Math.floor(first/self.layout.showTotal);
+        var firstItem = (pagesBehind*self.layout.showTotal)+1;
+        self.currentPage(pagesBehind+1);
+        self.refresh_range(firstItem);
     };
+
+    this.page_up = function(){
+        // get last shown item index and refresh view from that item onwards
+        var last = self.showRange[self.layout.showTotal-1];
+        console.log("Last", last);
+        if(last && last+1 < self.flatData.length){
+            self.refresh_range(last+1);
+            self.currentPage(self.visibleIndexes[self.currentPage()+1]);
+        }
+    };
+    this.page_down = function(){
+        var first = self.showRange[0];
+        if(first && first > 0) {
+            self.refresh_range(self.visibleIndexes[first - self.layout.showTotal]);
+            self.currentPage(self.currentPage()-1);
+        }
+    };
+
 
     /*
      *  What to show for toggle state, this will simplify with the use of icons
      */
     this.subFix = function(item){
-        if(item.children.length > 0 ){
-            if(item.open){
+        if(item.children.length > 0 || item.kind === "folder"){
+            if(item.children.length > 0 && item.open){
                 return [
                     m("span.expand-icon-holder", m("i.fa.fa-minus-square-o", " ")),
                     m("span.expand-icon-holder", m("i.fa.fa-folder-o", " "))
@@ -461,34 +556,43 @@ grid.controller = function () {
 grid.view = function(ctrl){
     console.log(ctrl.showRange);
     return [
-        m('.gridWrapper.row',{config : ctrl.init},  [
+        m('.gridWrapper.row', {config : ctrl.init},  [
             m('.col-sm-8', [
                 m(".tb-table", [
                     m('.tb-head',[
                         m(".row", [
                             m(".col-xs-8", [
-                                m("input.form-control[placeholder='filter'][type='text']", {
-                                    style:"width:300px",
+                                m("input.form-control[placeholder='filter'][type='text']",{
+                                    style:"width:300px;display:inline; margin-right:20px;",
                                     onkeyup: ctrl.filter,
-                                    value : ctrl.filterText()} )
-                            ]),
-                            m('.col-xs-4', m('.btn-group.padder-10', [
-                                m("button.btn.btn-default.btn-sm", { onclick: ctrl.expand}, "Expand All"),
-                                m("button.btn.btn-default.btn-sm",{ onclick: ctrl.collapse}, "Collapse All")
-                            ]))
+                                    value : ctrl.filterText()}
+                                ),
+                                (function(){ if(ctrl.filterOn) {
+                                    return m('span', { style : "width: 120px"}, "Results : " + ctrl.visibleCache); }
+                                }())
+                            ])
                         ])
                     ]),
-                    m(".tb-rowTitles", [
+                    m(".tb-rowTitles.m-t-md", [
                         ctrl.layout.columns.map(function(col){
-                            return m('.tb-th', { style : "width: "+ col.width }, col.title);
+                            var sortView = "";
+                            if(col.sort){
+                                sortView =  [
+                                     m('i.fa.fa-sort-alpha-desc.tb-sort-inactive.padder-10'),
+                                     m('i.fa.fa-sort-alpha-asc.tb-sort-inactive.padder-10')
+                                ];
+                            }
+                            return m('.tb-th', { style : "width: "+ col.width }, [
+                                m('span', col.title),
+                                sortView
+                            ]);
                         })
                     ]),
-                    m(".tb-tbody", [
+                    m("#tb-tbody", [
                         m('.tb-tbody-inner', [
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
                                 ctrl.showRange.map(function(item){
                                     var row = ctrl.flatData[item].row;
-                                    console.log("id:", row.id, "open:", row.open, "show", row.show, "indent", row.indent);
                                     var cols = ctrl.layout.columns;
                                     var padding, css;
                                     if(ctrl.filterOn){
@@ -513,7 +617,10 @@ grid.view = function(ctrl){
                                             m("span", row.id+" "),
                                             m("span", row.title+" ")
                                         ]),
-                                        m(".tb-td", { style : "width:"+cols[1].width }, row.name),
+                                        m(".tb-td", { style : "width:"+cols[1].width }, [
+                                            m('span', row.person),
+
+                                        ]),
                                         m(".tb-td", { style : "width:"+cols[2].width }, [
                                             m("button.btn.btn-danger.btn-xs", {
                                                 "data-id" : row.id,
@@ -545,9 +652,10 @@ grid.view = function(ctrl){
                             m('.col-xs-8', [ m('.padder-10', [
                                 (function(){
                                     if(ctrl.layout.paginate){
-                                        return m('.pull-right', [ m('button.btn.btn-default.btn-sm', [ m('i.fa.fa-chevron-left')]),
-                                        m('input.h-mar-10', { type : "text", style : "width: 30px;", value : "1"} ),
-                                        m('button.btn.btn-default.btn-sm', [ m('i.fa.fa-chevron-right')])
+                                        return m('.pull-right', [
+                                            m('button.btn.btn-default.btn-sm',{ onclick : ctrl.page_down}, [ m('i.fa.fa-chevron-left')]),
+                                            m('input.h-mar-10', { type : "text", style : "width: 30px;", onkeyup: ctrl.jump_to_page, value : ctrl.currentPage()} ),
+                                            m('button.btn.btn-default.btn-sm',{ onclick : ctrl.page_up}, [ m('i.fa.fa-chevron-right')])
                                         ]);
                                     }
                                 }())

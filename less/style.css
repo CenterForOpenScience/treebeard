@@ -37,7 +37,7 @@ tr {
   margin-bottom: 0px;
   box-shadow: none;
 }
-.tb-tbody {
+#tb-tbody {
   border: 1px solid #ccc;
   height: 500px;
   overflow: auto;
@@ -73,6 +73,12 @@ tr {
   background: rgba(239, 239, 239, 0.51);
   border: 1px solid #CCC;
   border-top: none;
+}
+.tb-sort-inactive {
+  color: #999;
+}
+.tb-sort-active {
+  color: #222;
 }
 .form-comp {
   margin: 0 25px;

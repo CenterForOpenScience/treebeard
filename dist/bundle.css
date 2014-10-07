@@ -1386,7 +1386,7 @@ header{background:#34495e;border-top:3px solid #2b3c4e;border-bottom:3px solid #
 tr{padding-left:10px}
 .list-group-item{position:relative;display:block;padding:10px 0 0 15px;background-color:#fff;border:none}
 .list-group{margin-bottom:0;box-shadow:none}
-.tb-tbody{border:1px solid #ccc;height:500px;overflow:auto}
+#tb-tbody{border:1px solid #ccc;height:500px;overflow:auto}
 .tb-tbody-inner{overflow:hidden}
 .tb-rowTitles{background:#EEE;padding:10px 0 5px 16px;border:1px solid #CCC;border-bottom:none}
 .tb-td,.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis}
@@ -1394,6 +1394,8 @@ tr{padding-left:10px}
 .tb-details{background:#ADD8E6;height:623px;border:1px solid #EEE;padding:20px}
 .tb-row-active{background:#ADD8E6}
 .tb-footer{background:rgba(239,239,239,.51);border:1px solid #CCC;border-top:none}
+.tb-sort-inactive{color:#999}
+.tb-sort-active{color:#222}
 .form-comp{margin:0 25px}
 .highlight{background-color:rgba(255,255,0,.53)}
 .expand-icon-holder{height:10px;width:20px;display:inline-block}
