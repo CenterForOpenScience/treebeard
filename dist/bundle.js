@@ -2205,8 +2205,9 @@ grid.controller = function () {
     this.jump_to_page = function(e){
         m.withAttr("value", self.currentPage)(e);
         var page = parseInt(self.currentPage());
-        var index = (self.layout.showTotal*page)+1;
-        self.refresh_range(index);
+        //vvvvv THIS GETS THE INDEX OF THE FULL LIST
+        var index = (self.layout.showTotal*(page-1));
+        self.refresh_range(self.visibleIndexes[index]);
     };
 
 
@@ -2472,8 +2473,10 @@ grid.controller = function () {
     /*
      *  Changes view to continous scroll
      */
+     //TODO Remove overflow, scroll
     this.toggle_scroll = function(){
         self.layout.paginate = false;
+        $('#tb-tbody').css('overflow', 'scroll');
         $('.tb-paginate').removeClass('active');
         $('.tb-scroll').addClass('active');
     };
@@ -2481,13 +2484,15 @@ grid.controller = function () {
     /*
      *  Changes view to paginate
      */
+     //TODO Remove overflow, hidden
     this.toggle_paginate = function(){
         self.layout.paginate = true;
+        $('#tb-tbody').css('overflow', 'hidden');
         $('.tb-scroll').removeClass('active');
         $('.tb-paginate').addClass('active');
         var first = self.showRange[0];
         var pagesBehind = Math.floor(first/self.layout.showTotal);
-        var firstItem = (pagesBehind*self.layout.showTotal)+1;
+        var firstItem = (pagesBehind*self.layout.showTotal);
         self.currentPage(pagesBehind+1);
         self.refresh_range(firstItem);
     };
@@ -2509,7 +2514,11 @@ grid.controller = function () {
      *  During pagination goes down one page
      */
     this.page_down = function(){
-        var first = self.showRange[0];
+        var firstIndex = self.showRange[0];
+        // var visibleArray = self.visibleIndexes.map(function(visIndex){return visIndex;});
+        var first = self.visibleIndexes.indexOf(firstIndex);
+        //console.log(visibleArray);
+        //console.log(first);
         if(first && first > 0) {
             self.refresh_range(first - self.layout.showTotal);
             self.currentPage(self.currentPage()-1);
