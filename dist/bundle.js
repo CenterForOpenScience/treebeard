@@ -1912,13 +1912,13 @@ var grid = {};
 // Set property for data and get the data
 grid.model = function (level){
     return {
-        level :  level,
+        indent :  level,
         id : Math.floor(Math.random()*(100)),
         load : true,
         status : true,
         show : true,
         loadUrl : "small.json",
-        name  : "JohnnyB. Goode",
+        person  : "JohnnyB. Goode",
         title  :  "Around the World in 80 Days",
         date : "Date",
         filtered : false,
@@ -1953,12 +1953,16 @@ grid.layout = {
 
 grid.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "sample.json"}).then(flatten).then(function(){ self.refresh_range(0); m.redraw(true); });
+    this.data = m.request({method: "GET", url: "sample_20.json"}).then(flatten).then(function(value){ self.refresh_range(0); m.redraw(true); self.initialize_order(value);  });
     this.flatData = [];
+    this.ascData = [];
+    this.descData = [];
     this.filterIndexes = [];
     this.filterText = m.prop("");
     this.showRange = [];
     this.filterOn = false;
+    this.ascOn = false;
+    this.descOn = false;
     this.layout = grid.layout;
     this.rangeMargin = 0;
     this.detailItem = {};
@@ -1974,7 +1978,8 @@ grid.controller = function () {
     /*
      *  Turns the tree structure into a flat index of nodes
      */
-    function flatten(value) {
+    function flatten(value, target) {
+        target = target || self.flatData;
         var recursive = function redo(data, show) {
             var length = data.length;
             for (var i = 0; i < length; i++) {
@@ -1992,7 +1997,7 @@ grid.controller = function () {
                 if(data[i].children.length > 0 && !data[i].open ){
                     show = false;
                 }
-                self.flatData.push(item);
+                target.push(item);
                 if (children.length > 0) {
                     redo(children, show);
                 }
@@ -2001,6 +2006,72 @@ grid.controller = function () {
         recursive(value, true);
         return value;
     }
+
+    self.initialize_order = function(value){
+//        var a = value.slice();
+//        var b = value.slice();
+//        console.log("A",a.length, "B",b.length);
+//        self.order('asc', a);
+//        self.order('desc', b);
+    };
+
+    this.order = function (type, data) {
+        var counter = 0;
+        function titleASC (a, b) {
+            var titleA = a.title.toLowerCase().replace(/\s+/g, " ");
+            var titleB = b.title.toLowerCase().replace(/\s+/g, " ");
+            if (titleA < titleB) {
+                return -1;
+            }
+            if (titleA > titleB) {
+                return 1;
+            }
+            return 0;
+        }
+        function titleDESC (a, b) {
+            var titleA = a.title.toLowerCase().replace(/\s/g, '');
+            var titleB = b.title.toLowerCase().replace(/\s/g, '');
+            if (titleA > titleB) {
+                return -1;
+            }
+            if (titleA < titleB) {
+                return 1;
+            }
+            return 0;
+        }
+        var recursive = function redo(data) {
+            data.map(function (item, index, array) {
+                console.log("Item", item);
+
+                if (item.children.length > 0) {
+                    if (type === "asc") {
+                        item.children.sort(titleASC);
+                    } else {
+                        item.children.sort(titleDESC);
+                    }
+                    redo(item.children);
+                }
+                counter++;
+            });
+            if(counter === self.flatData.length){
+                if(type === 'asc'){
+                    flatten(data, self.ascData);
+                } else {
+                    flatten(data, self.descData);
+                }
+            }
+        };
+
+        // First reorder the top data
+        if (type === "asc") {
+            data.sort(titleASC);
+        } else {
+            data.sort(titleDESC);
+        }
+
+        recursive(data);
+    };
+
 
     this.calculate_height = function(){
         var itemsHeight;
@@ -2085,16 +2156,17 @@ grid.controller = function () {
     };
 
     /*
-     *  Adds a new node;
+     *  dds a new node;
      */
     this.add_node = function(index){
         var item = self.flatData[index].row;
-        var level = item.level+1;
+        var level = item.indent+1;
         var newItem = new grid.model(level);
         var node = {
             id: newItem.id,
             row: newItem
         };
+        console.log(node);
         item.children.push(newItem.id);
         var insert = self.return_last_childrow(index, item.level);
         self.flatData.splice(insert, 0, node);
@@ -2216,9 +2288,9 @@ grid.controller = function () {
             if(!self.showRange[0]){
                 index = 0;
             }
+            self.calculate_height();
             self.refresh_range(index);
-            console.log(index);
-            self.calculate_visible();
+            m.redraw(true);
         }
     };
 
@@ -2401,12 +2473,33 @@ grid.controller = function () {
         m.redraw(true);
     };
 
+    this.ascToggle = function(){
+        if(self.ascOn){
+            $('.asc-btn').addClass('.tb-sort-inactive');
+        } else {
+            $('.asc-btn').removeClass('.tb-sort-inactive');
+            self.descOn = false;
+            $('.desc-btn').addClass('.tb-sort-inactive');
+        }
+        self.ascOn = !self.ascOn;
+    };
+    this.descToggle = function(){
+        if(self.descOn){
+            $('.desc-btn').addClass('.tb-sort-inactive');
+        } else {
+            $('.desc-btn').removeClass('.tb-sort-inactive');
+            self.ascOn = false;
+            $('.asc-btn').addClass('.tb-sort-inactive');
+        }
+        self.ascOn = !self.ascOn;
+    };
     /*
      *  Refreshes the view to start the the location where begin is the starting index
      */
     this.refresh_range = function(begin){
         var len = self.flatData.length;
         if(self.filterOn){ begin = self.filterIndexes[begin];}
+        console.log("Begin", begin);
         var skip = false;
         var skipLevel = 0;
         var range = [];
@@ -2429,8 +2522,7 @@ grid.controller = function () {
                 }
             }
         }
-
-            self.showRange = range;
+        self.showRange = range;
     };
 
     /*
@@ -2552,8 +2644,8 @@ grid.view = function(ctrl){
                             var sortView = "";
                             if(col.sort){
                                 sortView =  [
-                                     m('i.fa.fa-sort-alpha-desc.tb-sort-inactive.padder-10'),
-                                     m('i.fa.fa-sort-alpha-asc.tb-sort-inactive.padder-10')
+                                     m('i.fa.fa-sort-alpha-desc.tb-sort-inactive.padder-10.asc-btn', { onclick: self.ascToggle } ),
+                                     m('i.fa.fa-sort-alpha-asc.tb-sort-inactive.padder-10.desc-btn', { onclick: self.descToggle })
                                 ];
                             }
                             return m('.tb-th', { style : "width: "+ col.width }, [
@@ -2623,27 +2715,27 @@ grid.view = function(ctrl){
                     ]),
                     m('.tb-footer', [
                         m(".row", [
-                            m(".col-xs-4",
-                                m('.btn-group.padder-10', [
-                                    m("button.btn.btn-default.btn-sm.active.tb-scroll",
-                                        { onclick : ctrl.toggle_scroll },
-                                        "Scroll"),
-                                    m("button.btn.btn-default.btn-sm.tb-paginate",
-                                        { onclick : ctrl.toggle_paginate },
-                                        "Paginate")
-                                ])
-                            ),
-                            m('.col-xs-8', [ m('.padder-10', [
-                                (function(){
-                                    if(ctrl.layout.paginate){
-                                        return m('.pull-right', [
-                                            m('button.btn.btn-default.btn-sm',{ onclick : ctrl.page_down}, [ m('i.fa.fa-chevron-left')]),
-                                            m('input.h-mar-10', { type : "text", style : "width: 30px;", onkeyup: ctrl.jump_to_page, value : ctrl.currentPage()} ),
-                                            m('button.btn.btn-default.btn-sm',{ onclick : ctrl.page_up}, [ m('i.fa.fa-chevron-right')])
-                                        ]);
-                                    }
-                                }())
-                            ])])
+//                            m(".col-xs-4",
+//                                m('.btn-group.padder-10', [
+//                                    m("button.btn.btn-default.btn-sm.active.tb-scroll",
+//                                        { onclick : ctrl.toggle_scroll },
+//                                        "Scroll"),
+//                                    m("button.btn.btn-default.btn-sm.tb-paginate",
+//                                        { onclick : ctrl.toggle_paginate },
+//                                        "Paginate")
+//                                ])
+//                            ),
+//                            m('.col-xs-8', [ m('.padder-10', [
+//                                (function(){
+//                                    if(ctrl.layout.paginate){
+//                                        return m('.pull-right', [
+//                                            m('button.btn.btn-default.btn-sm',{ onclick : ctrl.page_down}, [ m('i.fa.fa-chevron-left')]),
+//                                            m('input.h-mar-10', { type : "text", style : "width: 30px;", onkeyup: ctrl.jump_to_page, value : ctrl.currentPage()} ),
+//                                            m('button.btn.btn-default.btn-sm',{ onclick : ctrl.page_up}, [ m('i.fa.fa-chevron-right')])
+//                                        ]);
+//                                    }
+//                                }())
+//                            ])])
                         ])
                     ])
                 ])
