@@ -6,7 +6,7 @@ var grid = {};
 grid.model = function (level){
     return {
         level :  level,
-        id : Math.floor(Math.random()*(1000000000000)),
+        id : Math.floor(Math.random()*(100)),
         load : true,
         status : true,
         show : true,
@@ -46,7 +46,7 @@ grid.layout = {
 
 grid.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "small.json"}).then(flatten);
+    this.data = m.request({method: "GET", url: "sample.json"}).then(flatten).then(function(){ self.refresh_range(0); m.redraw(true); });
     this.flatData = [];
     this.filterIndexes = [];
     this.filterText = m.prop("");
@@ -92,7 +92,6 @@ grid.controller = function () {
             }
         };
         recursive(value, true);
-        self.refresh_range(0);
         return value;
     }
 
@@ -118,7 +117,16 @@ grid.controller = function () {
         console.log("ShowTotal", self.layout.showTotal);
         self.calculate_visible();
         self.refresh_range(0);
+        $(".tb-row").dropzone({
+            init : function(){
+                this.on("complete", function (file) {
+                    console.log(this.element);
+                    alert("The element you selected is: "+$(this.element).find('.title-text').text() + " with ID:" + $(this.element).attr('data-id'));
+                });
+            },
+            url: "/file/post"
 
+        });
         $('#tb-tbody').scroll(function(){
             // snap scrolling to intervals of items;
             // get current scroll top
@@ -148,8 +156,18 @@ grid.controller = function () {
             m.redraw(true);
             self.lastLocation = scrollTop;
        });
-
-
+        $(".tdTitle").draggable({ helper: "clone" });
+        $(".tb-row").droppable({
+            tolerance : "pointer",
+            hoverClass : "highlight",
+            drop: function( event, ui ) {
+                var to = $(this).attr("data-id");
+                var from = ui.draggable.attr("data-id");
+                if (to != from ){
+                    self.move(from, to);
+                }
+            }
+        });
     };
 
     /*
@@ -178,23 +196,34 @@ grid.controller = function () {
     /*
      *  Finds the last row within the nodes to add a node to the end of the appropriate rows;
      */
-    this.return_last_childrow = function(index, level){
-        var len = self.flatData.length;
-        var lastIndex = index+1;
-        for(var i = index+1; i < len; i++) {
-            var o = self.flatData[i];
-            lastIndex = i;
-            console.log("i", i, "len", len, "level", level, "o-level", o.row.indent);
-            if(o.row.indent <= level) {
-                return lastIndex;
+    this.return_last_childrow = function(index){
+        var row = self.flatData[index].row;
+        if(row.children.length > 0 ){
+            var len = self.flatData.length;
+            var level = row.indent;
+            var lastIndex = index+1;
+            for(var i = index+1; i < len; i++) {
+                var o = self.flatData[i];
+                if(o.row.indent <= level){
+                    return lastIndex;
+                }
+                if(o.row.indent == level+1 ){
+                    lastIndex = i;
+                }
+                if(o.row.indent > level+1){
+                    continue; 
+                }
+                if(i === len-1){
+                    return lastIndex;
+                }
             }
-            if(i === len-1){
-                return lastIndex;
-            }
+            if(index+1 >= len)  {
+                return null;
+            } 
+        } else {
+            return index; 
         }
-        if(index+1 >= len)  {
-            return self.flatData.length;
-        }
+
     };
 
     /*
@@ -204,7 +233,7 @@ grid.controller = function () {
         var len = self.flatData.length;
         for(var i = 0; i < len; i++) {
             var o = self.flatData[i];
-            if(o.row.id === id) {
+            if(o.row.id == id) {
                 return i;
             }
         }
@@ -302,14 +331,15 @@ grid.controller = function () {
      *  Toggles weather a folder is collapes or opn
      */
 
-    this.toggle_folder = function(topIndex, index){
+    this.toggle_folder = function(topIndex, index) {
         var len = self.flatData.length;
         console.log(topIndex, index);
         var item = self.flatData[index].row;
 
-
-        function lazy_flatten(value, topIndex, index, level){
-
+        function lazy_flatten(value, topIndex, index, level) {
+            console.log(value, topIndex, index, level);
+            var row = self.flatData[index].row;
+            index = index+1;
             var recursive = function redo(data, show, level) {
                 var length = data.length;
 
@@ -320,37 +350,51 @@ grid.controller = function () {
                         id: data[i].id,
                         row: data[i]
                     };
-                    for(var j = 0; j < data[i].children.length; j++){
+
+                    for (var j = 0; j < data[i].children.length; j++) {
                         childIDs.push(data[i].children[j].id);
                     }
                     item.row.children = childIDs;
                     item.row.show = show;
                     item.row.indent = level;
-                    if(data[i].children.length > 0 && !data[i].open ){
+                    if (data[i].children.length > 0 && !data[i].open) {
                         show = false;
                     }
                     self.flatData.splice(index, 0, item);
-                    if (children.length > 0) {
-                        redo(children, show, level+1);
-                    }
                     index++;
+                    if (children.length > 0) {
+                        redo(children, show, level + 1);
+                    }
+                    console.log("Item",item, "index", index);
+
+                    if(item.row.indent === row.indent+1){
+                        row.children.push(item.row.id);
+                    }
                 }
             };
             recursive(value, true, level);
+            return value;
+        }
+        function lazy_update(topIndex){
             self.refresh_range(topIndex);
             m.redraw(true);
-            return value;
         }
 
         // lazy loading
-        if(item.kind === "folder" && item.children.length === 0){
-            var newitems = m.request({method: "GET", url: "small.json"}).then(function(value){ lazy_flatten(value, topIndex, index, item.indent+1); });
+        if (item.kind === "folder" && item.children.length === 0) {
+            m.request({method: "GET", url: "small.json"})
+                .then(function (value) {
+                lazy_flatten(value, topIndex, index, item.indent + 1);
+                })
+                .then(function(){ lazy_update(topIndex); });
         } else {
             var level = item.indent;
-            for ( var i = index+1; i < len; i++){
+            for (var i = index + 1; i < len; i++) {
                 var o = self.flatData[i].row;
-                if(o.indent <= level){ break; }
-                if(item.open){
+                if (o.indent <= level) {
+                    break;
+                }
+                if (item.open) {
                     o.show = false;
                 } else {
                     o.show = true;
@@ -361,8 +405,84 @@ grid.controller = function () {
             self.refresh_range(topIndex);
             m.redraw(true);
         }
+    };
+
+    this.move = function(from, to){
+        var fromIndex = self.return_index(from);
+        var fromData = self.flatData[fromIndex].row;
+        var toIndex = self.return_index(to);
+        var toData = self.flatData[toIndex].row;
+        var insert = self.return_last_childrow(toIndex);
+        console.log("Returned insert", insert);
+        var indent = toData.indent+1;
+        var collectFrom = [];
+        var len = self.flatData.length;
+
+        collect();
+        // first collect
+        function collect (){
+            console.log("Collect from index", fromIndex);
+            for(var i = fromIndex; i < len; i++){
+                console.log("Insert", insert);
+                var item = self.flatData[i];
+                if (item.row.indent <= fromData.indent && item.row.id !== fromData.id) {
+                    add();
+                    break;
+                }
+                collectFrom.push(item);
+                insert++;
+            }
+
+        }
 
 
+        // then add
+        function add(){
+            var topLevel = collectFrom[0].row.indent;
+            console.log("topLevel", topLevel);
+            console.log("Collect From Array:", collectFrom);
+            for(var j = 0; j < collectFrom.length; j++){
+                var o = collectFrom[j];
+                var levelDiff = o.row.indent - topLevel;
+                o.row.indent = indent+levelDiff;
+                console.log("final indent:", o.row.indent, levelDiff);
+                self.flatData.splice(insert, 0, o);
+                insert++;
+                toData.children.push(o.row.id);
+                if(j === collectFrom.length-1){
+                    console.log("Inserted", insert+1, self.flatData[insert+1] );
+                    remove();
+                }
+            }
+        }
+
+        // then delete
+        function remove (){
+            // get indexes again
+//            fromIndex = self.return_index(from);
+            console.log(fromIndex, toIndex);
+            if(fromIndex > toIndex){
+                console.log("fromIndex is bigger. Collect length:", collectFrom.length);
+                fromIndex = fromIndex + collectFrom.length;
+            }
+
+            console.log("FromIndex", fromIndex);
+            var total = fromIndex+collectFrom.length;
+            for(var k = fromIndex; k < total; k++){
+                console.log(k);
+                var node = self.flatData[k];
+                console.log(node);
+//                if (node.row.indent <= fromData.indent && node.row.id !== fromData.id) {
+//
+//                }
+                self.flatData.splice(k,1);
+                if(k === total-1){
+                    toData.open = true;
+                    m.redraw();
+                }
+
+            }
+        }
 
     };
 
@@ -387,44 +507,23 @@ grid.controller = function () {
         for ( var i = begin; i < len; i++){
             if(range.length === self.layout.showTotal ){break;}
             var o = self.flatData[i].row;
-
             // Should we skip this (i.e. if the folder is closed)
             if(skip && o.indent > skipLevel){ continue;}
             if(o.indent === skipLevel){ skip = false; }
-
             if(self.filterOn){
                 if(self.row_filter_result(o)) {
                     range.push(i);
                     counter++;
                 }
             } else {
-                if(self.expandAllState) {
-                    o.show = true;
-                    o.open = true;
+                if(o.show){
                     range.push(i);
                     counter++;
-                } else {
-                    if(o.show){
-                        range.push(i);
-                        counter++;
-                    }
-                    if(!o.open && o.children.length > 0){
-                        skipLevel = o.indent;
-                        skip = true;
-                    }
                 }
-
             }
         }
-//        console.log("Begin", begin);
-//        console.log("Prev range:", self.showRange);
-//        console.log("New range:", range);
-//        if(self.filterOn && self.showRange[self.layout.showTotal-1] === range[self.layout.showTotal-1]){
-//            console.log("Range", range[1]);
-//            self.refresh_range(range[1]);
-//        } else {
+
             self.showRange = range;
-//        }
     };
 
     /*
@@ -561,6 +660,8 @@ grid.view = function(ctrl){
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
                                 ctrl.showRange.map(function(item){
                                     var row = ctrl.flatData[item].row;
+//                                    console.log(row);
+
                                     var cols = ctrl.layout.columns;
                                     var padding, css;
                                     if(ctrl.filterOn){
@@ -583,7 +684,7 @@ grid.view = function(ctrl){
                                                 onclick: function(){ ctrl.toggle_folder(ctrl.showRange[0], item); }},
                                                 ctrl.subFix(row)),
                                             m("span", row.id+" "),
-                                            m("span", row.title+" ")
+                                            m("span.title-text", row.title+" ")
                                         ]),
                                         m(".tb-td", { style : "width:"+cols[1].width }, [
                                             m('span', row.person),
@@ -598,6 +699,14 @@ grid.view = function(ctrl){
                                                 "data-id" : row.id,
                                                 onclick: function(){ ctrl.node_action(row.id, ctrl.add_node, "top");}},
                                                 " Add ")
+                                            ,m("button.btn.btn-info.btn-xs", {
+                                                    "data-id" : row.id,
+                                                    onclick: function(){
+                                                        var selector = '.tb-row[data-id="'+row.id+'"]';
+                                                        $(selector).css('font-weight', 'bold');
+                                                        console.log(selector);
+                                                    }},
+                                                "?")
                                         ])
                                     ]);
                                 })

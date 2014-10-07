@@ -314,7 +314,7 @@ select{background:#fff!important}
 .glyphicon-tree-deciduous:before{content:"\e200"}
 *,:after,:before{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
 html{font-size:10px;-webkit-tap-highlight-color:transparent}
-body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.42857143;color:#333;background-color:#fff}
+body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.42857143;color:#333}
 button,input,select,textarea{font-family:inherit;font-size:inherit;line-height:inherit}
 a{color:#428bca;text-decoration:none}
 a:focus,a:hover{color:#2a6496;text-decoration:underline}
@@ -1382,13 +1382,16 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .padder-10{padding:10px}
 .m-b-20{margin-bottom:20px}
 .m-t-md{margin-top:25px}
-header{background:#34495e;border-top:3px solid #2b3c4e;border-bottom:3px solid #2b3c4e;padding:20px 0;color:#fff}
+body{background:#efefef;margin-bottom:50px}
+header{background:#fff;border-bottom:1px solid #ccc;text-align:center;padding:20px 0}
 tr{padding-left:10px}
+img{width:300px}
 .list-group-item{position:relative;display:block;padding:10px 0 0 15px;background-color:#fff;border:none}
 .list-group{margin-bottom:0;box-shadow:none}
-#tb-tbody{border:1px solid #ccc;height:500px;overflow:auto}
+#tb-tbody{border:1px solid #ccc;height:500px;overflow:auto;background:#fff}
 .tb-tbody-inner{overflow:hidden}
 .tb-rowTitles{background:#EEE;padding:10px 0 5px 16px;border:1px solid #CCC;border-bottom:none}
+.tdTitle{cursor:pointer}
 .tb-td,.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis}
 .tb-th{font-weight:700}
 .tb-details{background:#ADD8E6;height:623px;border:1px solid #EEE;padding:20px}

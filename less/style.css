@@ -16,15 +16,21 @@
 .m-t-md {
   margin-top: 25px;
 }
+body {
+  background: #efefef;
+  margin-bottom: 50px;
+}
 header {
-  background: #34495e;
-  border-top: 3px solid #2b3c4e;
-  border-bottom: 3px solid #2b3c4e;
+  background: white;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
   padding: 20px 0;
-  color: white;
 }
 tr {
   padding-left: 10px;
+}
+img {
+  width: 300px;
 }
 .list-group-item {
   position: relative;
@@ -41,6 +47,7 @@ tr {
   border: 1px solid #ccc;
   height: 500px;
   overflow: auto;
+  background: white;
 }
 .tb-tbody-inner {
   overflow: hidden;
@@ -50,6 +57,9 @@ tr {
   padding: 10px 0px 5px 16px;
   border: 1px solid #CCC;
   border-bottom: none;
+}
+.tdTitle {
+  cursor: pointer;
 }
 .tb-th,
 .tb-td {

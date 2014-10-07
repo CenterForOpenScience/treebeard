@@ -29,18 +29,25 @@
 .m-t-md {
   margin-top: @medium;
 }
+body {
+  background: #efefef;
+  margin-bottom: 50px;
+}
 header {
-  background: @hback;
-  border-top: 3px solid #2b3c4e;
-  border-bottom: 3px solid #2b3c4e;
+  background: white;
+  border-bottom: 1px solid #ccc;
   .v-pad-20;
-  color: white;
+  text-align: center;
+  padding: 20px 0;
 }
 
 tr {
   padding-left: @left;
 }
 
+img {
+  width: 300px;
+}
 .list-group-item {
   position: relative;
   display: block;
@@ -57,6 +64,7 @@ tr {
   border: 1px solid #ccc;
   height: 500px;
   overflow: auto;
+  background: white;
 }
 .tb-tbody-inner{
   overflow : hidden;
@@ -67,6 +75,11 @@ tr {
   border: 1px solid #CCC;
   border-bottom: none;
 }
+
+.tdTitle {
+  cursor:pointer;
+}
+
 .tb-th, .tb-td {
   display: inline-block;
   overflow: hidden;
