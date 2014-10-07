@@ -1,5 +1,8 @@
 
-![ohdience logo](https://raw.githubusercontent.com/caneruguz/treebeard/master/dist/treebeard.png)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/caneruguz/treebeard/master/dist/treebeard.png" alt="Treebeard Logo"/>
+</p>
+<i style="text-align:center"> Logo designed by [fayetality](https://github.com/fayetality "fayetality")  </i>
 
 treebeard
 =========
