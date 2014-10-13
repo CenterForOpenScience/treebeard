@@ -37,7 +37,7 @@ gulp.task('generate-min', function() {
     // gulp.src -- get html template
     return gulp.src(paths.json)
         // pipe through plugin
-        .pipe(generate(50, 2))
+        .pipe(generate(50, 6))
         .pipe(rename("small.json"))
         // set destination
         .pipe(gulp.dest("./dist"));

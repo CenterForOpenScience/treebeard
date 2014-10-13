@@ -167,10 +167,9 @@ module.exports =  function outputJSON (totalItems, depth){
                 for(var i  = 0; i < iteration; i++){
                     var thisObj = new obj(counter, parent, indent);
                     if( counter === 1){ thisObj.open = true; }
-                    var parent = counter;
                     counter++;
                     if( level > 0 && iteration != remainingItems) {
-                        thisObj.children = redo (level-1, parent, indent+1);
+                        thisObj.children = redo (level-1, thisObj.id, indent+1);
                     }
                     childarray.push( thisObj);
                 }
