@@ -1917,6 +1917,38 @@ function getUID() {
     return idCounter++;
 }
 
+
+
+function AscByAttr (data) {
+    return function(a,b){
+        console.log(a, b, data);
+        var titleA = a.data[data].toLowerCase().replace(/\s+/g, " ");
+        var titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
+        if (titleA < titleB){
+            return -1;
+        }
+        if (titleA > titleB){
+            return 1;
+        }
+        return 0;
+    };
+}
+
+function DescByAttr (data) {
+    return function(a,b){
+        console.log(a, b, data);
+        var titleA = a.data[data].toLowerCase().replace(/\s/g, '');
+        var titleB = b.data[data].toLowerCase().replace(/\s/g, '');
+        if (titleA > titleB){
+            return -1;
+        }
+        if (titleA < titleB){
+            return 1;
+        }
+        return 0;
+    };
+}
+
 /*
  *  Indexes by id, shortcuts to the tree objects. Use example var item = Indexes[23];
  */
@@ -2026,6 +2058,16 @@ Item.prototype.parent = function(){
     return Indexes[this.parentID];
 };
 
+Item.prototype.sort_children = function(type, attr){
+    console.log(type, attr);
+    if(type === "asc"){
+        this.children.sort(AscByAttr(attr));
+    }
+    if(type === "desc"){
+        this.children.sort(DescByAttr(attr));
+    }
+};
+
 /*
  *  Helper function that removes an item from an array of items based on the value of an attribute of that item
  */
@@ -2128,7 +2170,7 @@ Treebeard.controller = function () {
     this.filterText = m.prop("");
     this.showRange = [];
     this.filterOn = false;
-    this.sort = { ascOn : false, descOn : false, column : "" },
+    this.sort = { ascOn : false, descOn : false, column : "" };
     this.options = Treebeard.options;
     this.rangeMargin = 0;
     this.detailItem = {};
@@ -2163,14 +2205,20 @@ Treebeard.controller = function () {
         return tree;
     };
 
+
     /*
      *  Turns the tree structure into a flat index of nodes
      */
     this.flatten = function(value, visibleTop){
         self.flatData = [];
+        var openLevel = 1 ;
         var recursive = function redo(data, show, topLevel) {
             var length = data.length;
             for (var i = 0; i < length; i++) {
+                console.log( "openLevel", openLevel);
+                if(openLevel && data[i].depth <= openLevel ){
+                    show = true;
+                }
                 var children = data[i].children;
                 var childIDs = [];
                 var flat = {
@@ -2185,6 +2233,7 @@ Treebeard.controller = function () {
                 flat.row.show = show;
                 if(data[i].children.length > 0 && !data[i].data.open ){
                     show = false;
+                    if(openLevel > data[i].depth) { openLevel = data[i].depth; }
                 }
                 self.flatData.push(flat); // add to flatlist
                 if (children.length > 0) {
@@ -2423,11 +2472,37 @@ Treebeard.controller = function () {
             self.sort[type] = false;
         } else {
             // turn on
+            self.treeData.sort_children(type,"title");
             parent.children('.'+type+'-btn').removeClass('tb-sort-inactive');
             self.sort[type]= true;
+            self.flatten(self.treeData.children, 0);
+
         }
         self.ascOn = !self.ascOn;
     };
+
+
+//    this.order = function (type){
+
+//        +            var recursive = function redo(data){
+//            +                data.map( function(item, index, array){
+//                +                    if(type === "asc"){
+//                    +                        item.children.sort(titleASC);
+//                    +                    } else {
+//                    +                        item.children.sort(titleDESC);
+//                    +                    }
+//                +                    if(item.children.length > 0 ){ redo(item.children) } ;
+//                +                });
+//            +            }
+//            +            // First reorder the top data
+//            +            if(type === "asc"){
+//            +               self.data().sort(titleASC);
+//            +            } else {
+//            +                self.data().sort(titleDESC);
+//            +            }
+//        +            // Then start recursive loop
+//            +            recursive(self.data());
+//
 
 
     /*
