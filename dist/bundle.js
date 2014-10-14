@@ -1961,7 +1961,6 @@ Item.prototype.move = function(to){
     parent.remove_child(parseInt(this.id));
 };
 
-
 /*
  *  Deletes itself
  */
@@ -2042,6 +2041,50 @@ function removeByProperty(arr, attr, value){
 }
 
 /*
+ *  Publish/Subscribe for main events / components taken from Addy Osmani
+ */
+var Pubsub = {
+    topics : {},
+    token : -1,
+    publish : function(topic, args){
+        if ( !this.topics[topic] ) {
+            return false;
+        }
+        var subscribers = this.topics[topic],
+            len = subscribers ? subscribers.length : 0;
+        while (len--) {
+            subscribers[len].func( topic, args );
+        }
+        return this;
+    },
+    subscribe : function(topic, func){
+        if (!this.topics[topic]) {
+            this.topics[topic] = [];
+        }
+        var token = ( ++this.token ).toString();
+        this.topics[topic].push({
+            token: token,
+            func: func
+        });
+        return token;
+    },
+    unsubscribe : function(token){
+        for ( var m in this.topics ) {
+            if ( this.topics[m] ) {
+                for ( var i = 0, j = this.topics[m].length; i < j; i++ ) {
+                    if ( this.topics[m][i].token === token ) {
+                        this.topics[m].splice( i, 1 );
+                        return token;
+                    }
+                }
+            }
+        }
+        return this;
+    }
+};
+
+
+/*
  *  Initialize and namespace the module
  */
 var Treebeard = {};
@@ -2085,8 +2128,7 @@ Treebeard.controller = function () {
     this.filterText = m.prop("");
     this.showRange = [];
     this.filterOn = false;
-    this.ascOn = false;
-    this.descOn = false;
+    this.sort = { ascOn : false, descOn : false, column : "" },
     this.options = Treebeard.options;
     this.rangeMargin = 0;
     this.detailItem = {};
@@ -2223,7 +2265,7 @@ Treebeard.controller = function () {
             self.options.onDelete.call(parent);
         }
         console.log("Treedata", self.treeData);
-        self.flatten(self.treeData.children);
+        self.flatten(self.treeData.children, self.visibleTop);
     };
 
     /*
@@ -2313,84 +2355,47 @@ Treebeard.controller = function () {
     /*
      *  Toggles whether a folder is collapes or open
      */
-    // TODO Improve the lazy flatten so it uses the same flatten method
     this.toggle_folder = function(topIndex, index) {
         var len = self.flatData.length;
-        var item = self.flatData[index].row;
-        function lazy_flatten(value, topIndex, index, level) {
-            console.log(value, topIndex, index, level);
-            var row = self.flatData[index].row;
-            index = index+1;
-            var recursive = function redo(data, show, level) {
-                var length = data.length;
-                for (var i = 0; i < length; i++) {
-                    var children = data[i].children;
-                    var childIDs = [];
-                    var item = {
-                        id: data[i].id,
-                        depth : level,
-                        row: data[i]
-                    };
+        var tree = Indexes[self.flatData[index].id];
+        var item = self.flatData[index];
 
-                    for (var j = 0; j < data[i].children.length; j++) {
-                        childIDs.push(data[i].children[j].id);
-                    }
-                    item.row.children = childIDs;
-                    item.row.show = show;
-                    item.row.indent = level;
-                    if (data[i].children.length > 0 && !data[i].open) {
-                        show = false;
-                    }
-                    self.flatData.splice(index, 0, item);
-                    index++;
-                    if (children.length > 0) {
-                        redo(children, show, level + 1);
-                    }
-                    console.log("Item",item, "index", index);
-
-                    if(item.row.indent === row.indent+1){
-                        row.children.push(item.row.id);
-                    }
-                }
-            };
-            recursive(value, true, self.flatData[index].depth+1);
-            return value;
-        }
-        function lazy_update(topIndex){
-            self.calculate_visible(topIndex);
-            m.redraw(true);
-        }
-
-        // lazy loading
-        if (item.kind === "folder" && item.children.length === 0) {
+        if (item.row.kind === "folder" && item.row.children.length === 0) {
+            // lazyloading
             m.request({method: "GET", url: "small.json"})
                 .then(function (value) {
-                lazy_flatten(value, topIndex, index, item.indent + 1);
+                    var child, i;
+                    for (i = 0; i < value.length; i++) {
+                        child = self.buildTree(value[i], tree);
+                        tree.add(child);
+                    }
+                    tree.data.open = true;
                 })
-                .then(function(){ lazy_update(topIndex); });
+                .then(function(){
+                    self.flatten(self.treeData.children, topIndex);
+                });
         } else {
             var skip = false;
-            var skipLevel = item.indent;
-            var level = item.indent;
+            var skipLevel = item.depth;
+            var level = item.depth;
             for (var i = index + 1; i < len; i++) {
-                var o = self.flatData[i].row;
-                if (o.indent <= level) {break;}
-                if(skip && o.indent > skipLevel){ continue;}
-                if(o.indent === skipLevel){ skip = false; }
-                if (item.open) {
+                var o = self.flatData[i];
+                if (o.depth <= level) {break;}
+                if(skip && o.depth > skipLevel){ continue;}
+                if(o.depth === skipLevel){ skip = false; }
+                if (item.row.open) {
                     // closing
-                    o.show = false;
+                    o.row.show = false;
                 } else {
                     // opening
-                    o.show = true;
-                    if(!o.open){
-                        skipLevel = o.indent;
+                    o.row.show = true;
+                    if(!o.row.open){
+                        skipLevel = o.depth;
                         skip = true;
                     }
                 }
-
             }
-            item.open = !item.open;
+            item.row.open = !item.row.open;
             self.calculate_visible(topIndex);
             self.calculate_height();
             m.redraw(true);
@@ -2409,26 +2414,20 @@ Treebeard.controller = function () {
      *  Sorting toggles, incomplete -- TODO: Finish Sorting
      */
     this.ascToggle = function(){
-        if(self.ascOn){
-            $('.asc-btn').addClass('.tb-sort-inactive');
+        var type = $(this).attr('data-direction');
+        var parent = $(this).parent();
+        // turn all styles off
+        $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');
+        if(self.sort[type]){
+            // turn off
+            self.sort[type] = false;
         } else {
-            $('.asc-btn').removeClass('.tb-sort-inactive');
-            self.descOn = false;
-            $('.desc-btn').addClass('.tb-sort-inactive');
+            // turn on
+            parent.children('.'+type+'-btn').removeClass('tb-sort-inactive');
+            self.sort[type]= true;
         }
         self.ascOn = !self.ascOn;
     };
-    this.descToggle = function(){
-        if(self.descOn){
-            $('.desc-btn').addClass('.tb-sort-inactive');
-        } else {
-            $('.desc-btn').removeClass('.tb-sort-inactive');
-            self.ascOn = false;
-            $('.asc-btn').addClass('.tb-sort-inactive');
-        }
-        self.ascOn = !self.ascOn;
-    };
-
 
 
     /*
@@ -2599,16 +2598,16 @@ Treebeard.view = function(ctrl){
                             var sortView = "";
                             if(col.sort){
                                 sortView =  [
-                                     m('i.fa.fa-sort-alpha-desc.tb-sort-inactive.padder-10.asc-btn', {
-                                         onclick: self.ascToggle
+                                     m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
+                                         onclick: ctrl.ascToggle, "data-direction": "asc"
                                      }),
-                                     m('i.fa.fa-sort-alpha-asc.tb-sort-inactive.padder-10.desc-btn', {
-                                         onclick: self.descToggle
+                                     m('i.fa.fa-sort-desc.tb-sort-inactive.desc-btn', {
+                                         onclick: ctrl.ascToggle, "data-direction": "desc"
                                      })
                                 ];
                             }
                             return m('.tb-th', { style : "width: "+ col.width }, [
-                                m('span', col.title),
+                                m('span.padder-10', col.title),
                                 sortView
                             ]);
                         })
@@ -2635,39 +2634,48 @@ Treebeard.view = function(ctrl){
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-                                            ctrl.options.onClick.call(Indexes[row.id]);
+//                                            ctrl.options.onClick.call(Indexes[row.id]);
+                                            Pubsub.publish('itemclick',Indexes[row.id] );
                                         }}, [
-                                        m(".tb-td.tdTitle", {
-                                            "data-id" : row.id,
-                                            style : "padding-left: "+padding+"px; width:"+cols[0].width },  [
-                                            m("span.tdFirst", {
-                                                onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item); }},
-                                                ctrl.subFix(row)),
-                                            m("span", row.id+" "),
-                                            m("span.title-text", row.title+" ")
-                                        ]),
-                                        m(".tb-td", { style : "width:"+cols[1].width }, [
-                                            m('span', row.person),
-
-                                        ]),
-                                        m(".tb-td", { style : "width:"+cols[2].width }, [
-                                            m("button.btn.btn-danger.btn-xs", {
-                                                "data-id" : row.id,
-                                                onclick: function(){ ctrl.delete_node(row.parent, row.id ); }},
-                                                " X "),
-                                            m("button.btn.btn-success.btn-xs", {
-                                                "data-id" : row.id,
-                                                onclick: function(){ ctrl.add_node(row.id);}
-                                                }," Add "),
-                                            m("button.btn.btn-info.btn-xs", {
+                                        ctrl.options.columns.map(function(col, index) {
+                                            var cell;
+                                            if(index === 0){
+                                               cell = m(".tb-td.tdTitle", {
                                                     "data-id" : row.id,
-                                                    onclick: function(){
-                                                        var selector = '.tb-row[data-id="'+row.id+'"]';
-                                                        $(selector).css('font-weight', 'bold');
-                                                        console.log(selector);
-                                                    }},
-                                                "?")
-                                        ])
+                                                    style : "padding-left: "+padding+"px; width:"+cols[0].width },  [
+                                                    m("span.tdFirst", {
+                                                            onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item); }},
+                                                        ctrl.subFix(row)),
+                                                    m("span", row.id+" "),
+                                                    m("span.title-text", row[col.data]+" ")
+                                               ]);
+                                            } else if(col.title === "Actions"){
+                                                cell = m(".tb-td", { style : "width:"+cols[2].width }, [
+                                                    m("button.btn.btn-danger.btn-xs", {
+                                                            "data-id" : row.id,
+                                                            onclick: function(){ ctrl.delete_node(row.parent, row.id ); }},
+                                                        " X "),
+                                                    m("button.btn.btn-success.btn-xs", {
+                                                        "data-id" : row.id,
+                                                        onclick: function(){ ctrl.add_node(row.id);}
+                                                    }," Add "),
+                                                    m("button.btn.btn-info.btn-xs", {
+                                                            "data-id" : row.id,
+                                                            onclick: function(){
+                                                                var selector = '.tb-row[data-id="'+row.id+'"]';
+                                                                $(selector).css('font-weight', 'bold');
+                                                                console.log(selector);
+                                                            }},
+                                                        "?")
+                                                ]);
+                                            } else {
+                                                cell = m(".tb-td", { style : "width:"+cols[1].width }, [
+                                                    m('span', row[col.data])
+                                                ]);
+                                            }
+                                            return cell;
+                                        })
+
                                     ]);
                                 })
                             ])
@@ -2746,12 +2754,14 @@ var options = {
         {
             title: "Title",
             width : "60%",
+            data : "title",
             sort : true
         },
         {
             title: "Author",
             width : "30%",
-            sort : false
+            data : "person",
+            sort : true
         },
         {
             title: "Actions",
@@ -2763,13 +2773,27 @@ var options = {
         console.log(this);
     },
     onClick : function(){
-        console.log("This", this);
-        console.log("Next", this.next());
-        console.log("Parent", this.parent());
+
+//        console.log("This", this);
+//        console.log("Next", this.next());
+//        console.log("Parent", this.parent());
+    },
+    itemclick : function(){
 
     }
 };
 
+function logger(topic, item){
+    console.log("topic", topic);
+    console.log("Item:", item);
+}
+var myLogger = Pubsub.subscribe('itemclick', logger);
+
+setTimeout(function(){
+    console.log("Time out");
+    console.log(myLogger);
+    Pubsub.unsubscribe(myLogger);
+}, 5000);
 /*
  *  User defined code to implement Treebeard anywhere on the page.
  */

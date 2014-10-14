@@ -1,3 +1,732 @@
+// Author : Chelsea Overstreet
+// https://github.com/overstreetce/css-helper
+
+//Margin and Padding Variables
+@xs :5px;
+@sm :10px;
+@md :20px;
+@lg :30px;
+@xl :50px;
+
+//Radius Values
+@xsm: 5px;
+@sma: 10px;
+@med: 30px;
+@lar: 50px;
+@xlg: 100px;
+
+//Border Values
+@sx: 1px;
+@s:2px;
+@m:3px;
+@l:4px;
+@lx:5px;
+
+//Line Height Values
+@xsmall:12px;
+@small:14px;
+@medium:16px;
+@large:18px;
+@xlarge:20px;
+
+/*Classes to create margin sizes*/
+
+/*Left Margin Only*/
+.m-l-xs{
+  margin-left: @xs;
+}
+
+.m-l-sm{
+  margin-left: @sm;
+}
+
+.m-l-md{
+  margin-left: @md;
+}
+
+.m-l-lg{
+  margin-left: @lg;
+}
+
+.m-l-xl{
+  margin-left: @xl;
+}
+
+/*Right Margin Only*/
+.m-r-xs{
+  margin-right: @xs;
+}
+
+.m-r-sm{
+  margin-right: @sm;
+}
+
+.m-r-md{
+  margin-right: @md;
+}
+
+.m-r-lg{
+  margin-right: @lg;
+}
+
+.m-r-xl{
+  margin-right: @xl;
+}
+
+/*Top Margin Only*/
+.m-t-xs{
+  margin-top: @xs;
+}
+
+.m-t-sm{
+  margin-top: @sm;
+}
+
+.m-t-md{
+  margin-top: @md;
+}
+
+.m-t-lg{
+  margin-top: @lg;
+}
+
+.m-t-xl{
+  margin-top: @xl;
+}
+
+/*Bottom Margin Only*/
+.m-b-xs{
+  margin-bottom: @xs;
+}
+
+.m-b-sm{
+  margin-bottom: @sm;
+}
+
+.m-b-md{
+  margin-bottom: @md;
+}
+
+.m-b-lg{
+  margin-bottom: @lg;
+}
+
+.m-b-xl{
+  margin-bottom: @xl;
+}
+
+/*Vertical Margins*/
+.m-v-xs{
+  .m-t-xs;
+  .m-b-xs;
+}
+
+.m-v-sm{
+  .m-t-sm;
+  .m-b-sm;
+}
+
+.m-v-md{
+  .m-t-md;
+  .m-b-md;
+}
+
+.m-v-lg{
+  .m-t-lg;
+  .m-b-lg;
+}
+
+.m-v-xl{
+  .m-t-xl;
+  .m-b-xl;
+}
+
+/*Horizontal Margins*/
+.m-h-xs{
+  .m-l-xs;
+  .m-r-xs;
+}
+
+.m-h-sm{
+  .m-l-sm;
+  .m-r-sm;
+}
+
+.m-h-md{
+  .m-l-md;
+  .m-r-md;
+}
+
+.m-h-lg{
+  .m-l-lg;
+  .m-r-lg;
+}
+
+.m-h-xl{
+  .m-l-xl;
+  .m-r-xl;
+}
+
+/*Complete Margins*/
+.m-xs{
+  margin: @xs;
+}
+
+.m-sm{
+  margin: @sm;
+}
+
+.m-md{
+  margin: @md;
+}
+
+.m-lg{
+  margin: @lg;
+}
+
+.m-xl{
+  margin: @xl;
+}
+
+/*Classes to Define Padding*/
+
+/*Left Padding Only*/
+.p-l-xs{
+  padding-left: @xs;
+}
+
+.p-l-sm{
+  padding-left: @sm;
+}
+
+.p-l-md{
+  padding-left: @md;
+}
+
+.p-l-lg{
+  padding-left: @lg;
+}
+
+.p-l-xl{
+  padding-left: @xl;
+}
+
+/*Right Padding Only*/
+.p-r-xs{
+  padding-right: @xs;
+}
+
+.p-r-sm{
+  padding-right: @sm;
+}
+
+.p-r-md{
+  padding-right: @md;
+}
+
+.p-r-lg{
+  padding-right: @lg;
+}
+
+.p-r-xl{
+  padding-right: @xl;
+}
+
+/*Top Padding Only*/
+.p-t-xs{
+  padding-top: @xs;
+}
+
+.p-t-sm{
+  padding-top: @sm;
+}
+
+.p-t-md{
+  padding-top: @md;
+}
+.p-t-lg{
+  padding-top: @lg;
+}
+
+.p-t-xl{
+  padding-top: @xl;
+}
+
+/*Bottom Padding Only*/
+.p-b-xs{
+  padding-bottom: @xs;
+}
+
+.p-b-sm{
+  padding-bottom: @sm;
+}
+
+.p-b-md{
+  padding-bottom: @md;
+}
+
+.p-b-lg{
+  padding-bottom: @lg;
+}
+
+.p-b-xl{
+  padding-bottom: @xl;
+}
+
+/*Vertical Padding*/
+.p-v-xs{
+  .p-t-xs;
+  .p-b-xs;
+}
+
+.p-v-sm{
+  .p-t-sm;
+  .p-b-sm;
+}
+
+.p-v-md{
+  .p-t-md;
+  .p-b-md;
+}
+
+.p-v-lg{
+  .p-t-lg;
+  .p-b-lg;
+}
+
+.p-v-xl{
+  .p-t-xl;
+  .p-b-xl;
+}
+
+/*Horizontal Padding*/
+.p-h-xs{
+  .p-r-xs;
+  .p-l-xs;
+}
+
+.p-h-sm{
+  .p-r-sm;
+  .p-l-sm;
+}
+
+.p-h-md{
+  .p-r-md;
+  .p-l-md;
+}
+
+.p-h-lg{
+  .p-r-lg;
+  .p-l-lg;
+}
+
+.p-h-xl{
+  .p-r-xl;
+  .p-l-xl;
+}
+
+/*Complete Padding*/
+
+.p-xs{
+  padding: @xs;
+}
+
+.p-sm{
+  padding: @sm;
+}
+
+.p-md{
+  padding: @md;
+}
+
+.p-lg{
+  padding: @lg;
+}
+
+.p-xl{
+  padding: @xl;
+}
+
+/*Display Classes*/
+
+.d-i{
+  display:inline;
+}
+
+.d-ib{
+  display:inline-block;
+}
+
+.d-b{
+  display: block;
+}
+
+.d-none{
+  display:none;
+}
+
+/*Text Align*/
+
+.t-a-r{
+  text-align:right;
+}
+
+.t-a-l{
+  text-align:left;
+}
+
+.t-a-c{
+  text-align:center;
+}
+
+.t-a-j{
+  text-align:justify;
+}
+
+/*Removing Elements*/
+.no-padding{
+  padding:0!important;
+}
+
+.no-border{
+  border:none!important;
+}
+.no-margin{
+  margin:0!important;
+}
+
+/*Border Radius*/
+.b-r-xs{
+  border-radius: @xsm;
+  -moz-border-radius: @xsm;
+  -webkit-border-radius: @xsm;
+}
+
+.b-r-sm{
+  border-radius: @sma;
+  -moz-border-radius: @sma;
+  -webkit-border-radius: @sma;
+}
+
+.b-r-md{
+  border-radius: @med;
+  -moz-border-radius: @med;
+  -webkit-border-radius: @med;
+}
+
+.b-r-lg{
+  border-radius: @lar;
+  -moz-border-radius: @lar;
+  -webkit-border-radius: @lar;
+}
+
+.b-r-xl{
+  border-radius: @xlg;
+  -moz-border-radius: @xlg;
+  -webkit-border-radius: @xlg;
+}
+.b-r-xs-bottom {
+  border-bottom-right-radius: @sm;
+  border-bottom-left-radius: @sm;
+}
+
+/*Font Weight*/
+.font-thin{
+  font-weight:100;
+}
+.font-medium{
+  font-weight:200;
+}
+
+.font-normal{
+  font-weight:400;
+}
+
+.font-thick{
+  font-weight:bold;
+}
+
+
+/*Changing Case*/
+.uppercase{
+  text-transform:uppercase;
+}
+
+.lowercase{
+  text-transform: lowercase;
+}
+
+.capitalize{
+  text-transform:capitalize;
+}
+
+/*Borders*/
+/*Bottom Borders*/
+.b-b-xs{
+  border-bottom:@sx;
+  -moz-border-bottom:@sx;
+  -webkit-border-bottom:@sx;
+}
+
+.b-b-sm{
+  border-bottom:@s;
+  -moz-border-bottom:@s;
+  -webkit-border-bottom:@s;
+}
+
+.b-b-md{
+  border-bottom:@m;
+  -moz-border-bottom:@m;
+  -webkit-border-bottom:@m;
+}
+
+.b-b-lg{
+  border-bottom:@l;
+  -moz-border-bottom:@l;
+  -moz-border-bottom:@l;
+}
+
+.b-b-xl{
+  border-bottom:@lx;
+  -moz-border-bottom:@lx;
+  -webkit-border-bottom:@lx;
+}
+
+/*Top Borders*/
+.b-t-xs{
+  border-top:@sx;
+  -moz-border-top:@sx;
+  -webkit-border-top:@sx;
+}
+
+.b-t-sm{
+  border-top:@s;
+  -moz-border-top:@s;
+  -webkit-border-top:@s;
+}
+
+.b-t-md{
+  border-top:@m;
+  -moz-border-top:@m;
+  -webkit-border-top:@m;
+}
+
+.b-t-lg{
+  border-top:@l;
+  -moz-border-top:@l;
+  -moz-border-top:@l;
+}
+
+.b-t-xl{
+  border-top:@lx;
+  -moz-border-top:@lx;
+  -webkit-border-top:@lx;
+}
+
+/*Right Borders*/
+.b-r-xs{
+  border-right:@sx;
+  -moz-border-right:@sx;
+  -webkit-border-right:@sx;
+}
+
+.b-r-sm{
+  border-right:@s;
+  -moz-border-right:@s;
+  -webkit-border-right:@s;
+}
+
+.b-r-md{
+  border-right:@m;
+  -moz-border-right:@m;
+  -webkit-border-right:@m;
+}
+
+.b-r-lg{
+  border-right:@l;
+  -moz-border-right:@l;
+  -moz-border-right:@l;
+}
+
+.b-r-xl{
+  border-right:@lx;
+  -moz-border-right:@lx;
+  -webkit-border-right:@lx;
+}
+
+/*left Borders*/
+.b-l-xs{
+  border-left:@sx;
+  -moz-border-left:@sx;
+  -webkit-border-left:@sx;
+}
+
+.b-l-sm{
+  border-left:@s;
+  -moz-border-left:@s;
+  -webkit-border-left:@s;
+}
+
+.b-l-md{
+  border-left:@m;
+  -moz-border-left:@m;
+  -webkit-border-left:@m;
+}
+
+.b-l-lg{
+  border-left:@l;
+  -moz-border-left:@l;
+  -moz-border-left:@l;
+}
+
+.b-l-xl{
+  border-left:@lx;
+  -moz-border-left:@lx;
+  -webkit-border-left:@lx;
+}
+
+/*Complete Borders*/
+.b-xs{
+  border:@sx;
+  -moz-border:@sx;
+  -webkit-border :@sx;
+}
+
+.b-sm{
+  border :@s;
+  -moz-border :@s;
+  -webkit-border :@s;
+}
+
+.b-md{
+  border :@m;
+  -moz-border :@m;
+  -webkit-border :@m;
+}
+
+.b-lg{
+  border :@l;
+  -moz-border :@l;
+  -moz-border :@l;
+}
+
+.b-xl{
+  border :@lx;
+  -moz-border :@lx;
+  -webkit-border :@lx;
+}
+
+/*Floats*/
+.push{
+  float:left;
+}
+
+.pull{
+  float:right;
+}
+
+/*Text Decoration*/
+.underline{
+  text-decoration:underline;
+}
+
+.no-decoration{
+  text-decoration:none!important;
+}
+
+/*Removing Bullets in Lists*/
+.no-bullets{
+  list-style:none;
+  padding-left: 0px;
+}
+
+/*Line Height*/
+.l-h-xs{
+  line-height:@xsmall;
+}
+
+.l-h-sm{
+  line-height:@small;
+}
+
+.l-h-md{
+  line-height:@medium;
+}
+
+.l-h-lg {
+  line-height:@large;
+}
+
+.l-h-xl{
+  line-height: @xlarge;
+}
+
+/*Text size*/
+.text-xs{
+  .l-h-xs;
+}
+
+.text-sm{
+  .l-h-sm;
+}
+
+.text-md{
+  .l-h-md;
+}
+
+.text-lg{
+  .l-h-lg;
+}
+
+.text-xl{
+  .l-h-xl;
+}
+
+/* Overflow */
+.no-flow {
+  overflow : hidden;
+}
+.flow {
+  overflow: auto;
+}
+.flow-x {
+  overflow-x : auto;
+  overflow-y: hidden;
+}
+.flow-y {
+  overflow-y: auto;
+  pverflow-x : hidden;
+}
+
+/* text colors */
+
+.t-light {
+  color: #fff;
+}
+.t-dark {
+  color: #222;
+}
+
+/* Font weights */
+.f-1 {
+  font-weight: 100;
+}
+.f-2 {
+  font-weight: 200;
+}
+.f-3 {
+  font-weight: 300;
+}
+.f-4 {
+  font-weight: 400;
+}
+.f-5 {
+  font-weight: 500;
+}
+.f-6 {
+  font-weight: 600;
+}
+
 @hback: #34495e;
 
 @left : 10px;
@@ -45,7 +774,7 @@ tr {
   padding-left: @left;
 }
 
-img {
+img.logo {
   width: 300px;
 }
 .list-group-item {
