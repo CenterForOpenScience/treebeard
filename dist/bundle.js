@@ -2394,18 +2394,6 @@ Treebeard.controller = function () {
 
 
     /*
-     *  During pagination jumps to specific page
-     */
-    this.jump_to_page = function(e){
-        m.withAttr("value", self.currentPage)(e);
-        var page = parseInt(self.currentPage());
-        //vvvvv THIS GETS THE INDEX OF THE FULL LIST
-        var index = (self.options.showTotal*(page-1));
-        self.refresh_range(self.visibleIndexes[index]);
-    };
-
-
-    /*
      *  Toggles whether a folder is collapes or open
      */
     this.toggle_folder = function(topIndex, index) {
@@ -2584,24 +2572,26 @@ Treebeard.controller = function () {
     /*
      *  Changes view to continous scroll
      */
-     //TODO Remove overflow, scroll
     this.toggle_scroll = function(){
         self.options.paginate = false;
-        $('#tb-tbody').css('overflow', 'scroll');
+        //$('#tb-tbody').css('overflow', 'scroll');
         $('.tb-paginate').removeClass('active');
         $('.tb-scroll').addClass('active');
+        self.refresh_range(0);
+
+
     };
 
     /*
      *  Changes view to paginate
      */
-     //TODO Remove overflow, hidden
     this.toggle_paginate = function(){
         self.options.paginate = true;
-        $('#tb-tbody').css('overflow', 'hidden');
+        //$('#tb-tbody').css('overflow', 'hidden');
         $('.tb-scroll').removeClass('active');
         $('.tb-paginate').addClass('active');
-        var first = self.showRange[0];
+        var firstIndex = self.showRange[0];
+        var first = self.visibleIndexes.indexOf(firstIndex);
         var pagesBehind = Math.floor(first/self.options.showTotal);
         var firstItem = (pagesBehind*self.options.showTotal);
         self.currentPage(pagesBehind+1);
@@ -2613,9 +2603,10 @@ Treebeard.controller = function () {
      */
     this.page_up = function(){
         // get last shown item index and refresh view from that item onwards
-        var last = self.showRange[self.options.showTotal-1];
+        var lastIndex = self.showRange[self.options.showTotal-1];
+        var last = self.visibleIndexes.indexOf(lastIndex);
         console.log("Last", last);
-        if(last && last+1 < self.flatData.length){
+        if(last > -1 && last+1 < self.visibleCache){
             self.refresh_range(last+1);
             self.currentPage(self.currentPage()+1);
         }
@@ -2636,6 +2627,18 @@ Treebeard.controller = function () {
         }
     };
 
+    /*
+     *  During pagination jumps to specific page
+     */
+    this.jump_to_page = function(e){
+        var value = parseInt(e.target.value);
+        if(value && value > 0 && value <= (Math.ceil(self.visibleIndexes.length/self.options.showTotal))){
+            m.withAttr("value", self.currentPage)(e);
+            var page = parseInt(self.currentPage());
+            var index = (self.options.showTotal*(page-1));
+            self.refresh_range(index);
+        }
+    };
 
     /*
      *  conditionals for what to show for toggle state
@@ -2797,6 +2800,7 @@ Treebeard.view = function(ctrl){
                                                     value : ctrl.currentPage()
                                                 }
                                             ),
+                                            m('span', "/ "+Math.ceil(ctrl.visibleIndexes.length/ctrl.options.showTotal)+" "),
                                             m('button.btn.btn-default.btn-sm',
                                                 { onclick : ctrl.page_up},
                                                 [ m('i.fa.fa-chevron-right')
