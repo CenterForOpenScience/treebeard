@@ -28,7 +28,7 @@ gulp.task('generate-max', function() {
     // gulp.src -- get html template
     return gulp.src(paths.json)
         // pipe through plugin
-        .pipe(generate(5000, 7))
+        .pipe(generate(100000, 7))
         // set destination
         .pipe(gulp.dest("./dist"));
 });

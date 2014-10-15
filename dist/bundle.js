@@ -1921,7 +1921,7 @@ function getUID() {
 
 function AscByAttr (data) {
     return function(a,b){
-        console.log(a, b, data);
+        console.log(a,b);
         var titleA = a.data[data].toLowerCase().replace(/\s+/g, " ");
         var titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
         if (titleA < titleB){
@@ -1936,7 +1936,6 @@ function AscByAttr (data) {
 
 function DescByAttr (data) {
     return function(a,b){
-        console.log(a, b, data);
         var titleA = a.data[data].toLowerCase().replace(/\s/g, '');
         var titleB = b.data[data].toLowerCase().replace(/\s/g, '');
         if (titleA > titleB){
@@ -1997,9 +1996,9 @@ Item.prototype.move = function(to){
  *  Deletes itself
  */
 Item.prototype.remove_self = function(){
-    var parent = this.parentID;
-    var removed = removeByProperty(parent.children, 'id', this.id);
-    return this;
+        var parent = this.parentID;
+        var removed = removeByProperty(parent.children, 'id', this.id);
+        return this;
 };
 
 /*
@@ -2059,7 +2058,6 @@ Item.prototype.parent = function(){
 };
 
 Item.prototype.sort_children = function(type, attr){
-    console.log(type, attr);
     if(type === "asc"){
         this.children.sort(AscByAttr(attr));
     }
@@ -2170,7 +2168,7 @@ Treebeard.controller = function () {
     this.filterText = m.prop("");
     this.showRange = [];
     this.filterOn = false;
-    this.sort = { ascOn : false, descOn : false, column : "" };
+    this.sort = { asc : false, desc : false, column : "" };
     this.options = Treebeard.options;
     this.rangeMargin = 0;
     this.detailItem = {};
@@ -2204,7 +2202,6 @@ Treebeard.controller = function () {
         }
         return tree;
     };
-
 
     /*
      *  Turns the tree structure into a flat index of nodes
@@ -2303,7 +2300,7 @@ Treebeard.controller = function () {
     };
 
     /*
-     *  Deletes a single node from view, deletes from the tree
+     *  Deletes item from tree and refreshes view
      */
     this.delete_node = function(parentID, itemID  ){
         console.log(parentID, itemID);
@@ -2330,6 +2327,13 @@ Treebeard.controller = function () {
         parent.add(item);
         console.log("parent after", parent);
         self.flatten(self.treeData.children, self.visibleTop);
+    };
+
+    /*
+     *  Returns the object from the tree
+     */
+    this.find = function(id){
+        return Indexes[id];
     };
 
 
@@ -2405,6 +2409,7 @@ Treebeard.controller = function () {
      *  Toggles whether a folder is collapes or open
      */
     this.toggle_folder = function(topIndex, index) {
+
         var len = self.flatData.length;
         var tree = Indexes[self.flatData[index].id];
         var item = self.flatData[index];
@@ -2464,21 +2469,29 @@ Treebeard.controller = function () {
      */
     this.ascToggle = function(){
         var type = $(this).attr('data-direction');
+        var field = $(this).attr('data-field');
         var parent = $(this).parent();
         // turn all styles off
         $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');
-        if(self.sort[type]){
-            // turn off
-            self.sort[type] = false;
-        } else {
-            // turn on
-            self.treeData.sort_children(type,"title");
+        self.sort.asc = false;
+        self.sort.desc = false;
+        if(!self.sort[type]){
+           var counter = 0;
+           var recursive = function redo(data){
+                data.map( function(item){
+                    item.sort_children(type, field);
+                    if(item.children.length > 0 ){ redo(item.children); }
+                    counter++;
+                });
+            };
+            // Then start recursive loop
+            self.treeData.sort_children(type, field);
+            recursive(self.treeData.children);
             parent.children('.'+type+'-btn').removeClass('tb-sort-inactive');
-            self.sort[type]= true;
+            self.sort[type] = true;
             self.flatten(self.treeData.children, 0);
-
+            console.log("Sorted ", counter);
         }
-        self.ascOn = !self.ascOn;
     };
 
 
@@ -2674,10 +2687,10 @@ Treebeard.view = function(ctrl){
                             if(col.sort){
                                 sortView =  [
                                      m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
-                                         onclick: ctrl.ascToggle, "data-direction": "asc"
+                                         onclick: ctrl.ascToggle, "data-direction": "asc", "data-field" : col.data
                                      }),
                                      m('i.fa.fa-sort-desc.tb-sort-inactive.desc-btn', {
-                                         onclick: ctrl.ascToggle, "data-direction": "desc"
+                                         onclick: ctrl.ascToggle, "data-direction": "desc", "data-field" : col.data
                                      })
                                 ];
                             }
@@ -2709,8 +2722,8 @@ Treebeard.view = function(ctrl){
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-//                                            ctrl.options.onClick.call(Indexes[row.id]);
-                                            Pubsub.publish('itemclick',Indexes[row.id] );
+                                            ctrl.options.onClickRow.call(Indexes[row.id]);
+                                            Pubsub.publish('itemclick', Indexes[row.id]);
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
                                             var cell;
@@ -2721,7 +2734,7 @@ Treebeard.view = function(ctrl){
                                                     m("span.tdFirst", {
                                                             onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item); }},
                                                         ctrl.subFix(row)),
-                                                    m("span", row.id+" "),
+//                                                    m("span", row.id+" "),
                                                     m("span.title-text", row[col.data]+" ")
                                                ]);
                                             } else if(col.title === "Actions"){
@@ -2825,6 +2838,8 @@ var options = {
     showTotal : 15,
     paginate : false,
     lazyLoad : false,
+    useDropzone : false,
+    uploadURL : "",
     columns : [
         {
             title: "Title",
@@ -2847,8 +2862,7 @@ var options = {
     onDelete : function(){
         console.log(this);
     },
-    onClick : function(){
-
+    onClickRow : function(){
 //        console.log("This", this);
 //        console.log("Next", this.next());
 //        console.log("Parent", this.parent());
@@ -2857,6 +2871,22 @@ var options = {
 
     }
 };
+
+
+$(".tb-row").dropzone({
+               init : function(){
+                    this.on("complete", function (file) {
+                            console.log(this.element);
+                            var id =$(this.element).attr('data-id');
+
+                            alert("The element you selected is: "+$(this.element).find('.title-text').text() + " with ID:" + $(this.element).attr('data-id'));
+                        });
+                },
+            url: "/file/post"
+
+        });
+
+
 
 function logger(topic, item){
     console.log("topic", topic);
