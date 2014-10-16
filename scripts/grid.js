@@ -276,6 +276,7 @@ Treebeard.controller = function () {
     this.lastLocation = 0; // The last scrollTop location, updates on every scroll.
     this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
     this.currentPage = m.prop(1);
+    this.dropzone = null;
 
     /*
      *  Rebuilds the tree data with an API
@@ -640,6 +641,7 @@ Treebeard.controller = function () {
         }
         self.showRange = range;
         m.redraw(true);
+        if(self.options.uploads){ self.apply_dropzone(); }
     };
 
     /*
@@ -714,6 +716,29 @@ Treebeard.controller = function () {
     };
 
     /*
+     *  Apply dropzone to row
+     */
+    this.apply_dropzone = function(){
+        if(self.dropzone){ self.destroy_dropzone(); }
+        self.dropzone = new Dropzone("#grid", { url: "http://www.torrentplease.com/dropzone.php"} );
+        console.log("Dropzone", self.dropzone.options.url);
+//        var item, i, selector, dropRow;
+//        for(i = 0; i < self.showRange.length; i++){
+//            item = Indexes[self.flatData[self.showRange[i]].id];
+//            selector = $('');
+//            dropRow = new Dropzone("div#myId", { url: "/file/post"});
+//        }
+    };
+
+    /*
+     *  Remove dropzone from row
+     */
+    this.destroy_dropzone = function(){
+        self.dropzone.destroy();
+    };
+
+
+    /*
      *  conditionals for what to show for toggle state
      */
     this.subFix = function(item){
@@ -778,7 +803,7 @@ Treebeard.view = function(ctrl){
                     m("#tb-tbody", [
                         m('.tb-tbody-inner', [
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
-                                ctrl.showRange.map(function(item){
+                                ctrl.showRange.map(function(item, index){
                                     var indent = ctrl.flatData[item].depth;
                                     var row = ctrl.flatData[item].row;
                                     var cols = ctrl.options.columns;
@@ -794,6 +819,7 @@ Treebeard.view = function(ctrl){
                                         "data-id" : row.id,
                                         "data-level": indent,
                                         "data-index": item,
+                                        "data-rIndex": index,
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
@@ -907,7 +933,7 @@ Treebeard.run = function(element, options){
         showTotal : 15,
         paginate : false,
         lazyLoad : false,
-        useDropzone : false,
+        uploads : true,
         uploadURL : "",
         columns : [],
         onDelete : function(){
