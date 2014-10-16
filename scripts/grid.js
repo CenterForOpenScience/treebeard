@@ -277,6 +277,7 @@ Treebeard.controller = function () {
     this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
     this.currentPage = m.prop(1);
     this.dropzone = null;
+    this.dropzoneOptions = { url: "http://www.torrentplease.com/dropzone.php"};
 
     /*
      *  Rebuilds the tree data with an API
@@ -396,6 +397,7 @@ Treebeard.controller = function () {
                 }
             }
         });
+        if(self.options.uploads){ self.apply_dropzone(); }
     };
 
     /*
@@ -641,7 +643,6 @@ Treebeard.controller = function () {
         }
         self.showRange = range;
         m.redraw(true);
-        if(self.options.uploads){ self.apply_dropzone(); }
     };
 
     /*
@@ -716,22 +717,17 @@ Treebeard.controller = function () {
     };
 
     /*
-     *  Apply dropzone to row
+     *  Apply dropzone to grid
      */
     this.apply_dropzone = function(){
-        if(self.dropzone){ self.destroy_dropzone(); }
-        self.dropzone = new Dropzone("#grid", { url: "http://www.torrentplease.com/dropzone.php"} );
+        if(self.dropzone){ self.destroy_dropzone(); }               // Destroy existing dropzone setup
+        var options = $.extend({}, self.dropzoneOptions);           // Extend default options
+        self.dropzone = new Dropzone("#grid", options );            // Initialize dropzone
         console.log("Dropzone", self.dropzone.options.url);
-//        var item, i, selector, dropRow;
-//        for(i = 0; i < self.showRange.length; i++){
-//            item = Indexes[self.flatData[self.showRange[i]].id];
-//            selector = $('');
-//            dropRow = new Dropzone("div#myId", { url: "/file/post"});
-//        }
     };
 
     /*
-     *  Remove dropzone from row
+     *  Remove dropzone from grid
      */
     this.destroy_dropzone = function(){
         self.dropzone.destroy();
