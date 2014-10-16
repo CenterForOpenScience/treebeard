@@ -34,5 +34,65 @@
         </p>
     </div>
     <script src="bundle.js"></script>
+    <script type="text/javascript">
+        /*
+         *  User defined options
+         */
+        var options = {
+            rowHeight : 35,
+            showTotal : 15,
+            paginate : false,
+            lazyLoad : false,
+            useDropzone : false,
+            uploadURL : "",
+            columns : [
+                {
+                    title: "Title",
+                    width : "60%",
+                    data : "title",
+                    sort : true
+                },
+                {
+                    title: "Author",
+                    width : "30%",
+                    data : "person",
+                    sort : true
+                },
+                {
+                    title: "Actions",
+                    width : "10%",
+                    sort : false
+                }
+
+            ],
+            onDelete : function(){
+                console.log(this);
+            },
+            onClickRow : function(){
+//        console.log("This", this);
+//        console.log("Next", this.next());
+//        console.log("Parent", this.parent());
+            },
+            itemclick : function(){
+
+            }
+        };
+
+        function logger(topic, item){
+            console.log("topic", topic);
+            console.log("Item:", item);
+        }
+        var myLogger = Pubsub.subscribe('itemclick', logger);
+
+        setTimeout(function(){
+            console.log("Time out");
+            console.log(myLogger);
+            Pubsub.unsubscribe(myLogger);
+        }, 5000);
+        /*
+         *  User defined code to implement Treebeard anywhere on the page.
+         */
+        Treebeard.run(document.getElementById("grid"), options);
+    </script>
     </body>
 </html>

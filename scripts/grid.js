@@ -3,15 +3,16 @@
  */
 
 /*
- *  Ensure unique IDs among trees and leaves
+ *  Create unique ids
  */
 var idCounter = 0;
 function getUID() {
     return idCounter++;
 }
 
-
-
+/*
+ *  Sorts ascending based on any attribute on data
+ */
 function AscByAttr (data) {
     return function(a,b){
         console.log(a,b);
@@ -27,6 +28,9 @@ function AscByAttr (data) {
     };
 }
 
+/*
+ *  Sorts descending based on any attribute on data
+ */
 function DescByAttr (data) {
     return function(a,b){
         var titleA = a.data[data].toLowerCase().replace(/\s/g, '');
@@ -42,7 +46,21 @@ function DescByAttr (data) {
 }
 
 /*
- *  Indexes by id, shortcuts to the tree objects. Use example var item = Indexes[23];
+ *  Helper function that removes an item from an array of items based on the value of an attribute of that item
+ */
+function removeByProperty(arr, attr, value){
+    var i = arr.length;
+    while(i--){
+        if(arr[i] && arr[i].hasOwnProperty(attr) && (arguments.length > 2 && arr[i][attr] === value )){
+            arr.splice(i,1);
+            return true;
+        }
+    }
+    return false;
+}
+
+/*
+ *  Indexes by id, shortcuts to the tree objects. Use example: var item = Indexes[23];
  */
 var Indexes = {};
 
@@ -159,19 +177,6 @@ Item.prototype.sort_children = function(type, attr){
     }
 };
 
-/*
- *  Helper function that removes an item from an array of items based on the value of an attribute of that item
- */
-function removeByProperty(arr, attr, value){
-    var i = arr.length;
-    while(i--){
-        if(arr[i] && arr[i].hasOwnProperty(attr) && (arguments.length > 2 && arr[i][attr] === value )){
-            arr.splice(i,1);
-            return true;
-        }
-    }
-    return false;
-}
 
 /*
  *  Publish/Subscribe for main events / components taken from Addy Osmani
@@ -375,7 +380,7 @@ Treebeard.controller = function () {
             self.refresh_range(index);
             m.redraw(true);
             self.lastLocation = scrollTop;
-       });
+        });
         $(".tdTitle").draggable({ helper: "clone" });
         $(".tb-row").droppable({
             tolerance : "pointer",
@@ -490,11 +495,9 @@ Treebeard.controller = function () {
      *  Toggles whether a folder is collapes or open
      */
     this.toggle_folder = function(topIndex, index) {
-
         var len = self.flatData.length;
         var tree = Indexes[self.flatData[index].id];
         var item = self.flatData[index];
-
         if (item.row.kind === "folder" && item.row.children.length === 0) {
             // lazyloading
             m.request({method: "GET", url: "small.json"})
@@ -546,7 +549,7 @@ Treebeard.controller = function () {
     };
 
     /*
-     *  Sorting toggles, incomplete -- TODO: Finish Sorting
+     *  Sorting toggles, incomplete
      */
     this.ascToggle = function(){
         var type = $(this).attr('data-direction');
@@ -574,29 +577,6 @@ Treebeard.controller = function () {
             console.log("Sorted ", counter);
         }
     };
-
-
-//    this.order = function (type){
-
-//        +            var recursive = function redo(data){
-//            +                data.map( function(item, index, array){
-//                +                    if(type === "asc"){
-//                    +                        item.children.sort(titleASC);
-//                    +                    } else {
-//                    +                        item.children.sort(titleDESC);
-//                    +                    }
-//                +                    if(item.children.length > 0 ){ redo(item.children) } ;
-//                +                });
-//            +            }
-//            +            // First reorder the top data
-//            +            if(type === "asc"){
-//            +               self.data().sort(titleASC);
-//            +            } else {
-//            +                self.data().sort(titleDESC);
-//            +            }
-//        +            // Then start recursive loop
-//            +            recursive(self.data());
-//
 
 
     /*
@@ -758,7 +738,6 @@ Treebeard.controller = function () {
     };
 };
 
-
 Treebeard.view = function(ctrl){
     console.log(ctrl.showRange);
     return [
@@ -828,16 +807,16 @@ Treebeard.view = function(ctrl){
                                                     "data-id" : row.id,
                                                     style : "padding-left: "+padding+"px; width:"+cols[0].width },  [
                                                     m("span.tdFirst", {
-                                                            onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item); }},
+                                                        onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item);}
+                                                        },
                                                         ctrl.subFix(row)),
-//                                                    m("span", row.id+" "),
                                                     m("span.title-text", row[col.data]+" ")
                                                ]);
                                             } else if(col.title === "Actions"){
                                                 cell = m(".tb-td", { style : "width:"+cols[2].width }, [
                                                     m("button.btn.btn-danger.btn-xs", {
-                                                            "data-id" : row.id,
-                                                            onclick: function(){ ctrl.delete_node(row.parent, row.id ); }},
+                                                        "data-id" : row.id,
+                                                        onclick: function(){ctrl.delete_node(row.parent, row.id);}},
                                                         " X "),
                                                     m("button.btn.btn-success.btn-xs", {
                                                         "data-id" : row.id,
@@ -923,80 +902,25 @@ Treebeard.view = function(ctrl){
  *  Starts treebard with user options;
  */
 Treebeard.run = function(element, options){
-    Treebeard.options = options;
-    m.module(element, Treebeard);
-};
-
-/*
- *  User defined options
- */
-var options = {
-    rowHeight : 35,
-    showTotal : 15,
-    paginate : false,
-    lazyLoad : false,
-    useDropzone : false,
-    uploadURL : "",
-    columns : [
-        {
-            title: "Title",
-            width : "60%",
-            data : "title",
-            sort : true
+    Treebeard.options = $.extend({
+        rowHeight : 35,
+        showTotal : 15,
+        paginate : false,
+        lazyLoad : false,
+        useDropzone : false,
+        uploadURL : "",
+        columns : [],
+        onDelete : function(){
+            console.log(this);
         },
-        {
-            title: "Author",
-            width : "30%",
-            data : "person",
-            sort : true
-        },
-        {
-            title: "Actions",
-            width : "10%",
-            sort : false
-        }
-    ],
-    onDelete : function(){
-        console.log(this);
-    },
-    onClickRow : function(){
+        onClickRow : function(){
 //        console.log("This", this);
 //        console.log("Next", this.next());
 //        console.log("Parent", this.parent());
-    },
-    itemclick : function(){
+        },
+        itemclick : function(){
 
-    }
+        }
+    }, options);
+    m.module(element, Treebeard);
 };
-
-
-$(".tb-row").dropzone({
-               init : function(){
-                    this.on("complete", function (file) {
-                            console.log(this.element);
-                            var id =$(this.element).attr('data-id');
-
-                            alert("The element you selected is: "+$(this.element).find('.title-text').text() + " with ID:" + $(this.element).attr('data-id'));
-                        });
-                },
-            url: "/file/post"
-
-        });
-
-
-
-function logger(topic, item){
-    console.log("topic", topic);
-    console.log("Item:", item);
-}
-var myLogger = Pubsub.subscribe('itemclick', logger);
-
-setTimeout(function(){
-    console.log("Time out");
-    console.log(myLogger);
-    Pubsub.unsubscribe(myLogger);
-}, 5000);
-/*
- *  User defined code to implement Treebeard anywhere on the page.
- */
-Treebeard.run(document.getElementById("grid"), options);
