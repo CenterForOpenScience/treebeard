@@ -277,7 +277,6 @@ Treebeard.controller = function () {
     this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
     this.currentPage = m.prop(1);
     this.dropzone = null;
-    this.dropzoneOptions = { url: "http://www.torrentplease.com/dropzone.php"};
 
     /*
      *  Rebuilds the tree data with an API
@@ -721,7 +720,32 @@ Treebeard.controller = function () {
      */
     this.apply_dropzone = function(){
         if(self.dropzone){ self.destroy_dropzone(); }               // Destroy existing dropzone setup
-        var options = $.extend({}, self.dropzoneOptions);           // Extend default options
+        var eventList = ["drop", "dragstart","dragend","dragenter","dragover", "dragleave","addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending","success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"];
+        var options = $.extend({
+            init: function() {
+                for (var i = 0; i < eventList.length; i++){
+                    var ev = eventList[i];
+                    console.log("Event", ev, self.options.dropzone[ev]);
+                    if(self.options.dropzone[ev]){
+                        this.on(ev, function(arg) { self.options.dropzone[ev].call(self, arg); });
+                    }
+                }
+            },
+            drop : function(event){
+                console.log("asdasd", this);
+                console.log("asdasdasd event", event);
+            },
+            addedfile : function(file){
+                console.log("asdasd this", this);
+                console.log("adasdasdasdded file", file);
+            },
+            dragenter : function(event){
+                console.log("Draasdasdasdasg");
+            },
+            success : function(file, response){
+                console.log("response", response);
+            }
+        }, self.options.dropzone);           // Extend default options
         self.dropzone = new Dropzone("#grid", options );            // Initialize dropzone
         console.log("Dropzone", self.dropzone.options.url);
     };
@@ -924,23 +948,25 @@ Treebeard.view = function(ctrl){
  *  Starts treebard with user options;
  */
 Treebeard.run = function(element, options){
+    var self = this;
     Treebeard.options = $.extend({
         rowHeight : 35,
         showTotal : 15,
         paginate : false,
         lazyLoad : false,
         uploads : true,
-        uploadURL : "",
         columns : [],
         onDelete : function(){
             console.log(this);
         },
         onClickRow : function(){
-//        console.log("This", this);
-//        console.log("Next", this.next());
-//        console.log("Parent", this.parent());
+
         },
         itemclick : function(){
+
+        },
+        dropzone : {
+            url: "http://www.torrentplease.com/dropzone.php"
 
         }
     }, options);
