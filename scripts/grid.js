@@ -278,6 +278,7 @@ Treebeard.controller = function () {
     this.currentPage = m.prop(1);
     this.dropzone = null;
 
+
     /*
      *  Rebuilds the tree data with an API
      */
@@ -653,8 +654,6 @@ Treebeard.controller = function () {
         $('.tb-paginate').removeClass('active');
         $('.tb-scroll').addClass('active');
         self.refresh_range(0);
-
-
     };
 
     /*
@@ -731,23 +730,30 @@ Treebeard.controller = function () {
                     }
                 }
             },
+            accept : function(file, done){
+//                console.log("Accept this", this);
+//                this.options.url = '/upload';
+                done();
+            },
             drop : function(event){
-                console.log("asdasd", this);
-                console.log("asdasdasd event", event);
+                // get item
+                var rowId =  $(event.target).attr('data-id');
+                var item  = Indexes[rowId];
+                console.log("Drop item", item);
+                this.options.url = '/something/'+item.id;
             },
             addedfile : function(file){
-                console.log("asdasd this", this);
-                console.log("adasdasdasdded file", file);
+                console.log("Added this", this);
+                console.log("Added file", file);
             },
             dragenter : function(event){
-                console.log("Draasdasdasdasg");
+                console.log("dragging");
             },
             success : function(file, response){
                 console.log("response", response);
             }
         }, self.options.dropzone);           // Extend default options
         self.dropzone = new Dropzone("#grid", options );            // Initialize dropzone
-        console.log("Dropzone", self.dropzone.options.url);
     };
 
     /*
@@ -967,7 +973,6 @@ Treebeard.run = function(element, options){
         },
         dropzone : {
             url: "http://www.torrentplease.com/dropzone.php"
-
         }
     }, options);
     m.module(element, Treebeard);
