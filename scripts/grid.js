@@ -15,7 +15,7 @@ function getUID() {
  */
 function AscByAttr (data) {
     return function(a,b){
-        console.log(a,b);
+        //console.log(a,b);
         var titleA = a.data[data].toLowerCase().replace(/\s+/g, " ");
         var titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
         if (titleA < titleB){
@@ -255,11 +255,11 @@ Treebeard.controller = function () {
         .then(function(value){self.treeData = self.buildTree(value); })
         .then(function(){ self.flatten(self.treeData.children);})
         .then(function(){
-            console.log(self.flatData);
-            console.log(Indexes);
+            //console.log(self.flatData);
+            //console.log(Indexes);
             self.calculate_visible();
             self.calculate_height();
-            console.log("Treedata", self.treeData);
+            //console.log("Treedata", self.treeData);
         });
     this.flatData = [];
     this.treeData = {};
@@ -310,7 +310,7 @@ Treebeard.controller = function () {
         var recursive = function redo(data, show, topLevel) {
             var length = data.length;
             for (var i = 0; i < length; i++) {
-                console.log( "openLevel", openLevel);
+                //console.log( "openLevel", openLevel);
                 if(openLevel && data[i].depth <= openLevel ){
                     show = true;
                 }
@@ -336,7 +336,7 @@ Treebeard.controller = function () {
                 }
                 Indexes[data[i].id] = data[i];
                 if(topLevel && i === length-1){
-                    console.log("Redo");
+                    //console.log("Redo");
                     self.calculate_visible(visibleTop);
                     self.calculate_height();
                     m.redraw();
@@ -354,7 +354,7 @@ Treebeard.controller = function () {
         if (isInit) { return; }
         var containerHeight = $('#tb-tbody').height();
         self.options.showTotal = Math.floor(containerHeight/self.options.rowHeight);
-        console.log("ShowTotal", self.options.showTotal);
+        //console.log("ShowTotal", self.options.showTotal);
         $('#tb-tbody').scroll(function(){
             // snap scrolling to intervals of items;
             // get current scroll top
@@ -374,7 +374,7 @@ Treebeard.controller = function () {
             var innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
             scrollTop = $(this).scrollTop();
             var location = scrollTop/innerHeight*100;
-            console.log("Visible cache", self.visibleCache);
+            //console.log("Visible cache", self.visibleCache);
             var index = Math.round(location/100*self.visibleCache);
             self.rangeMargin = Math.round(itemsHeight*(scrollTop/innerHeight));
             self.refresh_range(index);
@@ -401,14 +401,14 @@ Treebeard.controller = function () {
      *  Deletes item from tree and refreshes view
      */
     this.delete_node = function(parentID, itemID  ){
-        console.log(parentID, itemID);
+        //console.log(parentID, itemID);
         var parent = Indexes[parentID];
         parent.remove_child(itemID);
-        console.log("Parent after", parent);
+        //console.log("Parent after", parent);
         if(self.options.onDelete){
             self.options.onDelete.call(parent);
         }
-        console.log("Treedata", self.treeData);
+        //console.log("Treedata", self.treeData);
         self.flatten(self.treeData.children, self.visibleTop);
     };
 
@@ -416,14 +416,14 @@ Treebeard.controller = function () {
      *  Adds a new node;
      */
     this.add_node = function(parentID){
-        console.log(parentID);
+        //console.log(parentID);
         // add to the tree and reflatten
         var newItem = new Treebeard.model();
         var item = new Item(newItem);
         var parent = Indexes[parentID];
-        console.log(parent);
+        //console.log(parent);
         parent.add(item);
-        console.log("parent after", parent);
+        //console.log("parent after", parent);
         self.flatten(self.treeData.children, self.visibleTop);
     };
 
@@ -479,7 +479,7 @@ Treebeard.controller = function () {
                 self.filterOn = true;
                 self.lastNonFilterLocation = self.lastLocation;
             }
-            console.log("Visible Top", self.visibleTop);
+            //console.log("Visible Top", self.visibleTop);
             var index = self.visibleTop;
             if(!self.visibleTop){
                 index = 0;
@@ -574,7 +574,7 @@ Treebeard.controller = function () {
             parent.children('.'+type+'-btn').removeClass('tb-sort-inactive');
             self.sort[type] = true;
             self.flatten(self.treeData.children, 0);
-            console.log("Sorted ", counter);
+            //console.log("Sorted ", counter);
         }
     };
 
@@ -628,7 +628,7 @@ Treebeard.controller = function () {
      */
     this.refresh_range = function(begin){
         var len = self.visibleCache;
-        console.log('vislen', len);
+        //console.log('vislen', len);
         var range = [];
         var counter = 0;
         self.visibleTop = begin;
@@ -678,7 +678,7 @@ Treebeard.controller = function () {
         // get last shown item index and refresh view from that item onwards
         var lastIndex = self.showRange[self.options.showTotal-1];
         var last = self.visibleIndexes.indexOf(lastIndex);
-        console.log("Last", last);
+        //console.log("Last", last);
         if(last > -1 && last+1 < self.visibleCache){
             self.refresh_range(last+1);
             self.currentPage(self.currentPage()+1);
@@ -739,7 +739,7 @@ Treebeard.controller = function () {
 };
 
 Treebeard.view = function(ctrl){
-    console.log(ctrl.showRange);
+    //console.log(ctrl.showRange);
     return [
         m('.gridWrapper.row', {config : ctrl.init},  [
             m('.col-sm-8', [
@@ -781,7 +781,7 @@ Treebeard.view = function(ctrl){
                                 ctrl.showRange.map(function(item){
                                     var indent = ctrl.flatData[item].depth;
                                     var row = ctrl.flatData[item].row;
-                                    var cols = ctrl.options.columns;
+                                    //var cols = ctrl.options.columns;
                                     var padding, css;
                                     if(ctrl.filterOn){
                                         padding = 0;
@@ -790,7 +790,7 @@ Treebeard.view = function(ctrl){
                                     }
                                     if(row.id === ctrl.detailItem.id){ css = "tb-row-active"; } else { css = ""; }
                                     return  m(".tb-row", {
-                                        class : css,
+                                        "class" : css,
                                         "data-id" : row.id,
                                         "data-level": indent,
                                         "data-index": item,
@@ -802,18 +802,25 @@ Treebeard.view = function(ctrl){
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
                                             var cell;
-                                            if(index === 0){
+
+                                            cell = m(".tb-td", { style : "width:"+col.width }, [
+                                                m('span', row[col.data])
+                                            ]);
+
+                                            if(col.folderIcons == true){
                                                cell = m(".tb-td.tdTitle", {
                                                     "data-id" : row.id,
-                                                    style : "padding-left: "+padding+"px; width:"+cols[0].width },  [
+                                                    style : "padding-left: "+padding+"px; width:"+col.width },  [
                                                     m("span.tdFirst", {
                                                         onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item);}
                                                         },
                                                         ctrl.subFix(row)),
                                                     m("span.title-text", row[col.data]+" ")
                                                ]);
-                                            } else if(col.title === "Actions"){
-                                                cell = m(".tb-td", { style : "width:"+cols[2].width }, [
+                                            }
+
+                                            if(col.actionIcons == true){
+                                                cell = m(".tb-td", { style : "width:"+col.width }, [
                                                     m("button.btn.btn-danger.btn-xs", {
                                                         "data-id" : row.id,
                                                         onclick: function(){ctrl.delete_node(row.parent, row.id);}},
@@ -827,15 +834,18 @@ Treebeard.view = function(ctrl){
                                                             onclick: function(){
                                                                 var selector = '.tb-row[data-id="'+row.id+'"]';
                                                                 $(selector).css('font-weight', 'bold');
-                                                                console.log(selector);
+                                                                //console.log(selector);
                                                             }},
                                                         "?")
                                                 ]);
-                                            } else {
-                                                cell = m(".tb-td", { style : "width:"+cols[1].width }, [
-                                                    m('span', row[col.data])
+                                            }
+
+                                            if(col.custom){
+                                                cell = m(".tb-td", { style : "width:"+col.width }, [
+                                                    col.custom.call(row, col)
                                                 ]);
                                             }
+                                            
                                             return cell;
                                         })
 

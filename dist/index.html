@@ -38,6 +38,11 @@
         /*
          *  User defined options
          */
+
+         var myCustomFunc = function(col){
+            console.log("This is", this);
+            return m('span', this[col.data]+' --')
+         }
         var options = {
             rowHeight : 35,
             showTotal : 15,
@@ -47,21 +52,32 @@
             uploadURL : "",
             columns : [
                 {
+                    title: "Date",
+                    width : "25%",
+                    data : "date",
+                    sort : false,
+                    folderIcons : true
+                },
+                {
                     title: "Title",
-                    width : "60%",
+                    width : "25%",
                     data : "title",
-                    sort : true
+                    sort : true,
+                    custom : myCustomFunc
+                    
                 },
                 {
                     title: "Author",
-                    width : "30%",
+                    width : "25%",
                     data : "person",
                     sort : true
                 },
                 {
                     title: "Actions",
-                    width : "10%",
-                    sort : false
+                    width : "25%",
+                    data : "action",
+                    sort : false,
+                    actionIcons : true
                 }
 
             ],
