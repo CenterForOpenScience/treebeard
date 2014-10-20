@@ -3007,7 +3007,7 @@ Treebeard.controller = function () {
         parent.remove_child(itemID);
         console.log("Parent after", parent);
         if(self.options.onDelete){
-            self.options.onDelete.call(parent);
+            self.options.ondelete.call(parent);
         }
         console.log("Treedata", self.treeData);
         self.flatten(self.treeData.children, self.visibleTop);
@@ -3138,6 +3138,9 @@ Treebeard.controller = function () {
             self.calculate_visible(topIndex);
             self.calculate_height();
             m.redraw(true);
+        }
+        if(self.options.ontogglefolder){
+            self.options.ontogglefolder.call(tree);
         }
     };
 
@@ -3447,7 +3450,9 @@ Treebeard.view = function(ctrl){
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-                                            ctrl.options.onClickRow.call(Indexes[row.id]);
+                                            if(ctrl.options.onselectrow){
+                                                ctrl.options.onselectrow.call(Indexes[row.id]);
+                                            }
                                             Pubsub.publish('itemclick', Indexes[row.id]);
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
@@ -3560,14 +3565,17 @@ Treebeard.run = function(element, options){
         lazyLoad : false,
         uploads : true,
         columns : [],
-        onDelete : function(){
-            console.log(this);
+        ondelete : function(){
+            // this = parent of deleted row
+            console.log("ondelete", this);
         },
-        onClickRow : function(){
-
+        onselectrow : function(){
+            // this = row
+            console.log("onselectrow", this);
         },
-        itemclick : function(){
-
+        ontogglefolder : function(){
+            // this = toggled folder
+            console.log("ontogglefolder", this);
         },
         dropzone : {
             url: "http://www.torrentplease.com/dropzone.php"
