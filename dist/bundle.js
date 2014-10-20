@@ -2687,6 +2687,7 @@ Treebeard.view = function(ctrl){
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
                                 ctrl.showRange.map(function(item){
                                     var indent = ctrl.flatData[item].depth;
+                                    var id = ctrl.flatData[item].id;
                                     var row = ctrl.flatData[item].row;
                                     //var cols = ctrl.options.columns;
                                     var padding, css;
@@ -2695,10 +2696,10 @@ Treebeard.view = function(ctrl){
                                     } else {
                                         padding = indent*20;
                                     }
-                                    if(row.id === ctrl.detailItem.id){ css = "tb-row-active"; } else { css = ""; }
+                                    if(id === ctrl.detailItem.id){ css = "tb-row-active"; } else { css = ""; }
                                     return  m(".tb-row", {
                                         "class" : css,
-                                        "data-id" : row.id,
+                                        "data-id" : id,
                                         "data-level": indent,
                                         "data-index": item,
                                         style : "height: "+ctrl.options.rowHeight+"px;",
@@ -2716,7 +2717,7 @@ Treebeard.view = function(ctrl){
 
                                             if(col.folderIcons == true){
                                                cell = m(".tb-td.tdTitle", {
-                                                    "data-id" : row.id,
+                                                    "data-id" : id,
                                                     style : "padding-left: "+padding+"px; width:"+col.width },  [
                                                     m("span.tdFirst", {
                                                         onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item);}
@@ -2730,16 +2731,16 @@ Treebeard.view = function(ctrl){
                                                 cell = m(".tb-td", { style : "width:"+col.width }, [
                                                     m("button.btn.btn-danger.btn-xs", {
                                                         "data-id" : row.id,
-                                                        onclick: function(){ctrl.delete_node(row.parent, row.id);}},
+                                                        onclick: function(){ctrl.delete_node(row.parent, id);}},
                                                         " X "),
                                                     m("button.btn.btn-success.btn-xs", {
                                                         "data-id" : row.id,
-                                                        onclick: function(){ ctrl.add_node(row.id);}
+                                                        onclick: function(){ ctrl.add_node(id);}
                                                     }," Add "),
                                                     m("button.btn.btn-info.btn-xs", {
-                                                            "data-id" : row.id,
+                                                            "data-id" : id,
                                                             onclick: function(){
-                                                                var selector = '.tb-row[data-id="'+row.id+'"]';
+                                                                var selector = '.tb-row[data-id="'+id+'"]';
                                                                 $(selector).css('font-weight', 'bold');
                                                                 //console.log(selector);
                                                             }},
