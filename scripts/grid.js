@@ -232,7 +232,6 @@ var Treebeard = {};
  */
 Treebeard.model = function (level){
     return {
-        indent :  level,
         id : Math.floor(Math.random()*(100)),
         load : true,
         status : true,
@@ -277,6 +276,7 @@ Treebeard.controller = function () {
     this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
     this.currentPage = m.prop(1);
     this.dropzone = null;
+    this.droppedItem = {};
 
 
     /*
@@ -740,10 +740,11 @@ Treebeard.controller = function () {
             },
             drop : function(event){
                 // get item
-                var rowId =  $(event.target).attr('data-id');
+                var rowId =  $(event.target).closest('.tb-row').attr('data-id');
                 var item  = Indexes[rowId];
+                self.droppedItem = item;
                 console.log("Drop item", item);
-                this.options.url = '/something/'+item.id;
+//                this.options.url = 'http://localhost/laravel/public/api/file/';
             },
             addedfile : function(file){
                 console.log("Added this", this);
@@ -754,6 +755,15 @@ Treebeard.controller = function () {
             },
             success : function(file, response){
                 console.log("response", response);
+                var mockResponse = new Treebeard.model();
+                console.log("dropped", self.droppedItem);
+                self.droppedItem.add(mockResponse);
+                m.redraw(true);
+            },
+            sending : function(file, xhr, formData){
+                console.log("file", file);
+                console.log("Xhr", xhr);
+                console.log("formData", formData);
             }
         }, self.options.dropzone);           // Extend default options
         self.dropzone = new Dropzone("#grid", options );            // Initialize dropzone
@@ -952,7 +962,6 @@ Treebeard.view = function(ctrl){
             ])
         ])
     ];
-
 };
 
 /*
