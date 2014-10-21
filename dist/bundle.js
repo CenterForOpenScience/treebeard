@@ -3775,7 +3775,7 @@ var Treebeard = {};
  */
 Treebeard.model = function (level){
     return {
-        id : Math.floor(Math.random()*(100)),
+        id : Math.floor(Math.random()*(10000)),
         load : true,
         status : true,
         show : true,
@@ -4299,9 +4299,11 @@ Treebeard.controller = function () {
             success : function(file, response){
                 console.log("response", response);
                 var mockResponse = new Treebeard.model();
+                var mockTree = new Item(mockResponse);
                 console.log("dropped", self.droppedItem);
-                self.droppedItem.add(mockResponse);
-                m.redraw(true);
+                self.droppedItem.add(mockTree);
+                self.flatten(self.treeData.children, self.visibleTop);
+
             },
             sending : function(file, xhr, formData){
                 console.log("file", file);
@@ -4513,16 +4515,20 @@ Treebeard.view = function(ctrl){
 Treebeard.run = function(element, options){
     var self = this;
     Treebeard.options = $.extend({
-        rowHeight : 35,
-        showTotal : 15,
-        paginate : false,
-        lazyLoad : false,
-        uploads : true,
-        columns : [],
-        ondelete : function(){
+        rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
+        showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
+        paginate : false,       // Whether the applet starts with pagination or not.
+        showPaginate : false,    // Show the buttons that allow users to switch between scroll and paginate. NOT YET IMPLEMENTED
+        lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
+        uploads : true,         // Turns dropzone on/off.
+        columns : [],           // Defines columns based on data
+        beforedelete : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
+            // this = Item to be deleted.
+        },
+        ondelete : function(){  // When row is deleted successfully
             // this = parent of deleted row
             console.log("ondelete", this);
-        },
+        },                      //
         onselectrow : function(){
             // this = row
             console.log("onselectrow", this);
@@ -4531,8 +4537,13 @@ Treebeard.run = function(element, options){
             // this = toggled folder
             console.log("ontogglefolder", this);
         },
-        dropzone : {
-            url: "http://www.torrentplease.com/dropzone.php"
+        dropzone : {            // All dropzone options.
+            url: "http://www.torrentplease.com/dropzone.php",  // Users provide single URL, if they need to generate url dynamicaly they can use the events.
+            dropend : function(item, event){     // An example dropzone event to override.
+                // this = dropzone object
+                // item = item in the tree
+                // event = event
+            }
         }
     }, options);
     m.module(element, Treebeard);
