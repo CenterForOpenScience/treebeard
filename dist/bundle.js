@@ -3722,50 +3722,6 @@ Item.prototype.sort_children = function(type, attr){
 
 
 /*
- *  Publish/Subscribe for main events / components taken from Addy Osmani
- */
-var Pubsub = {
-    topics : {},
-    token : -1,
-    publish : function(topic, args){
-        if ( !this.topics[topic] ) {
-            return false;
-        }
-        var subscribers = this.topics[topic],
-            len = subscribers ? subscribers.length : 0;
-        while (len--) {
-            subscribers[len].func( topic, args );
-        }
-        return this;
-    },
-    subscribe : function(topic, func){
-        if (!this.topics[topic]) {
-            this.topics[topic] = [];
-        }
-        var token = ( ++this.token ).toString();
-        this.topics[topic].push({
-            token: token,
-            func: func
-        });
-        return token;
-    },
-    unsubscribe : function(token){
-        for ( var m in this.topics ) {
-            if ( this.topics[m] ) {
-                for ( var i = 0, j = this.topics[m].length; i < j; i++ ) {
-                    if ( this.topics[m][i].token === token ) {
-                        this.topics[m].splice( i, 1 );
-                        return token;
-                    }
-                }
-            }
-        }
-        return this;
-    }
-};
-
-
-/*
  *  Initialize and namespace the module
  */
 var Treebeard = {};
@@ -3797,11 +3753,8 @@ Treebeard.controller = function () {
         .then(function(value){self.treeData = self.buildTree(value); })
         .then(function(){ self.flatten(self.treeData.children);})
         .then(function(){
-            //console.log(self.flatData);
-            //console.log(Indexes);
             self.calculate_visible();
             self.calculate_height();
-            //console.log("Treedata", self.treeData);
         });
     this.flatData = [];
     this.treeData = {};
@@ -4420,7 +4373,7 @@ Treebeard.view = function(ctrl){
                                                 m('span', row[col.data])
                                             ]);
 
-                                            if(col.folderIcons == true){
+                                            if(col.folderIcons === true){
                                                cell = m(".tb-td.tdTitle", {
                                                     "data-id" : id,
                                                     style : "padding-left: "+padding+"px; width:"+col.width },  [
@@ -4432,7 +4385,7 @@ Treebeard.view = function(ctrl){
                                                ]);
                                             }
 
-                                            if(col.actionIcons == true){
+                                            if(col.actionIcons === true){
                                                 cell = m(".tb-td", { style : "width:"+col.width }, [
                                                     m("button.btn.btn-danger.btn-xs", {
                                                         "data-id" : row.id,

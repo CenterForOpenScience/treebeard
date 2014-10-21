@@ -53,17 +53,11 @@
             uploadURL : "",
             columns : [
                 {
-                    title: "Date",
-                    width : "25%",
-                    data : "date",
-                    sort : false,
-                    folderIcons : true
-                },
-                {
                     title: "Title",
-                    width : "25%",
+                    width : "50%",
                     data : "title",
                     sort : true,
+                    folderIcons : true,
                     custom : myCustomFunc
                     
                 },
@@ -81,52 +75,16 @@
                     actionIcons : true
                 }
 
-            ],
+            ]
 
         }
 
-        function logger(topic, item){
-            console.log("topic", topic);
-            console.log("Item:", item);
-        }
-        var myLogger = Pubsub.subscribe('itemclick', logger);
 
-        setTimeout(function(){
-            console.log("Time out");
-            console.log(myLogger);
-            Pubsub.unsubscribe(myLogger);
-//            $.getJSON("/upload", function(response) {
-//                console.log(response);
-//                if ( response.status == "success") {
-//                    alert("Worked");
-//                } else {
-//                    alert("Didn't work");
-//                }
-//            });
-
-        }, 3000);
         /*
          *  User defined code to implement Treebeard anywhere on the page.
          */
         Treebeard.run(document.getElementById("grid"), options);
 
-        $.mockjax({
-            url: "/upload",
-            status: 200,
-            responseText : {
-                indent :  0,
-                parent: 0,
-                id : Math.floor(Math.random()*(100)),
-                kind : "item",
-                status : true,
-                show : true,
-                person  : "JohnnyB. Goode",
-                title  :  "Around the World in 80 Days",
-                date : "Date",
-                filtered : false,
-                children : []
-            }
-        });
 
 
 
