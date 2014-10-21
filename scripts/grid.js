@@ -96,11 +96,14 @@ Item.prototype.add = function(component) {
  *  Move item from one place to another
  */
 Item.prototype.move = function(to){
-    var parentID = this.parentID;
     var toItem = Indexes[to];
-    var parent = Indexes[parentID];
+    var parentID = this.parentID;
     toItem.add(this);
-    parent.remove_child(parseInt(this.id));
+    console.log("this", this);
+    if(parentID){
+        var parent = Indexes[parentID];
+        parent.remove_child(parseInt(this.id));
+    }
 };
 
 /*
@@ -208,7 +211,7 @@ Treebeard.controller = function () {
     var self = this;
     this.data = m.request({method: "GET", url: "small.json"})
         .then(function(value){self.treeData = self.buildTree(value); })
-        .then(function(){ self.flatten(self.treeData.children);})
+        .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
         .then(function(){
             self.calculate_visible();
             self.calculate_height();
@@ -230,6 +233,7 @@ Treebeard.controller = function () {
     this.currentPage = m.prop(1);
     this.dropzone = null;
     this.droppedItem = {};
+    this.check = { "move" : true, "delete" : true, "add" : true};
 
 
     /*
@@ -341,12 +345,21 @@ Treebeard.controller = function () {
             tolerance : "pointer",
             hoverClass : "highlight",
             drop: function( event, ui ) {
+
                 var to = $(this).attr("data-id");
                 var from = ui.draggable.attr("data-id");
+                var toItem = Indexes[to];
                 var item = Indexes[from];
-                if (to !== from ){
+                console.log("move on, tree before", self.treeData);
+
+//                if(to !== from && self.options.movecheck(toItem, item)){
                     item.move(to);
                     self.flatten(self.treeData.children, self.visibleTop);
+                    console.log("move on, tree after", self.treeData);
+
+//                }
+                if(self.options.onmove){
+                    self.options.onmove(toItem, item);
                 }
             }
         });
@@ -361,7 +374,7 @@ Treebeard.controller = function () {
         var parent = Indexes[parentID];
         parent.remove_child(itemID);
         //console.log("Parent after", parent);
-        if(self.options.onDelete){
+        if(self.options.ondelete){
             self.options.ondelete.call(parent);
         }
         //console.log("Treedata", self.treeData);
@@ -649,8 +662,6 @@ Treebeard.controller = function () {
         var firstIndex = self.showRange[0];
         // var visibleArray = self.visibleIndexes.map(function(visIndex){return visIndex;});
         var first = self.visibleIndexes.indexOf(firstIndex);
-        //console.log(visibleArray);
-        //console.log(first);
         if(first && first > 0) {
             self.refresh_range(first - self.options.showTotal);
             self.currentPage(self.currentPage()-1);
@@ -821,7 +832,6 @@ Treebeard.view = function(ctrl){
                                             if(ctrl.options.onselectrow){
                                                 ctrl.options.onselectrow.call(Indexes[row.id]);
                                             }
-                                            Pubsub.publish('itemclick', Indexes[row.id]);
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
                                             var cell;
@@ -949,7 +959,17 @@ Treebeard.run = function(element, options){
         ondelete : function(){  // When row is deleted successfully
             // this = parent of deleted row
             console.log("ondelete", this);
-        },                      //
+        },
+        onmove : function(to, from){  // After move happens
+            // to = actual tree object we are moving to
+            // from = actual tree object we are moving
+            console.log("onmove: to", to, "from", from);
+        },
+        movecheck : function(to, from){
+            // This gives the users an option to do checks and define their return
+            console.log("movecheck: to", to, "from", from);
+            return true;
+        },
         onselectrow : function(){
             // this = row
             console.log("onselectrow", this);
