@@ -57,9 +57,7 @@
                     width : "50%",
                     data : "title",
                     sort : true,
-                    folderIcons : true,
-                    custom : myCustomFunc
-                    
+                    folderIcons : true
                 },
                 {
                     title: "Author",
@@ -74,8 +72,15 @@
                     sort : false,
                     actionIcons : true
                 }
-
-            ]
+            ],
+            movecheck : function(to,from){
+                console.log("Custom move check. to:", to, "from", from, to.data.receive);
+                if(to.data.receive){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
 
         }
 

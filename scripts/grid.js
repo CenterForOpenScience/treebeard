@@ -96,11 +96,14 @@ Item.prototype.add = function(component) {
  *  Move item from one place to another
  */
 Item.prototype.move = function(to){
-    var parentID = this.parentID;
     var toItem = Indexes[to];
+    var parentID = this.parentID;
     var parent = Indexes[parentID];
     toItem.add(this);
-    parent.remove_child(parseInt(this.id));
+    console.log("this", this);
+    if(parentID > -1){
+        parent.remove_child(parseInt(this.id));
+    }
 };
 
 /*
@@ -208,8 +211,9 @@ Treebeard.controller = function () {
     var self = this;
     this.data = m.request({method: "GET", url: "small.json"})
         .then(function(value){self.treeData = self.buildTree(value); })
-        .then(function(){ self.flatten(self.treeData.children);})
+        .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
         .then(function(){
+            console.log("tree data", self.treeData);
             self.calculate_visible();
             self.calculate_height();
         });
@@ -230,6 +234,7 @@ Treebeard.controller = function () {
     this.currentPage = m.prop(1);
     this.dropzone = null;
     this.droppedItem = {};
+    this.check = { "move" : true, "delete" : true, "add" : true};
 
 
     /*
@@ -338,15 +343,43 @@ Treebeard.controller = function () {
         });
         $(".tdTitle").draggable({ helper: "clone" });
         $(".tb-row").droppable({
-            tolerance : "pointer",
-            hoverClass : "highlight",
-            drop: function( event, ui ) {
+            tolerance : "touch",
+            cursor : "move",
+            out: function( event, ui ) {
+               $('.tb-row.tb-h-success').removeClass('tb-h-success');
+                $('.tb-row.tb-h-error').removeClass('tb-h-error');
+
+            },
+            over: function( event, ui ) {
                 var to = $(this).attr("data-id");
                 var from = ui.draggable.attr("data-id");
+                var toItem = Indexes[to];
                 var item = Indexes[from];
-                if (to !== from ){
-                    item.move(to);
-                    self.flatten(self.treeData.children, self.visibleTop);
+                console.log("Over to", to, "overfrom", from);
+                if(to !== from && self.options.movecheck(toItem, item)) {
+                    $(this).addClass('tb-h-success');
+                } else {
+                    $(this).addClass('tb-h-error');
+                }
+            },
+            drop: function( event, ui ) {
+
+                var to = $(this).attr("data-id");
+                var from = ui.draggable.attr("data-id");
+                var toItem = Indexes[to];
+                var item = Indexes[from];
+
+                if(to !== from){
+                    if(self.options.movecheck(toItem, item)){
+                        item.move(to);
+                        self.flatten(self.treeData.children, self.visibleTop);
+                        console.log("tree data", self.treeData);
+                    } else {
+                        alert("You can't move your item here.");
+                    }
+                }
+                if(self.options.onmove){
+                    self.options.onmove(toItem, item);
                 }
             }
         });
@@ -361,7 +394,7 @@ Treebeard.controller = function () {
         var parent = Indexes[parentID];
         parent.remove_child(itemID);
         //console.log("Parent after", parent);
-        if(self.options.onDelete){
+        if(self.options.ondelete){
             self.options.ondelete.call(parent);
         }
         //console.log("Treedata", self.treeData);
@@ -649,8 +682,6 @@ Treebeard.controller = function () {
         var firstIndex = self.showRange[0];
         // var visibleArray = self.visibleIndexes.map(function(visIndex){return visIndex;});
         var first = self.visibleIndexes.indexOf(firstIndex);
-        //console.log(visibleArray);
-        //console.log(first);
         if(first && first > 0) {
             self.refresh_range(first - self.options.showTotal);
             self.currentPage(self.currentPage()-1);
@@ -821,7 +852,6 @@ Treebeard.view = function(ctrl){
                                             if(ctrl.options.onselectrow){
                                                 ctrl.options.onselectrow.call(Indexes[row.id]);
                                             }
-                                            Pubsub.publish('itemclick', Indexes[row.id]);
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
                                             var cell;
@@ -943,13 +973,33 @@ Treebeard.run = function(element, options){
         lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
         uploads : true,         // Turns dropzone on/off.
         columns : [],           // Defines columns based on data
-        beforedelete : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
+        deletecheck : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
             // this = Item to be deleted.
         },
         ondelete : function(){  // When row is deleted successfully
             // this = parent of deleted row
             console.log("ondelete", this);
-        },                      //
+        },
+        movecheck : function(to, from){
+            // This method gives the users an option to do checks and define their return
+
+            console.log("movecheck: to", to, "from", from);
+            return true;
+        },
+        onmove : function(to, from){  // After move happens
+            // to = actual tree object we are moving to
+            // from = actual tree object we are moving
+            console.log("onmove: to", to, "from", from);
+        },
+        addcheck : function(item, file){
+            // item = item to be added to
+            // info about the file being added
+            return true;
+        },
+        onadd : function(item, response){
+            // item = item that just received the added content
+            // response : what's returned from the server
+        },
         onselectrow : function(){
             // this = row
             console.log("onselectrow", this);
