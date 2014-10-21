@@ -34,6 +34,7 @@
         </p>
     </div>
     <script src="bundle.js"></script>
+
     <script type="text/javascript">
         /*
          *  User defined options
@@ -81,18 +82,8 @@
                 }
 
             ],
-            onDelete : function(){
-                console.log(this);
-            },
-            onClickRow : function(){
-//        console.log("This", this);
-//        console.log("Next", this.next());
-//        console.log("Parent", this.parent());
-            },
-            itemclick : function(){
 
-            }
-        };
+        }
 
         function logger(topic, item){
             console.log("topic", topic);
@@ -104,11 +95,41 @@
             console.log("Time out");
             console.log(myLogger);
             Pubsub.unsubscribe(myLogger);
-        }, 5000);
+//            $.getJSON("/upload", function(response) {
+//                console.log(response);
+//                if ( response.status == "success") {
+//                    alert("Worked");
+//                } else {
+//                    alert("Didn't work");
+//                }
+//            });
+
+        }, 3000);
         /*
          *  User defined code to implement Treebeard anywhere on the page.
          */
         Treebeard.run(document.getElementById("grid"), options);
+
+        $.mockjax({
+            url: "/upload",
+            status: 200,
+            responseText : {
+                indent :  0,
+                parent: 0,
+                id : Math.floor(Math.random()*(100)),
+                kind : "item",
+                status : true,
+                show : true,
+                person  : "JohnnyB. Goode",
+                title  :  "Around the World in 80 Days",
+                date : "Date",
+                filtered : false,
+                children : []
+            }
+        });
+
+
+
     </script>
     </body>
 </html>

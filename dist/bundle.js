@@ -17,19 +17,1655 @@ f&&e.effects.save(i,l),i.from={height:s.height*a.from.y,width:s.width*a.from.x,o
 return e.ui.ddmanager&&(e.ui.ddmanager.current=this),e.ui.ddmanager&&!o.dropBehaviour&&e.ui.ddmanager.prepareOffsets(this,t),this.dragging=!0,this.helper.addClass("ui-sortable-helper"),this._mouseDrag(t),!0},_mouseDrag:function(t){var i,s,n,a,o=this.options,r=!1;for(this.position=this._generatePosition(t),this.positionAbs=this._convertPositionTo("absolute"),this.lastPositionAbs||(this.lastPositionAbs=this.positionAbs),this.options.scroll&&(this.scrollParent[0]!==document&&"HTML"!==this.scrollParent[0].tagName?(this.overflowOffset.top+this.scrollParent[0].offsetHeight-t.pageY<o.scrollSensitivity?this.scrollParent[0].scrollTop=r=this.scrollParent[0].scrollTop+o.scrollSpeed:t.pageY-this.overflowOffset.top<o.scrollSensitivity&&(this.scrollParent[0].scrollTop=r=this.scrollParent[0].scrollTop-o.scrollSpeed),this.overflowOffset.left+this.scrollParent[0].offsetWidth-t.pageX<o.scrollSensitivity?this.scrollParent[0].scrollLeft=r=this.scrollParent[0].scrollLeft+o.scrollSpeed:t.pageX-this.overflowOffset.left<o.scrollSensitivity&&(this.scrollParent[0].scrollLeft=r=this.scrollParent[0].scrollLeft-o.scrollSpeed)):(t.pageY-e(document).scrollTop()<o.scrollSensitivity?r=e(document).scrollTop(e(document).scrollTop()-o.scrollSpeed):e(window).height()-(t.pageY-e(document).scrollTop())<o.scrollSensitivity&&(r=e(document).scrollTop(e(document).scrollTop()+o.scrollSpeed)),t.pageX-e(document).scrollLeft()<o.scrollSensitivity?r=e(document).scrollLeft(e(document).scrollLeft()-o.scrollSpeed):e(window).width()-(t.pageX-e(document).scrollLeft())<o.scrollSensitivity&&(r=e(document).scrollLeft(e(document).scrollLeft()+o.scrollSpeed))),r!==!1&&e.ui.ddmanager&&!o.dropBehaviour&&e.ui.ddmanager.prepareOffsets(this,t)),this.positionAbs=this._convertPositionTo("absolute"),this.options.axis&&"y"===this.options.axis||(this.helper[0].style.left=this.position.left+"px"),this.options.axis&&"x"===this.options.axis||(this.helper[0].style.top=this.position.top+"px"),i=this.items.length-1;i>=0;i--)if(s=this.items[i],n=s.item[0],a=this._intersectsWithPointer(s),a&&s.instance===this.currentContainer&&n!==this.currentItem[0]&&this.placeholder[1===a?"next":"prev"]()[0]!==n&&!e.contains(this.placeholder[0],n)&&("semi-dynamic"===this.options.type?!e.contains(this.element[0],n):!0)){if(this.direction=1===a?"down":"up","pointer"!==this.options.tolerance&&!this._intersectsWithSides(s))break;this._rearrange(t,s),this._trigger("change",t,this._uiHash());break}return this._contactContainers(t),e.ui.ddmanager&&e.ui.ddmanager.drag(this,t),this._trigger("sort",t,this._uiHash()),this.lastPositionAbs=this.positionAbs,!1},_mouseStop:function(t,i){if(t){if(e.ui.ddmanager&&!this.options.dropBehaviour&&e.ui.ddmanager.drop(this,t),this.options.revert){var s=this,n=this.placeholder.offset(),a=this.options.axis,o={};a&&"x"!==a||(o.left=n.left-this.offset.parent.left-this.margins.left+(this.offsetParent[0]===document.body?0:this.offsetParent[0].scrollLeft)),a&&"y"!==a||(o.top=n.top-this.offset.parent.top-this.margins.top+(this.offsetParent[0]===document.body?0:this.offsetParent[0].scrollTop)),this.reverting=!0,e(this.helper).animate(o,parseInt(this.options.revert,10)||500,function(){s._clear(t)})}else this._clear(t,i);return!1}},cancel:function(){if(this.dragging){this._mouseUp({target:null}),"original"===this.options.helper?this.currentItem.css(this._storedCSS).removeClass("ui-sortable-helper"):this.currentItem.show();for(var t=this.containers.length-1;t>=0;t--)this.containers[t]._trigger("deactivate",null,this._uiHash(this)),this.containers[t].containerCache.over&&(this.containers[t]._trigger("out",null,this._uiHash(this)),this.containers[t].containerCache.over=0)}return this.placeholder&&(this.placeholder[0].parentNode&&this.placeholder[0].parentNode.removeChild(this.placeholder[0]),"original"!==this.options.helper&&this.helper&&this.helper[0].parentNode&&this.helper.remove(),e.extend(this,{helper:null,dragging:!1,reverting:!1,_noFinalSort:null}),this.domPosition.prev?e(this.domPosition.prev).after(this.currentItem):e(this.domPosition.parent).prepend(this.currentItem)),this},serialize:function(t){var i=this._getItemsAsjQuery(t&&t.connected),s=[];return t=t||{},e(i).each(function(){var i=(e(t.item||this).attr(t.attribute||"id")||"").match(t.expression||/(.+)[\-=_](.+)/);i&&s.push((t.key||i[1]+"[]")+"="+(t.key&&t.expression?i[1]:i[2]))}),!s.length&&t.key&&s.push(t.key+"="),s.join("&")},toArray:function(t){var i=this._getItemsAsjQuery(t&&t.connected),s=[];return t=t||{},i.each(function(){s.push(e(t.item||this).attr(t.attribute||"id")||"")}),s},_intersectsWith:function(e){var t=this.positionAbs.left,i=t+this.helperProportions.width,s=this.positionAbs.top,n=s+this.helperProportions.height,a=e.left,o=a+e.width,r=e.top,h=r+e.height,l=this.offset.click.top,u=this.offset.click.left,d="x"===this.options.axis||s+l>r&&h>s+l,c="y"===this.options.axis||t+u>a&&o>t+u,p=d&&c;return"pointer"===this.options.tolerance||this.options.forcePointerForContainers||"pointer"!==this.options.tolerance&&this.helperProportions[this.floating?"width":"height"]>e[this.floating?"width":"height"]?p:t+this.helperProportions.width/2>a&&o>i-this.helperProportions.width/2&&s+this.helperProportions.height/2>r&&h>n-this.helperProportions.height/2},_intersectsWithPointer:function(e){var t="x"===this.options.axis||this._isOverAxis(this.positionAbs.top+this.offset.click.top,e.top,e.height),i="y"===this.options.axis||this._isOverAxis(this.positionAbs.left+this.offset.click.left,e.left,e.width),s=t&&i,n=this._getDragVerticalDirection(),a=this._getDragHorizontalDirection();return s?this.floating?a&&"right"===a||"down"===n?2:1:n&&("down"===n?2:1):!1},_intersectsWithSides:function(e){var t=this._isOverAxis(this.positionAbs.top+this.offset.click.top,e.top+e.height/2,e.height),i=this._isOverAxis(this.positionAbs.left+this.offset.click.left,e.left+e.width/2,e.width),s=this._getDragVerticalDirection(),n=this._getDragHorizontalDirection();return this.floating&&n?"right"===n&&i||"left"===n&&!i:s&&("down"===s&&t||"up"===s&&!t)},_getDragVerticalDirection:function(){var e=this.positionAbs.top-this.lastPositionAbs.top;return 0!==e&&(e>0?"down":"up")},_getDragHorizontalDirection:function(){var e=this.positionAbs.left-this.lastPositionAbs.left;return 0!==e&&(e>0?"right":"left")},refresh:function(e){return this._refreshItems(e),this._setHandleClassName(),this.refreshPositions(),this},_connectWith:function(){var e=this.options;return e.connectWith.constructor===String?[e.connectWith]:e.connectWith},_getItemsAsjQuery:function(t){function i(){r.push(this)}var s,n,a,o,r=[],h=[],l=this._connectWith();if(l&&t)for(s=l.length-1;s>=0;s--)for(a=e(l[s]),n=a.length-1;n>=0;n--)o=e.data(a[n],this.widgetFullName),o&&o!==this&&!o.options.disabled&&h.push([e.isFunction(o.options.items)?o.options.items.call(o.element):e(o.options.items,o.element).not(".ui-sortable-helper").not(".ui-sortable-placeholder"),o]);for(h.push([e.isFunction(this.options.items)?this.options.items.call(this.element,null,{options:this.options,item:this.currentItem}):e(this.options.items,this.element).not(".ui-sortable-helper").not(".ui-sortable-placeholder"),this]),s=h.length-1;s>=0;s--)h[s][0].each(i);return e(r)},_removeCurrentsFromItems:function(){var t=this.currentItem.find(":data("+this.widgetName+"-item)");this.items=e.grep(this.items,function(e){for(var i=0;t.length>i;i++)if(t[i]===e.item[0])return!1;return!0})},_refreshItems:function(t){this.items=[],this.containers=[this];var i,s,n,a,o,r,h,l,u=this.items,d=[[e.isFunction(this.options.items)?this.options.items.call(this.element[0],t,{item:this.currentItem}):e(this.options.items,this.element),this]],c=this._connectWith();if(c&&this.ready)for(i=c.length-1;i>=0;i--)for(n=e(c[i]),s=n.length-1;s>=0;s--)a=e.data(n[s],this.widgetFullName),a&&a!==this&&!a.options.disabled&&(d.push([e.isFunction(a.options.items)?a.options.items.call(a.element[0],t,{item:this.currentItem}):e(a.options.items,a.element),a]),this.containers.push(a));for(i=d.length-1;i>=0;i--)for(o=d[i][1],r=d[i][0],s=0,l=r.length;l>s;s++)h=e(r[s]),h.data(this.widgetName+"-item",o),u.push({item:h,instance:o,width:0,height:0,left:0,top:0})},refreshPositions:function(t){this.offsetParent&&this.helper&&(this.offset.parent=this._getParentOffset());var i,s,n,a;for(i=this.items.length-1;i>=0;i--)s=this.items[i],s.instance!==this.currentContainer&&this.currentContainer&&s.item[0]!==this.currentItem[0]||(n=this.options.toleranceElement?e(this.options.toleranceElement,s.item):s.item,t||(s.width=n.outerWidth(),s.height=n.outerHeight()),a=n.offset(),s.left=a.left,s.top=a.top);if(this.options.custom&&this.options.custom.refreshContainers)this.options.custom.refreshContainers.call(this);else for(i=this.containers.length-1;i>=0;i--)a=this.containers[i].element.offset(),this.containers[i].containerCache.left=a.left,this.containers[i].containerCache.top=a.top,this.containers[i].containerCache.width=this.containers[i].element.outerWidth(),this.containers[i].containerCache.height=this.containers[i].element.outerHeight();return this},_createPlaceholder:function(t){t=t||this;var i,s=t.options;s.placeholder&&s.placeholder.constructor!==String||(i=s.placeholder,s.placeholder={element:function(){var s=t.currentItem[0].nodeName.toLowerCase(),n=e("<"+s+">",t.document[0]).addClass(i||t.currentItem[0].className+" ui-sortable-placeholder").removeClass("ui-sortable-helper");return"tr"===s?t.currentItem.children().each(function(){e("<td>&#160;</td>",t.document[0]).attr("colspan",e(this).attr("colspan")||1).appendTo(n)}):"img"===s&&n.attr("src",t.currentItem.attr("src")),i||n.css("visibility","hidden"),n},update:function(e,n){(!i||s.forcePlaceholderSize)&&(n.height()||n.height(t.currentItem.innerHeight()-parseInt(t.currentItem.css("paddingTop")||0,10)-parseInt(t.currentItem.css("paddingBottom")||0,10)),n.width()||n.width(t.currentItem.innerWidth()-parseInt(t.currentItem.css("paddingLeft")||0,10)-parseInt(t.currentItem.css("paddingRight")||0,10)))}}),t.placeholder=e(s.placeholder.element.call(t.element,t.currentItem)),t.currentItem.after(t.placeholder),s.placeholder.update(t,t.placeholder)},_contactContainers:function(t){var i,s,n,a,o,r,h,l,u,d,c=null,p=null;for(i=this.containers.length-1;i>=0;i--)if(!e.contains(this.currentItem[0],this.containers[i].element[0]))if(this._intersectsWith(this.containers[i].containerCache)){if(c&&e.contains(this.containers[i].element[0],c.element[0]))continue;c=this.containers[i],p=i}else this.containers[i].containerCache.over&&(this.containers[i]._trigger("out",t,this._uiHash(this)),this.containers[i].containerCache.over=0);if(c)if(1===this.containers.length)this.containers[p].containerCache.over||(this.containers[p]._trigger("over",t,this._uiHash(this)),this.containers[p].containerCache.over=1);else{for(n=1e4,a=null,u=c.floating||this._isFloating(this.currentItem),o=u?"left":"top",r=u?"width":"height",d=u?"clientX":"clientY",s=this.items.length-1;s>=0;s--)e.contains(this.containers[p].element[0],this.items[s].item[0])&&this.items[s].item[0]!==this.currentItem[0]&&(h=this.items[s].item.offset()[o],l=!1,t[d]-h>this.items[s][r]/2&&(l=!0),n>Math.abs(t[d]-h)&&(n=Math.abs(t[d]-h),a=this.items[s],this.direction=l?"up":"down"));if(!a&&!this.options.dropOnEmpty)return;if(this.currentContainer===this.containers[p])return;a?this._rearrange(t,a,null,!0):this._rearrange(t,null,this.containers[p].element,!0),this._trigger("change",t,this._uiHash()),this.containers[p]._trigger("change",t,this._uiHash(this)),this.currentContainer=this.containers[p],this.options.placeholder.update(this.currentContainer,this.placeholder),this.containers[p]._trigger("over",t,this._uiHash(this)),this.containers[p].containerCache.over=1}},_createHelper:function(t){var i=this.options,s=e.isFunction(i.helper)?e(i.helper.apply(this.element[0],[t,this.currentItem])):"clone"===i.helper?this.currentItem.clone():this.currentItem;return s.parents("body").length||e("parent"!==i.appendTo?i.appendTo:this.currentItem[0].parentNode)[0].appendChild(s[0]),s[0]===this.currentItem[0]&&(this._storedCSS={width:this.currentItem[0].style.width,height:this.currentItem[0].style.height,position:this.currentItem.css("position"),top:this.currentItem.css("top"),left:this.currentItem.css("left")}),(!s[0].style.width||i.forceHelperSize)&&s.width(this.currentItem.width()),(!s[0].style.height||i.forceHelperSize)&&s.height(this.currentItem.height()),s},_adjustOffsetFromHelper:function(t){"string"==typeof t&&(t=t.split(" ")),e.isArray(t)&&(t={left:+t[0],top:+t[1]||0}),"left"in t&&(this.offset.click.left=t.left+this.margins.left),"right"in t&&(this.offset.click.left=this.helperProportions.width-t.right+this.margins.left),"top"in t&&(this.offset.click.top=t.top+this.margins.top),"bottom"in t&&(this.offset.click.top=this.helperProportions.height-t.bottom+this.margins.top)},_getParentOffset:function(){this.offsetParent=this.helper.offsetParent();var t=this.offsetParent.offset();return"absolute"===this.cssPosition&&this.scrollParent[0]!==document&&e.contains(this.scrollParent[0],this.offsetParent[0])&&(t.left+=this.scrollParent.scrollLeft(),t.top+=this.scrollParent.scrollTop()),(this.offsetParent[0]===document.body||this.offsetParent[0].tagName&&"html"===this.offsetParent[0].tagName.toLowerCase()&&e.ui.ie)&&(t={top:0,left:0}),{top:t.top+(parseInt(this.offsetParent.css("borderTopWidth"),10)||0),left:t.left+(parseInt(this.offsetParent.css("borderLeftWidth"),10)||0)}},_getRelativeOffset:function(){if("relative"===this.cssPosition){var e=this.currentItem.position();return{top:e.top-(parseInt(this.helper.css("top"),10)||0)+this.scrollParent.scrollTop(),left:e.left-(parseInt(this.helper.css("left"),10)||0)+this.scrollParent.scrollLeft()}}return{top:0,left:0}},_cacheMargins:function(){this.margins={left:parseInt(this.currentItem.css("marginLeft"),10)||0,top:parseInt(this.currentItem.css("marginTop"),10)||0}},_cacheHelperProportions:function(){this.helperProportions={width:this.helper.outerWidth(),height:this.helper.outerHeight()}},_setContainment:function(){var t,i,s,n=this.options;"parent"===n.containment&&(n.containment=this.helper[0].parentNode),("document"===n.containment||"window"===n.containment)&&(this.containment=[0-this.offset.relative.left-this.offset.parent.left,0-this.offset.relative.top-this.offset.parent.top,e("document"===n.containment?document:window).width()-this.helperProportions.width-this.margins.left,(e("document"===n.containment?document:window).height()||document.body.parentNode.scrollHeight)-this.helperProportions.height-this.margins.top]),/^(document|window|parent)$/.test(n.containment)||(t=e(n.containment)[0],i=e(n.containment).offset(),s="hidden"!==e(t).css("overflow"),this.containment=[i.left+(parseInt(e(t).css("borderLeftWidth"),10)||0)+(parseInt(e(t).css("paddingLeft"),10)||0)-this.margins.left,i.top+(parseInt(e(t).css("borderTopWidth"),10)||0)+(parseInt(e(t).css("paddingTop"),10)||0)-this.margins.top,i.left+(s?Math.max(t.scrollWidth,t.offsetWidth):t.offsetWidth)-(parseInt(e(t).css("borderLeftWidth"),10)||0)-(parseInt(e(t).css("paddingRight"),10)||0)-this.helperProportions.width-this.margins.left,i.top+(s?Math.max(t.scrollHeight,t.offsetHeight):t.offsetHeight)-(parseInt(e(t).css("borderTopWidth"),10)||0)-(parseInt(e(t).css("paddingBottom"),10)||0)-this.helperProportions.height-this.margins.top])},_convertPositionTo:function(t,i){i||(i=this.position);var s="absolute"===t?1:-1,n="absolute"!==this.cssPosition||this.scrollParent[0]!==document&&e.contains(this.scrollParent[0],this.offsetParent[0])?this.scrollParent:this.offsetParent,a=/(html|body)/i.test(n[0].tagName);return{top:i.top+this.offset.relative.top*s+this.offset.parent.top*s-("fixed"===this.cssPosition?-this.scrollParent.scrollTop():a?0:n.scrollTop())*s,left:i.left+this.offset.relative.left*s+this.offset.parent.left*s-("fixed"===this.cssPosition?-this.scrollParent.scrollLeft():a?0:n.scrollLeft())*s}},_generatePosition:function(t){var i,s,n=this.options,a=t.pageX,o=t.pageY,r="absolute"!==this.cssPosition||this.scrollParent[0]!==document&&e.contains(this.scrollParent[0],this.offsetParent[0])?this.scrollParent:this.offsetParent,h=/(html|body)/i.test(r[0].tagName);return"relative"!==this.cssPosition||this.scrollParent[0]!==document&&this.scrollParent[0]!==this.offsetParent[0]||(this.offset.relative=this._getRelativeOffset()),this.originalPosition&&(this.containment&&(t.pageX-this.offset.click.left<this.containment[0]&&(a=this.containment[0]+this.offset.click.left),t.pageY-this.offset.click.top<this.containment[1]&&(o=this.containment[1]+this.offset.click.top),t.pageX-this.offset.click.left>this.containment[2]&&(a=this.containment[2]+this.offset.click.left),t.pageY-this.offset.click.top>this.containment[3]&&(o=this.containment[3]+this.offset.click.top)),n.grid&&(i=this.originalPageY+Math.round((o-this.originalPageY)/n.grid[1])*n.grid[1],o=this.containment?i-this.offset.click.top>=this.containment[1]&&i-this.offset.click.top<=this.containment[3]?i:i-this.offset.click.top>=this.containment[1]?i-n.grid[1]:i+n.grid[1]:i,s=this.originalPageX+Math.round((a-this.originalPageX)/n.grid[0])*n.grid[0],a=this.containment?s-this.offset.click.left>=this.containment[0]&&s-this.offset.click.left<=this.containment[2]?s:s-this.offset.click.left>=this.containment[0]?s-n.grid[0]:s+n.grid[0]:s)),{top:o-this.offset.click.top-this.offset.relative.top-this.offset.parent.top+("fixed"===this.cssPosition?-this.scrollParent.scrollTop():h?0:r.scrollTop()),left:a-this.offset.click.left-this.offset.relative.left-this.offset.parent.left+("fixed"===this.cssPosition?-this.scrollParent.scrollLeft():h?0:r.scrollLeft())}},_rearrange:function(e,t,i,s){i?i[0].appendChild(this.placeholder[0]):t.item[0].parentNode.insertBefore(this.placeholder[0],"down"===this.direction?t.item[0]:t.item[0].nextSibling),this.counter=this.counter?++this.counter:1;var n=this.counter;this._delay(function(){n===this.counter&&this.refreshPositions(!s)})},_clear:function(e,t){function i(e,t,i){return function(s){i._trigger(e,s,t._uiHash(t))}}this.reverting=!1;var s,n=[];if(!this._noFinalSort&&this.currentItem.parent().length&&this.placeholder.before(this.currentItem),this._noFinalSort=null,this.helper[0]===this.currentItem[0]){for(s in this._storedCSS)("auto"===this._storedCSS[s]||"static"===this._storedCSS[s])&&(this._storedCSS[s]="");this.currentItem.css(this._storedCSS).removeClass("ui-sortable-helper")}else this.currentItem.show();for(this.fromOutside&&!t&&n.push(function(e){this._trigger("receive",e,this._uiHash(this.fromOutside))}),!this.fromOutside&&this.domPosition.prev===this.currentItem.prev().not(".ui-sortable-helper")[0]&&this.domPosition.parent===this.currentItem.parent()[0]||t||n.push(function(e){this._trigger("update",e,this._uiHash())}),this!==this.currentContainer&&(t||(n.push(function(e){this._trigger("remove",e,this._uiHash())}),n.push(function(e){return function(t){e._trigger("receive",t,this._uiHash(this))}}.call(this,this.currentContainer)),n.push(function(e){return function(t){e._trigger("update",t,this._uiHash(this))}}.call(this,this.currentContainer)))),s=this.containers.length-1;s>=0;s--)t||n.push(i("deactivate",this,this.containers[s])),this.containers[s].containerCache.over&&(n.push(i("out",this,this.containers[s])),this.containers[s].containerCache.over=0);if(this.storedCursor&&(this.document.find("body").css("cursor",this.storedCursor),this.storedStylesheet.remove()),this._storedOpacity&&this.helper.css("opacity",this._storedOpacity),this._storedZIndex&&this.helper.css("zIndex","auto"===this._storedZIndex?"":this._storedZIndex),this.dragging=!1,this.cancelHelperRemoval){if(!t){for(this._trigger("beforeStop",e,this._uiHash()),s=0;n.length>s;s++)n[s].call(this,e);this._trigger("stop",e,this._uiHash())}return this.fromOutside=!1,!1}if(t||this._trigger("beforeStop",e,this._uiHash()),this.placeholder[0].parentNode.removeChild(this.placeholder[0]),this.helper[0]!==this.currentItem[0]&&this.helper.remove(),this.helper=null,!t){for(s=0;n.length>s;s++)n[s].call(this,e);this._trigger("stop",e,this._uiHash())}return this.fromOutside=!1,!0},_trigger:function(){e.Widget.prototype._trigger.apply(this,arguments)===!1&&this.cancel()},_uiHash:function(t){var i=t||this;return{helper:i.helper,placeholder:i.placeholder||e([]),position:i.position,originalPosition:i.originalPosition,offset:i.positionAbs,item:i.currentItem,sender:t?t.element:null}}}),e.widget("ui.spinner",{version:"1.11.1",defaultElement:"<input>",widgetEventPrefix:"spin",options:{culture:null,icons:{down:"ui-icon-triangle-1-s",up:"ui-icon-triangle-1-n"},incremental:!0,max:null,min:null,numberFormat:null,page:10,step:1,change:null,spin:null,start:null,stop:null},_create:function(){this._setOption("max",this.options.max),this._setOption("min",this.options.min),this._setOption("step",this.options.step),""!==this.value()&&this._value(this.element.val(),!0),this._draw(),this._on(this._events),this._refresh(),this._on(this.window,{beforeunload:function(){this.element.removeAttr("autocomplete")}})},_getCreateOptions:function(){var t={},i=this.element;return e.each(["min","max","step"],function(e,s){var n=i.attr(s);void 0!==n&&n.length&&(t[s]=n)}),t},_events:{keydown:function(e){this._start(e)&&this._keydown(e)&&e.preventDefault()},keyup:"_stop",focus:function(){this.previous=this.element.val()},blur:function(e){return this.cancelBlur?(delete this.cancelBlur,void 0):(this._stop(),this._refresh(),this.previous!==this.element.val()&&this._trigger("change",e),void 0)},mousewheel:function(e,t){if(t){if(!this.spinning&&!this._start(e))return!1;this._spin((t>0?1:-1)*this.options.step,e),clearTimeout(this.mousewheelTimer),this.mousewheelTimer=this._delay(function(){this.spinning&&this._stop(e)},100),e.preventDefault()}},"mousedown .ui-spinner-button":function(t){function i(){var e=this.element[0]===this.document[0].activeElement;e||(this.element.focus(),this.previous=s,this._delay(function(){this.previous=s}))}var s;s=this.element[0]===this.document[0].activeElement?this.previous:this.element.val(),t.preventDefault(),i.call(this),this.cancelBlur=!0,this._delay(function(){delete this.cancelBlur,i.call(this)}),this._start(t)!==!1&&this._repeat(null,e(t.currentTarget).hasClass("ui-spinner-up")?1:-1,t)},"mouseup .ui-spinner-button":"_stop","mouseenter .ui-spinner-button":function(t){return e(t.currentTarget).hasClass("ui-state-active")?this._start(t)===!1?!1:(this._repeat(null,e(t.currentTarget).hasClass("ui-spinner-up")?1:-1,t),void 0):void 0},"mouseleave .ui-spinner-button":"_stop"},_draw:function(){var e=this.uiSpinner=this.element.addClass("ui-spinner-input").attr("autocomplete","off").wrap(this._uiSpinnerHtml()).parent().append(this._buttonHtml());this.element.attr("role","spinbutton"),this.buttons=e.find(".ui-spinner-button").attr("tabIndex",-1).button().removeClass("ui-corner-all"),this.buttons.height()>Math.ceil(.5*e.height())&&e.height()>0&&e.height(e.height()),this.options.disabled&&this.disable()},_keydown:function(t){var i=this.options,s=e.ui.keyCode;switch(t.keyCode){case s.UP:return this._repeat(null,1,t),!0;case s.DOWN:return this._repeat(null,-1,t),!0;case s.PAGE_UP:return this._repeat(null,i.page,t),!0;case s.PAGE_DOWN:return this._repeat(null,-i.page,t),!0}return!1},_uiSpinnerHtml:function(){return"<span class='ui-spinner ui-widget ui-widget-content ui-corner-all'></span>"},_buttonHtml:function(){return"<a class='ui-spinner-button ui-spinner-up ui-corner-tr'><span class='ui-icon "+this.options.icons.up+"'>&#9650;</span>"+"</a>"+"<a class='ui-spinner-button ui-spinner-down ui-corner-br'>"+"<span class='ui-icon "+this.options.icons.down+"'>&#9660;</span>"+"</a>"},_start:function(e){return this.spinning||this._trigger("start",e)!==!1?(this.counter||(this.counter=1),this.spinning=!0,!0):!1},_repeat:function(e,t,i){e=e||500,clearTimeout(this.timer),this.timer=this._delay(function(){this._repeat(40,t,i)},e),this._spin(t*this.options.step,i)},_spin:function(e,t){var i=this.value()||0;this.counter||(this.counter=1),i=this._adjustValue(i+e*this._increment(this.counter)),this.spinning&&this._trigger("spin",t,{value:i})===!1||(this._value(i),this.counter++)},_increment:function(t){var i=this.options.incremental;return i?e.isFunction(i)?i(t):Math.floor(t*t*t/5e4-t*t/500+17*t/200+1):1},_precision:function(){var e=this._precisionOf(this.options.step);return null!==this.options.min&&(e=Math.max(e,this._precisionOf(this.options.min))),e},_precisionOf:function(e){var t=""+e,i=t.indexOf(".");return-1===i?0:t.length-i-1},_adjustValue:function(e){var t,i,s=this.options;return t=null!==s.min?s.min:0,i=e-t,i=Math.round(i/s.step)*s.step,e=t+i,e=parseFloat(e.toFixed(this._precision())),null!==s.max&&e>s.max?s.max:null!==s.min&&s.min>e?s.min:e},_stop:function(e){this.spinning&&(clearTimeout(this.timer),clearTimeout(this.mousewheelTimer),this.counter=0,this.spinning=!1,this._trigger("stop",e))},_setOption:function(e,t){if("culture"===e||"numberFormat"===e){var i=this._parse(this.element.val());return this.options[e]=t,this.element.val(this._format(i)),void 0}("max"===e||"min"===e||"step"===e)&&"string"==typeof t&&(t=this._parse(t)),"icons"===e&&(this.buttons.first().find(".ui-icon").removeClass(this.options.icons.up).addClass(t.up),this.buttons.last().find(".ui-icon").removeClass(this.options.icons.down).addClass(t.down)),this._super(e,t),"disabled"===e&&(this.widget().toggleClass("ui-state-disabled",!!t),this.element.prop("disabled",!!t),this.buttons.button(t?"disable":"enable"))},_setOptions:h(function(e){this._super(e)}),_parse:function(e){return"string"==typeof e&&""!==e&&(e=window.Globalize&&this.options.numberFormat?Globalize.parseFloat(e,10,this.options.culture):+e),""===e||isNaN(e)?null:e},_format:function(e){return""===e?"":window.Globalize&&this.options.numberFormat?Globalize.format(e,this.options.numberFormat,this.options.culture):e},_refresh:function(){this.element.attr({"aria-valuemin":this.options.min,"aria-valuemax":this.options.max,"aria-valuenow":this._parse(this.element.val())})},isValid:function(){var e=this.value();return null===e?!1:e===this._adjustValue(e)},_value:function(e,t){var i;""!==e&&(i=this._parse(e),null!==i&&(t||(i=this._adjustValue(i)),e=this._format(i))),this.element.val(e),this._refresh()},_destroy:function(){this.element.removeClass("ui-spinner-input").prop("disabled",!1).removeAttr("autocomplete").removeAttr("role").removeAttr("aria-valuemin").removeAttr("aria-valuemax").removeAttr("aria-valuenow"),this.uiSpinner.replaceWith(this.element)},stepUp:h(function(e){this._stepUp(e)}),_stepUp:function(e){this._start()&&(this._spin((e||1)*this.options.step),this._stop())},stepDown:h(function(e){this._stepDown(e)}),_stepDown:function(e){this._start()&&(this._spin((e||1)*-this.options.step),this._stop())},pageUp:h(function(e){this._stepUp((e||1)*this.options.page)}),pageDown:h(function(e){this._stepDown((e||1)*this.options.page)}),value:function(e){return arguments.length?(h(this._value).call(this,e),void 0):this._parse(this.element.val())},widget:function(){return this.uiSpinner}}),e.widget("ui.tabs",{version:"1.11.1",delay:300,options:{active:null,collapsible:!1,event:"click",heightStyle:"content",hide:null,show:null,activate:null,beforeActivate:null,beforeLoad:null,load:null},_isLocal:function(){var e=/#.*$/;return function(t){var i,s;t=t.cloneNode(!1),i=t.href.replace(e,""),s=location.href.replace(e,"");try{i=decodeURIComponent(i)}catch(n){}try{s=decodeURIComponent(s)}catch(n){}return t.hash.length>1&&i===s}}(),_create:function(){var t=this,i=this.options;this.running=!1,this.element.addClass("ui-tabs ui-widget ui-widget-content ui-corner-all").toggleClass("ui-tabs-collapsible",i.collapsible),this._processTabs(),i.active=this._initialActive(),e.isArray(i.disabled)&&(i.disabled=e.unique(i.disabled.concat(e.map(this.tabs.filter(".ui-state-disabled"),function(e){return t.tabs.index(e)}))).sort()),this.active=this.options.active!==!1&&this.anchors.length?this._findActive(i.active):e(),this._refresh(),this.active.length&&this.load(i.active)},_initialActive:function(){var t=this.options.active,i=this.options.collapsible,s=location.hash.substring(1);return null===t&&(s&&this.tabs.each(function(i,n){return e(n).attr("aria-controls")===s?(t=i,!1):void 0}),null===t&&(t=this.tabs.index(this.tabs.filter(".ui-tabs-active"))),(null===t||-1===t)&&(t=this.tabs.length?0:!1)),t!==!1&&(t=this.tabs.index(this.tabs.eq(t)),-1===t&&(t=i?!1:0)),!i&&t===!1&&this.anchors.length&&(t=0),t},_getCreateEventData:function(){return{tab:this.active,panel:this.active.length?this._getPanelForTab(this.active):e()}},_tabKeydown:function(t){var i=e(this.document[0].activeElement).closest("li"),s=this.tabs.index(i),n=!0;if(!this._handlePageNav(t)){switch(t.keyCode){case e.ui.keyCode.RIGHT:case e.ui.keyCode.DOWN:s++;break;case e.ui.keyCode.UP:case e.ui.keyCode.LEFT:n=!1,s--;break;case e.ui.keyCode.END:s=this.anchors.length-1;break;case e.ui.keyCode.HOME:s=0;break;case e.ui.keyCode.SPACE:return t.preventDefault(),clearTimeout(this.activating),this._activate(s),void 0;case e.ui.keyCode.ENTER:return t.preventDefault(),clearTimeout(this.activating),this._activate(s===this.options.active?!1:s),void 0;default:return}t.preventDefault(),clearTimeout(this.activating),s=this._focusNextTab(s,n),t.ctrlKey||(i.attr("aria-selected","false"),this.tabs.eq(s).attr("aria-selected","true"),this.activating=this._delay(function(){this.option("active",s)},this.delay))}},_panelKeydown:function(t){this._handlePageNav(t)||t.ctrlKey&&t.keyCode===e.ui.keyCode.UP&&(t.preventDefault(),this.active.focus())},_handlePageNav:function(t){return t.altKey&&t.keyCode===e.ui.keyCode.PAGE_UP?(this._activate(this._focusNextTab(this.options.active-1,!1)),!0):t.altKey&&t.keyCode===e.ui.keyCode.PAGE_DOWN?(this._activate(this._focusNextTab(this.options.active+1,!0)),!0):void 0},_findNextTab:function(t,i){function s(){return t>n&&(t=0),0>t&&(t=n),t}for(var n=this.tabs.length-1;-1!==e.inArray(s(),this.options.disabled);)t=i?t+1:t-1;return t},_focusNextTab:function(e,t){return e=this._findNextTab(e,t),this.tabs.eq(e).focus(),e},_setOption:function(e,t){return"active"===e?(this._activate(t),void 0):"disabled"===e?(this._setupDisabled(t),void 0):(this._super(e,t),"collapsible"===e&&(this.element.toggleClass("ui-tabs-collapsible",t),t||this.options.active!==!1||this._activate(0)),"event"===e&&this._setupEvents(t),"heightStyle"===e&&this._setupHeightStyle(t),void 0)},_sanitizeSelector:function(e){return e?e.replace(/[!"$%&'()*+,.\/:;<=>?@\[\]\^`{|}~]/g,"\\$&"):""},refresh:function(){var t=this.options,i=this.tablist.children(":has(a[href])");t.disabled=e.map(i.filter(".ui-state-disabled"),function(e){return i.index(e)}),this._processTabs(),t.active!==!1&&this.anchors.length?this.active.length&&!e.contains(this.tablist[0],this.active[0])?this.tabs.length===t.disabled.length?(t.active=!1,this.active=e()):this._activate(this._findNextTab(Math.max(0,t.active-1),!1)):t.active=this.tabs.index(this.active):(t.active=!1,this.active=e()),this._refresh()},_refresh:function(){this._setupDisabled(this.options.disabled),this._setupEvents(this.options.event),this._setupHeightStyle(this.options.heightStyle),this.tabs.not(this.active).attr({"aria-selected":"false","aria-expanded":"false",tabIndex:-1}),this.panels.not(this._getPanelForTab(this.active)).hide().attr({"aria-hidden":"true"}),this.active.length?(this.active.addClass("ui-tabs-active ui-state-active").attr({"aria-selected":"true","aria-expanded":"true",tabIndex:0}),this._getPanelForTab(this.active).show().attr({"aria-hidden":"false"})):this.tabs.eq(0).attr("tabIndex",0)},_processTabs:function(){var t=this;this.tablist=this._getList().addClass("ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all").attr("role","tablist").delegate("> li","mousedown"+this.eventNamespace,function(t){e(this).is(".ui-state-disabled")&&t.preventDefault()}).delegate(".ui-tabs-anchor","focus"+this.eventNamespace,function(){e(this).closest("li").is(".ui-state-disabled")&&this.blur()}),this.tabs=this.tablist.find("> li:has(a[href])").addClass("ui-state-default ui-corner-top").attr({role:"tab",tabIndex:-1}),this.anchors=this.tabs.map(function(){return e("a",this)[0]
 }).addClass("ui-tabs-anchor").attr({role:"presentation",tabIndex:-1}),this.panels=e(),this.anchors.each(function(i,s){var n,a,o,r=e(s).uniqueId().attr("id"),h=e(s).closest("li"),l=h.attr("aria-controls");t._isLocal(s)?(n=s.hash,o=n.substring(1),a=t.element.find(t._sanitizeSelector(n))):(o=h.attr("aria-controls")||e({}).uniqueId()[0].id,n="#"+o,a=t.element.find(n),a.length||(a=t._createPanel(o),a.insertAfter(t.panels[i-1]||t.tablist)),a.attr("aria-live","polite")),a.length&&(t.panels=t.panels.add(a)),l&&h.data("ui-tabs-aria-controls",l),h.attr({"aria-controls":o,"aria-labelledby":r}),a.attr("aria-labelledby",r)}),this.panels.addClass("ui-tabs-panel ui-widget-content ui-corner-bottom").attr("role","tabpanel")},_getList:function(){return this.tablist||this.element.find("ol,ul").eq(0)},_createPanel:function(t){return e("<div>").attr("id",t).addClass("ui-tabs-panel ui-widget-content ui-corner-bottom").data("ui-tabs-destroy",!0)},_setupDisabled:function(t){e.isArray(t)&&(t.length?t.length===this.anchors.length&&(t=!0):t=!1);for(var i,s=0;i=this.tabs[s];s++)t===!0||-1!==e.inArray(s,t)?e(i).addClass("ui-state-disabled").attr("aria-disabled","true"):e(i).removeClass("ui-state-disabled").removeAttr("aria-disabled");this.options.disabled=t},_setupEvents:function(t){var i={};t&&e.each(t.split(" "),function(e,t){i[t]="_eventHandler"}),this._off(this.anchors.add(this.tabs).add(this.panels)),this._on(!0,this.anchors,{click:function(e){e.preventDefault()}}),this._on(this.anchors,i),this._on(this.tabs,{keydown:"_tabKeydown"}),this._on(this.panels,{keydown:"_panelKeydown"}),this._focusable(this.tabs),this._hoverable(this.tabs)},_setupHeightStyle:function(t){var i,s=this.element.parent();"fill"===t?(i=s.height(),i-=this.element.outerHeight()-this.element.height(),this.element.siblings(":visible").each(function(){var t=e(this),s=t.css("position");"absolute"!==s&&"fixed"!==s&&(i-=t.outerHeight(!0))}),this.element.children().not(this.panels).each(function(){i-=e(this).outerHeight(!0)}),this.panels.each(function(){e(this).height(Math.max(0,i-e(this).innerHeight()+e(this).height()))}).css("overflow","auto")):"auto"===t&&(i=0,this.panels.each(function(){i=Math.max(i,e(this).height("").height())}).height(i))},_eventHandler:function(t){var i=this.options,s=this.active,n=e(t.currentTarget),a=n.closest("li"),o=a[0]===s[0],r=o&&i.collapsible,h=r?e():this._getPanelForTab(a),l=s.length?this._getPanelForTab(s):e(),u={oldTab:s,oldPanel:l,newTab:r?e():a,newPanel:h};t.preventDefault(),a.hasClass("ui-state-disabled")||a.hasClass("ui-tabs-loading")||this.running||o&&!i.collapsible||this._trigger("beforeActivate",t,u)===!1||(i.active=r?!1:this.tabs.index(a),this.active=o?e():a,this.xhr&&this.xhr.abort(),l.length||h.length||e.error("jQuery UI Tabs: Mismatching fragment identifier."),h.length&&this.load(this.tabs.index(a),t),this._toggle(t,u))},_toggle:function(t,i){function s(){a.running=!1,a._trigger("activate",t,i)}function n(){i.newTab.closest("li").addClass("ui-tabs-active ui-state-active"),o.length&&a.options.show?a._show(o,a.options.show,s):(o.show(),s())}var a=this,o=i.newPanel,r=i.oldPanel;this.running=!0,r.length&&this.options.hide?this._hide(r,this.options.hide,function(){i.oldTab.closest("li").removeClass("ui-tabs-active ui-state-active"),n()}):(i.oldTab.closest("li").removeClass("ui-tabs-active ui-state-active"),r.hide(),n()),r.attr("aria-hidden","true"),i.oldTab.attr({"aria-selected":"false","aria-expanded":"false"}),o.length&&r.length?i.oldTab.attr("tabIndex",-1):o.length&&this.tabs.filter(function(){return 0===e(this).attr("tabIndex")}).attr("tabIndex",-1),o.attr("aria-hidden","false"),i.newTab.attr({"aria-selected":"true","aria-expanded":"true",tabIndex:0})},_activate:function(t){var i,s=this._findActive(t);s[0]!==this.active[0]&&(s.length||(s=this.active),i=s.find(".ui-tabs-anchor")[0],this._eventHandler({target:i,currentTarget:i,preventDefault:e.noop}))},_findActive:function(t){return t===!1?e():this.tabs.eq(t)},_getIndex:function(e){return"string"==typeof e&&(e=this.anchors.index(this.anchors.filter("[href$='"+e+"']"))),e},_destroy:function(){this.xhr&&this.xhr.abort(),this.element.removeClass("ui-tabs ui-widget ui-widget-content ui-corner-all ui-tabs-collapsible"),this.tablist.removeClass("ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all").removeAttr("role"),this.anchors.removeClass("ui-tabs-anchor").removeAttr("role").removeAttr("tabIndex").removeUniqueId(),this.tablist.unbind(this.eventNamespace),this.tabs.add(this.panels).each(function(){e.data(this,"ui-tabs-destroy")?e(this).remove():e(this).removeClass("ui-state-default ui-state-active ui-state-disabled ui-corner-top ui-corner-bottom ui-widget-content ui-tabs-active ui-tabs-panel").removeAttr("tabIndex").removeAttr("aria-live").removeAttr("aria-busy").removeAttr("aria-selected").removeAttr("aria-labelledby").removeAttr("aria-hidden").removeAttr("aria-expanded").removeAttr("role")}),this.tabs.each(function(){var t=e(this),i=t.data("ui-tabs-aria-controls");i?t.attr("aria-controls",i).removeData("ui-tabs-aria-controls"):t.removeAttr("aria-controls")}),this.panels.show(),"content"!==this.options.heightStyle&&this.panels.css("height","")},enable:function(t){var i=this.options.disabled;i!==!1&&(void 0===t?i=!1:(t=this._getIndex(t),i=e.isArray(i)?e.map(i,function(e){return e!==t?e:null}):e.map(this.tabs,function(e,i){return i!==t?i:null})),this._setupDisabled(i))},disable:function(t){var i=this.options.disabled;if(i!==!0){if(void 0===t)i=!0;else{if(t=this._getIndex(t),-1!==e.inArray(t,i))return;i=e.isArray(i)?e.merge([t],i).sort():[t]}this._setupDisabled(i)}},load:function(t,i){t=this._getIndex(t);var s=this,n=this.tabs.eq(t),a=n.find(".ui-tabs-anchor"),o=this._getPanelForTab(n),r={tab:n,panel:o};this._isLocal(a[0])||(this.xhr=e.ajax(this._ajaxSettings(a,i,r)),this.xhr&&"canceled"!==this.xhr.statusText&&(n.addClass("ui-tabs-loading"),o.attr("aria-busy","true"),this.xhr.success(function(e){setTimeout(function(){o.html(e),s._trigger("load",i,r)},1)}).complete(function(e,t){setTimeout(function(){"abort"===t&&s.panels.stop(!1,!0),n.removeClass("ui-tabs-loading"),o.removeAttr("aria-busy"),e===s.xhr&&delete s.xhr},1)})))},_ajaxSettings:function(t,i,s){var n=this;return{url:t.attr("href"),beforeSend:function(t,a){return n._trigger("beforeLoad",i,e.extend({jqXHR:t,ajaxSettings:a},s))}}},_getPanelForTab:function(t){var i=e(t).attr("aria-controls");return this.element.find(this._sanitizeSelector("#"+i))}}),e.widget("ui.tooltip",{version:"1.11.1",options:{content:function(){var t=e(this).attr("title")||"";return e("<a>").text(t).html()},hide:!0,items:"[title]:not([disabled])",position:{my:"left top+15",at:"left bottom",collision:"flipfit flip"},show:!0,tooltipClass:null,track:!1,close:null,open:null},_addDescribedBy:function(t,i){var s=(t.attr("aria-describedby")||"").split(/\s+/);s.push(i),t.data("ui-tooltip-id",i).attr("aria-describedby",e.trim(s.join(" ")))},_removeDescribedBy:function(t){var i=t.data("ui-tooltip-id"),s=(t.attr("aria-describedby")||"").split(/\s+/),n=e.inArray(i,s);-1!==n&&s.splice(n,1),t.removeData("ui-tooltip-id"),s=e.trim(s.join(" ")),s?t.attr("aria-describedby",s):t.removeAttr("aria-describedby")},_create:function(){this._on({mouseover:"open",focusin:"open"}),this.tooltips={},this.parents={},this.options.disabled&&this._disable(),this.liveRegion=e("<div>").attr({role:"log","aria-live":"assertive","aria-relevant":"additions"}).addClass("ui-helper-hidden-accessible").appendTo(this.document[0].body)},_setOption:function(t,i){var s=this;return"disabled"===t?(this[i?"_disable":"_enable"](),this.options[t]=i,void 0):(this._super(t,i),"content"===t&&e.each(this.tooltips,function(e,t){s._updateContent(t)}),void 0)},_disable:function(){var t=this;e.each(this.tooltips,function(i,s){var n=e.Event("blur");n.target=n.currentTarget=s[0],t.close(n,!0)}),this.element.find(this.options.items).addBack().each(function(){var t=e(this);t.is("[title]")&&t.data("ui-tooltip-title",t.attr("title")).removeAttr("title")})},_enable:function(){this.element.find(this.options.items).addBack().each(function(){var t=e(this);t.data("ui-tooltip-title")&&t.attr("title",t.data("ui-tooltip-title"))})},open:function(t){var i=this,s=e(t?t.target:this.element).closest(this.options.items);s.length&&!s.data("ui-tooltip-id")&&(s.attr("title")&&s.data("ui-tooltip-title",s.attr("title")),s.data("ui-tooltip-open",!0),t&&"mouseover"===t.type&&s.parents().each(function(){var t,s=e(this);s.data("ui-tooltip-open")&&(t=e.Event("blur"),t.target=t.currentTarget=this,i.close(t,!0)),s.attr("title")&&(s.uniqueId(),i.parents[this.id]={element:this,title:s.attr("title")},s.attr("title",""))}),this._updateContent(s,t))},_updateContent:function(e,t){var i,s=this.options.content,n=this,a=t?t.type:null;return"string"==typeof s?this._open(t,e,s):(i=s.call(e[0],function(i){e.data("ui-tooltip-open")&&n._delay(function(){t&&(t.type=a),this._open(t,e,i)})}),i&&this._open(t,e,i),void 0)},_open:function(t,i,s){function n(e){l.of=e,a.is(":hidden")||a.position(l)}var a,o,r,h,l=e.extend({},this.options.position);if(s){if(a=this._find(i),a.length)return a.find(".ui-tooltip-content").html(s),void 0;i.is("[title]")&&(t&&"mouseover"===t.type?i.attr("title",""):i.removeAttr("title")),a=this._tooltip(i),this._addDescribedBy(i,a.attr("id")),a.find(".ui-tooltip-content").html(s),this.liveRegion.children().hide(),s.clone?(h=s.clone(),h.removeAttr("id").find("[id]").removeAttr("id")):h=s,e("<div>").html(h).appendTo(this.liveRegion),this.options.track&&t&&/^mouse/.test(t.type)?(this._on(this.document,{mousemove:n}),n(t)):a.position(e.extend({of:i},this.options.position)),this.hiding=!1,this.closing=!1,a.hide(),this._show(a,this.options.show),this.options.show&&this.options.show.delay&&(r=this.delayedShow=setInterval(function(){a.is(":visible")&&(n(l.of),clearInterval(r))},e.fx.interval)),this._trigger("open",t,{tooltip:a}),o={keyup:function(t){if(t.keyCode===e.ui.keyCode.ESCAPE){var s=e.Event(t);s.currentTarget=i[0],this.close(s,!0)}}},i[0]!==this.element[0]&&(o.remove=function(){this._removeTooltip(a)}),t&&"mouseover"!==t.type||(o.mouseleave="close"),t&&"focusin"!==t.type||(o.focusout="close"),this._on(!0,i,o)}},close:function(t){var i=this,s=e(t?t.currentTarget:this.element),n=this._find(s);this.closing||(clearInterval(this.delayedShow),s.data("ui-tooltip-title")&&!s.attr("title")&&s.attr("title",s.data("ui-tooltip-title")),this._removeDescribedBy(s),this.hiding=!0,n.stop(!0),this._hide(n,this.options.hide,function(){i._removeTooltip(e(this)),this.hiding=!1,this.closing=!1}),s.removeData("ui-tooltip-open"),this._off(s,"mouseleave focusout keyup"),s[0]!==this.element[0]&&this._off(s,"remove"),this._off(this.document,"mousemove"),t&&"mouseleave"===t.type&&e.each(this.parents,function(t,s){e(s.element).attr("title",s.title),delete i.parents[t]}),this.closing=!0,this._trigger("close",t,{tooltip:n}),this.hiding||(this.closing=!1))},_tooltip:function(t){var i=e("<div>").attr("role","tooltip").addClass("ui-tooltip ui-widget ui-corner-all ui-widget-content "+(this.options.tooltipClass||"")),s=i.uniqueId().attr("id");return e("<div>").addClass("ui-tooltip-content").appendTo(i),i.appendTo(this.document[0].body),this.tooltips[s]=t,i},_find:function(t){var i=t.data("ui-tooltip-id");return i?e("#"+i):e()},_removeTooltip:function(e){e.remove(),delete this.tooltips[e.attr("id")]},_destroy:function(){var t=this;e.each(this.tooltips,function(i,s){var n=e.Event("blur");n.target=n.currentTarget=s[0],t.close(n,!0),e("#"+i).remove(),s.data("ui-tooltip-title")&&(s.attr("title")||s.attr("title",s.data("ui-tooltip-title")),s.removeData("ui-tooltip-title"))}),this.liveRegion.remove()}})});
 /*!
+ * MockJax - jQuery Plugin to Mock Ajax requests
+ *
+ * Version:  1.6.0
+ * Released:
+ * Home:   http://github.com/appendto/jquery-mockjax
+ * Author:   Jonathan Sharp (http://jdsharp.com)
+ * License:  MIT,GPL
+ *
+ * Copyright (c) 2014 appendTo LLC.
+ * Dual licensed under the MIT or GPL licenses.
+ * http://appendto.com/open-source-licenses
+ */
+(function($) {
+	var _ajax = $.ajax,
+		mockHandlers = [],
+		mockedAjaxCalls = [],
+		unmockedAjaxCalls = [],
+		CALLBACK_REGEX = /=\?(&|$)/,
+		jsc = (new Date()).getTime();
+
+
+	// Parse the given XML string.
+	function parseXML(xml) {
+		if ( window.DOMParser == undefined && window.ActiveXObject ) {
+			DOMParser = function() { };
+			DOMParser.prototype.parseFromString = function( xmlString ) {
+				var doc = new ActiveXObject('Microsoft.XMLDOM');
+				doc.async = 'false';
+				doc.loadXML( xmlString );
+				return doc;
+			};
+		}
+
+		try {
+			var xmlDoc = ( new DOMParser() ).parseFromString( xml, 'text/xml' );
+			if ( $.isXMLDoc( xmlDoc ) ) {
+				var err = $('parsererror', xmlDoc);
+				if ( err.length == 1 ) {
+					throw new Error('Error: ' + $(xmlDoc).text() );
+				}
+			} else {
+				throw new Error('Unable to parse XML');
+			}
+			return xmlDoc;
+		} catch( e ) {
+			var msg = ( e.name == undefined ? e : e.name + ': ' + e.message );
+			$(document).trigger('xmlParseError', [ msg ]);
+			return undefined;
+		}
+	}
+
+	// Check if the data field on the mock handler and the request match. This
+	// can be used to restrict a mock handler to being used only when a certain
+	// set of data is passed to it.
+	function isMockDataEqual( mock, live ) {
+		var identical = true;
+		// Test for situations where the data is a querystring (not an object)
+		if (typeof live === 'string') {
+			// Querystring may be a regex
+			return $.isFunction( mock.test ) ? mock.test(live) : mock == live;
+		}
+		$.each(mock, function(k) {
+			if ( live[k] === undefined ) {
+				identical = false;
+				return identical;
+			} else {
+				if ( typeof live[k] === 'object' && live[k] !== null ) {
+					if ( identical && $.isArray( live[k] ) ) {
+						identical = $.isArray( mock[k] ) && live[k].length === mock[k].length;
+					}
+					identical = identical && isMockDataEqual(mock[k], live[k]);
+				} else {
+					if ( mock[k] && $.isFunction( mock[k].test ) ) {
+						identical = identical && mock[k].test(live[k]);
+					} else {
+						identical = identical && ( mock[k] == live[k] );
+					}
+				}
+			}
+		});
+
+		return identical;
+	}
+
+    // See if a mock handler property matches the default settings
+    function isDefaultSetting(handler, property) {
+        return handler[property] === $.mockjaxSettings[property];
+    }
+
+	// Check the given handler should mock the given request
+	function getMockForRequest( handler, requestSettings ) {
+		// If the mock was registered with a function, let the function decide if we
+		// want to mock this request
+		if ( $.isFunction(handler) ) {
+			return handler( requestSettings );
+		}
+
+		// Inspect the URL of the request and check if the mock handler's url
+		// matches the url for this ajax request
+		if ( $.isFunction(handler.url.test) ) {
+			// The user provided a regex for the url, test it
+			if ( !handler.url.test( requestSettings.url ) ) {
+				return null;
+			}
+		} else {
+			// Look for a simple wildcard '*' or a direct URL match
+			var star = handler.url.indexOf('*');
+			if (handler.url !== requestSettings.url && star === -1 ||
+					!new RegExp(handler.url.replace(/[-[\]{}()+?.,\\^$|#\s]/g, "\\$&").replace(/\*/g, '.+')).test(requestSettings.url)) {
+				return null;
+			}
+		}
+
+		// Inspect the data submitted in the request (either POST body or GET query string)
+		if ( handler.data ) {
+			if ( ! requestSettings.data || !isMockDataEqual(handler.data, requestSettings.data) ) {
+				// They're not identical, do not mock this request
+				return null;
+			}
+		}
+		// Inspect the request type
+		if ( handler && handler.type &&
+				handler.type.toLowerCase() != requestSettings.type.toLowerCase() ) {
+			// The request type doesn't match (GET vs. POST)
+			return null;
+		}
+
+		return handler;
+	}
+
+	function parseResponseTimeOpt(responseTime) {
+		if ($.isArray(responseTime)) {
+			var min = responseTime[0];
+			var max = responseTime[1];
+			return (typeof min === 'number' && typeof max === 'number') ? Math.floor(Math.random() * (max - min)) + min : null;
+		} else {
+			return (typeof responseTime === 'number') ? responseTime: null;
+		}
+	}
+
+	// Process the xhr objects send operation
+	function _xhrSend(mockHandler, requestSettings, origSettings) {
+
+		// This is a substitute for < 1.4 which lacks $.proxy
+		var process = (function(that) {
+			return function() {
+				return (function() {
+					// The request has returned
+					this.status     = mockHandler.status;
+					this.statusText = mockHandler.statusText;
+					this.readyState	= 1;
+
+					var finishRequest = function () {
+						this.readyState	= 4;
+
+						var onReady;
+						// Copy over our mock to our xhr object before passing control back to
+						// jQuery's onreadystatechange callback
+						if ( requestSettings.dataType == 'json' && ( typeof mockHandler.responseText == 'object' ) ) {
+							this.responseText = JSON.stringify(mockHandler.responseText);
+						} else if ( requestSettings.dataType == 'xml' ) {
+							if ( typeof mockHandler.responseXML == 'string' ) {
+								this.responseXML = parseXML(mockHandler.responseXML);
+								//in jQuery 1.9.1+, responseXML is processed differently and relies on responseText
+								this.responseText = mockHandler.responseXML;
+							} else {
+								this.responseXML = mockHandler.responseXML;
+							}
+						} else if (typeof mockHandler.responseText === 'object' && mockHandler.responseText !== null) {
+							// since jQuery 1.9 responseText type has to match contentType
+							mockHandler.contentType = 'application/json';
+							this.responseText = JSON.stringify(mockHandler.responseText);
+						} else {
+							this.responseText = mockHandler.responseText;
+						}
+						if( typeof mockHandler.status == 'number' || typeof mockHandler.status == 'string' ) {
+							this.status = mockHandler.status;
+						}
+						if( typeof mockHandler.statusText === "string") {
+							this.statusText = mockHandler.statusText;
+						}
+						// jQuery 2.0 renamed onreadystatechange to onload
+						onReady = this.onreadystatechange || this.onload;
+
+						// jQuery < 1.4 doesn't have onreadystate change for xhr
+						if ( $.isFunction( onReady ) ) {
+							if( mockHandler.isTimeout) {
+								this.status = -1;
+							}
+							onReady.call( this, mockHandler.isTimeout ? 'timeout' : undefined );
+						} else if ( mockHandler.isTimeout ) {
+							// Fix for 1.3.2 timeout to keep success from firing.
+							this.status = -1;
+						}
+					};
+
+					// We have an executable function, call it to give
+					// the mock handler a chance to update it's data
+					if ( $.isFunction(mockHandler.response) ) {
+						// Wait for it to finish
+						if ( mockHandler.response.length === 2 ) {
+							mockHandler.response(origSettings, function () {
+								finishRequest.call(that);
+							});
+							return;
+						} else {
+							mockHandler.response(origSettings);
+						}
+					}
+
+					finishRequest.call(that);
+				}).apply(that);
+			};
+		})(this);
+
+		if ( mockHandler.proxy ) {
+			// We're proxying this request and loading in an external file instead
+			_ajax({
+				global: false,
+				url: mockHandler.proxy,
+				type: mockHandler.proxyType,
+				data: mockHandler.data,
+				dataType: requestSettings.dataType === "script" ? "text/plain" : requestSettings.dataType,
+				complete: function(xhr) {
+					mockHandler.responseXML = xhr.responseXML;
+					mockHandler.responseText = xhr.responseText;
+                    // Don't override the handler status/statusText if it's specified by the config
+                    if (isDefaultSetting(mockHandler, 'status')) {
+					    mockHandler.status = xhr.status;
+                    }
+                    if (isDefaultSetting(mockHandler, 'statusText')) {
+					    mockHandler.statusText = xhr.statusText;
+                    }
+					this.responseTimer = setTimeout(process, parseResponseTimeOpt(mockHandler.responseTime) || 0);
+				}
+			});
+		} else {
+			// type == 'POST' || 'GET' || 'DELETE'
+			if ( requestSettings.async === false ) {
+				// TODO: Blocking delay
+				process();
+			} else {
+				this.responseTimer = setTimeout(process, parseResponseTimeOpt(mockHandler.responseTime) || 50);
+			}
+		}
+	}
+
+	// Construct a mocked XHR Object
+	function xhr(mockHandler, requestSettings, origSettings, origHandler) {
+		// Extend with our default mockjax settings
+		mockHandler = $.extend(true, {}, $.mockjaxSettings, mockHandler);
+
+		if (typeof mockHandler.headers === 'undefined') {
+			mockHandler.headers = {};
+		}
+		if (typeof requestSettings.headers === 'undefined') {
+			requestSettings.headers = {};
+		}
+		if ( mockHandler.contentType ) {
+			mockHandler.headers['content-type'] = mockHandler.contentType;
+		}
+
+		return {
+			status: mockHandler.status,
+			statusText: mockHandler.statusText,
+			readyState: 1,
+			open: function() { },
+			send: function() {
+				origHandler.fired = true;
+				_xhrSend.call(this, mockHandler, requestSettings, origSettings);
+			},
+			abort: function() {
+				clearTimeout(this.responseTimer);
+			},
+			setRequestHeader: function(header, value) {
+				requestSettings.headers[header] = value;
+			},
+			getResponseHeader: function(header) {
+				// 'Last-modified', 'Etag', 'content-type' are all checked by jQuery
+				if ( mockHandler.headers && mockHandler.headers[header] ) {
+					// Return arbitrary headers
+					return mockHandler.headers[header];
+				} else if ( header.toLowerCase() == 'last-modified' ) {
+					return mockHandler.lastModified || (new Date()).toString();
+				} else if ( header.toLowerCase() == 'etag' ) {
+					return mockHandler.etag || '';
+				} else if ( header.toLowerCase() == 'content-type' ) {
+					return mockHandler.contentType || 'text/plain';
+				}
+			},
+			getAllResponseHeaders: function() {
+				var headers = '';
+				// since jQuery 1.9 responseText type has to match contentType
+				if (mockHandler.contentType) {
+					mockHandler.headers['Content-Type'] = mockHandler.contentType;
+				}
+				$.each(mockHandler.headers, function(k, v) {
+					headers += k + ': ' + v + "\n";
+				});
+				return headers;
+			}
+		};
+	}
+
+	// Process a JSONP mock request.
+	function processJsonpMock( requestSettings, mockHandler, origSettings ) {
+		// Handle JSONP Parameter Callbacks, we need to replicate some of the jQuery core here
+		// because there isn't an easy hook for the cross domain script tag of jsonp
+
+		processJsonpUrl( requestSettings );
+
+		requestSettings.dataType = "json";
+		if(requestSettings.data && CALLBACK_REGEX.test(requestSettings.data) || CALLBACK_REGEX.test(requestSettings.url)) {
+			createJsonpCallback(requestSettings, mockHandler, origSettings);
+
+			// We need to make sure
+			// that a JSONP style response is executed properly
+
+			var rurl = /^(\w+:)?\/\/([^\/?#]+)/,
+				parts = rurl.exec( requestSettings.url ),
+				remote = parts && (parts[1] && parts[1] !== location.protocol || parts[2] !== location.host);
+
+			requestSettings.dataType = "script";
+			if(requestSettings.type.toUpperCase() === "GET" && remote ) {
+				var newMockReturn = processJsonpRequest( requestSettings, mockHandler, origSettings );
+
+				// Check if we are supposed to return a Deferred back to the mock call, or just
+				// signal success
+				if(newMockReturn) {
+					return newMockReturn;
+				} else {
+					return true;
+				}
+			}
+		}
+		return null;
+	}
+
+	// Append the required callback parameter to the end of the request URL, for a JSONP request
+	function processJsonpUrl( requestSettings ) {
+		if ( requestSettings.type.toUpperCase() === "GET" ) {
+			if ( !CALLBACK_REGEX.test( requestSettings.url ) ) {
+				requestSettings.url += (/\?/.test( requestSettings.url ) ? "&" : "?") +
+					(requestSettings.jsonp || "callback") + "=?";
+			}
+		} else if ( !requestSettings.data || !CALLBACK_REGEX.test(requestSettings.data) ) {
+			requestSettings.data = (requestSettings.data ? requestSettings.data + "&" : "") + (requestSettings.jsonp || "callback") + "=?";
+		}
+	}
+
+	// Process a JSONP request by evaluating the mocked response text
+	function processJsonpRequest( requestSettings, mockHandler, origSettings ) {
+		// Synthesize the mock request for adding a script tag
+		var callbackContext = origSettings && origSettings.context || requestSettings,
+			newMock = null;
+
+
+		// If the response handler on the moock is a function, call it
+		if ( mockHandler.response && $.isFunction(mockHandler.response) ) {
+			mockHandler.response(origSettings);
+		} else {
+
+			// Evaluate the responseText javascript in a global context
+			if( typeof mockHandler.responseText === 'object' ) {
+				$.globalEval( '(' + JSON.stringify( mockHandler.responseText ) + ')');
+			} else {
+				$.globalEval( '(' + mockHandler.responseText + ')');
+			}
+		}
+
+		// Successful response
+		setTimeout(function() {
+			jsonpSuccess( requestSettings, callbackContext, mockHandler );
+			jsonpComplete( requestSettings, callbackContext, mockHandler );
+		}, parseResponseTimeOpt(mockHandler.responseTime) || 0);
+
+		// If we are running under jQuery 1.5+, return a deferred object
+		if($.Deferred){
+			newMock = new $.Deferred();
+			if(typeof mockHandler.responseText == "object"){
+				newMock.resolveWith( callbackContext, [mockHandler.responseText] );
+			}
+			else{
+				newMock.resolveWith( callbackContext, [$.parseJSON( mockHandler.responseText )] );
+			}
+		}
+		return newMock;
+	}
+
+
+	// Create the required JSONP callback function for the request
+	function createJsonpCallback( requestSettings, mockHandler, origSettings ) {
+		var callbackContext = origSettings && origSettings.context || requestSettings;
+		var jsonp = requestSettings.jsonpCallback || ("jsonp" + jsc++);
+
+		// Replace the =? sequence both in the query string and the data
+		if ( requestSettings.data ) {
+			requestSettings.data = (requestSettings.data + "").replace(CALLBACK_REGEX, "=" + jsonp + "$1");
+		}
+
+		requestSettings.url = requestSettings.url.replace(CALLBACK_REGEX, "=" + jsonp + "$1");
+
+
+		// Handle JSONP-style loading
+		window[ jsonp ] = window[ jsonp ] || function( tmp ) {
+			data = tmp;
+			jsonpSuccess( requestSettings, callbackContext, mockHandler );
+			jsonpComplete( requestSettings, callbackContext, mockHandler );
+			// Garbage collect
+			window[ jsonp ] = undefined;
+
+			try {
+				delete window[ jsonp ];
+			} catch(e) {}
+
+			if ( head ) {
+				head.removeChild( script );
+			}
+		};
+	}
+
+	// The JSONP request was successful
+	function jsonpSuccess(requestSettings, callbackContext, mockHandler) {
+		// If a local callback was specified, fire it and pass it the data
+		if ( requestSettings.success ) {
+			requestSettings.success.call( callbackContext, mockHandler.responseText || "", status, {} );
+		}
+
+		// Fire the global callback
+		if ( requestSettings.global ) {
+			(requestSettings.context ? $(requestSettings.context) : $.event).trigger("ajaxSuccess", [{}, requestSettings]);
+		}
+	}
+
+	// The JSONP request was completed
+	function jsonpComplete(requestSettings, callbackContext) {
+		// Process result
+		if ( requestSettings.complete ) {
+			requestSettings.complete.call( callbackContext, {} , status );
+		}
+
+		// The request was completed
+		if ( requestSettings.global ) {
+			(requestSettings.context ? $(requestSettings.context) : $.event).trigger("ajaxComplete", [{}, requestSettings]);
+		}
+
+		// Handle the global AJAX counter
+		if ( requestSettings.global && ! --$.active ) {
+			$.event.trigger( "ajaxStop" );
+		}
+	}
+
+
+	// The core $.ajax replacement.
+	function handleAjax( url, origSettings ) {
+		var mockRequest, requestSettings, mockHandler, overrideCallback;
+
+		// If url is an object, simulate pre-1.5 signature
+		if ( typeof url === "object" ) {
+			origSettings = url;
+			url = undefined;
+		} else {
+			// work around to support 1.5 signature
+			origSettings = origSettings || {};
+			origSettings.url = url;
+		}
+
+		// Extend the original settings for the request
+		requestSettings = $.extend(true, {}, $.ajaxSettings, origSettings);
+
+		// Generic function to override callback methods for use with
+		// callback options (onAfterSuccess, onAfterError, onAfterComplete)
+		overrideCallback = function(action, mockHandler) {
+			var origHandler = origSettings[action.toLowerCase()];
+			return function() {
+				if ( $.isFunction(origHandler) ) {
+					origHandler.apply(this, [].slice.call(arguments));
+				}
+				mockHandler['onAfter' + action]();
+			};
+		};
+
+		// Iterate over our mock handlers (in registration order) until we find
+		// one that is willing to intercept the request
+		for(var k = 0; k < mockHandlers.length; k++) {
+			if ( !mockHandlers[k] ) {
+				continue;
+			}
+
+			mockHandler = getMockForRequest( mockHandlers[k], requestSettings );
+			if(!mockHandler) {
+				// No valid mock found for this request
+				continue;
+			}
+
+			mockedAjaxCalls.push(requestSettings);
+
+			// If logging is enabled, log the mock to the console
+			$.mockjaxSettings.log( mockHandler, requestSettings );
+
+
+			if ( requestSettings.dataType && requestSettings.dataType.toUpperCase() === 'JSONP' ) {
+				if ((mockRequest = processJsonpMock( requestSettings, mockHandler, origSettings ))) {
+					// This mock will handle the JSONP request
+					return mockRequest;
+				}
+			}
+
+
+			// Removed to fix #54 - keep the mocking data object intact
+			//mockHandler.data = requestSettings.data;
+
+			mockHandler.cache = requestSettings.cache;
+			mockHandler.timeout = requestSettings.timeout;
+			mockHandler.global = requestSettings.global;
+
+			// In the case of a timeout, we just need to ensure
+			// an actual jQuery timeout (That is, our reponse won't)
+			// return faster than the timeout setting.
+			if ( mockHandler.isTimeout ) {
+				if ( mockHandler.responseTime > 1 ) {
+					origSettings.timeout = mockHandler.responseTime - 1;
+				} else {
+					mockHandler.responseTime = 2;
+					origSettings.timeout = 1;
+				}
+				mockHandler.isTimeout = false;
+			}
+
+			// Set up onAfter[X] callback functions
+			if ( $.isFunction( mockHandler.onAfterSuccess ) ) {
+				origSettings.success = overrideCallback('Success', mockHandler);
+			}
+			if ( $.isFunction( mockHandler.onAfterError ) ) {
+				origSettings.error = overrideCallback('Error', mockHandler);
+			}
+			if ( $.isFunction( mockHandler.onAfterComplete ) ) {
+				origSettings.complete = overrideCallback('Complete', mockHandler);
+			}
+
+			copyUrlParameters(mockHandler, origSettings);
+
+			(function(mockHandler, requestSettings, origSettings, origHandler) {
+
+				mockRequest = _ajax.call($, $.extend(true, {}, origSettings, {
+					// Mock the XHR object
+					xhr: function() { return xhr( mockHandler, requestSettings, origSettings, origHandler ); }
+				}));
+			})(mockHandler, requestSettings, origSettings, mockHandlers[k]);
+
+			return mockRequest;
+		}
+
+		// We don't have a mock request
+		unmockedAjaxCalls.push(origSettings);
+		if($.mockjaxSettings.throwUnmocked === true) {
+			throw new Error('AJAX not mocked: ' + origSettings.url);
+		}
+		else { // trigger a normal request
+			return _ajax.apply($, [origSettings]);
+		}
+	}
+
+	/**
+	* Copies URL parameter values if they were captured by a regular expression
+	* @param {Object} mockHandler
+	* @param {Object} origSettings
+	*/
+	function copyUrlParameters(mockHandler, origSettings) {
+		//parameters aren't captured if the URL isn't a RegExp
+		if (!(mockHandler.url instanceof RegExp)) {
+			return;
+		}
+		//if no URL params were defined on the handler, don't attempt a capture
+		if (!mockHandler.hasOwnProperty('urlParams')) {
+			return;
+		}
+		var captures = mockHandler.url.exec(origSettings.url);
+		//the whole RegExp match is always the first value in the capture results
+		if (captures.length === 1) {
+			return;
+		}
+		captures.shift();
+		//use handler params as keys and capture resuts as values
+		var i = 0,
+		capturesLength = captures.length,
+		paramsLength = mockHandler.urlParams.length,
+		//in case the number of params specified is less than actual captures
+		maxIterations = Math.min(capturesLength, paramsLength),
+		paramValues = {};
+		for (i; i < maxIterations; i++) {
+			var key = mockHandler.urlParams[i];
+			paramValues[key] = captures[i];
+		}
+		origSettings.urlParams = paramValues;
+	}
+
+
+	// Public
+
+	$.extend({
+		ajax: handleAjax
+	});
+
+	$.mockjaxSettings = {
+		//url:        null,
+		//type:       'GET',
+		log:          function( mockHandler, requestSettings ) {
+			if ( mockHandler.logging === false ||
+				 ( typeof mockHandler.logging === 'undefined' && $.mockjaxSettings.logging === false ) ) {
+				return;
+			}
+			if ( window.console && console.log ) {
+				var message = 'MOCK ' + requestSettings.type.toUpperCase() + ': ' + requestSettings.url;
+				var request = $.extend({}, requestSettings);
+
+				if (typeof console.log === 'function') {
+					console.log(message, request);
+				} else {
+					try {
+						console.log( message + ' ' + JSON.stringify(request) );
+					} catch (e) {
+						console.log(message);
+					}
+				}
+			}
+		},
+		logging:       true,
+		status:        200,
+		statusText:    "OK",
+		responseTime:  500,
+		isTimeout:     false,
+		throwUnmocked: false,
+		contentType:   'text/plain',
+		response:      '',
+		responseText:  '',
+		responseXML:   '',
+		proxy:         '',
+		proxyType:     'GET',
+
+		lastModified:  null,
+		etag:          '',
+		headers: {
+			etag: 'IJF@H#@923uf8023hFO@I#H#',
+			'content-type' : 'text/plain'
+		}
+	};
+
+	$.mockjax = function(settings) {
+		var i = mockHandlers.length;
+		mockHandlers[i] = settings;
+		return i;
+	};
+	$.mockjax.clear = function(i) {
+		if ( arguments.length == 1 ) {
+			mockHandlers[i] = null;
+		} else {
+			mockHandlers = [];
+		}
+		mockedAjaxCalls = [];
+		unmockedAjaxCalls = [];
+	};
+	// support older, deprecated version
+	$.mockjaxClear = function(i) {
+		window.console && window.console.warn && window.console.warn( 'DEPRECATED: The $.mockjaxClear() method has been deprecated in 1.6.0. Please use $.mockjax.clear() as the older function will be removed soon!' );
+		$.mockjax.clear();
+	};
+	$.mockjax.handler = function(i) {
+		if ( arguments.length == 1 ) {
+			return mockHandlers[i];
+		}
+	};
+	$.mockjax.mockedAjaxCalls = function() {
+		return mockedAjaxCalls;
+	};
+	$.mockjax.unfiredHandlers = function() {
+		var results = [];
+		for (var i=0, len=mockHandlers.length; i<len; i++) {
+			var handler = mockHandlers[i];
+            if (handler !== null && !handler.fired) {
+				results.push(handler);
+			}
+		}
+		return results;
+	};
+	$.mockjax.unmockedAjaxCalls = function() {
+		return unmockedAjaxCalls;
+	};
+})(jQuery);
+
+/*!
  * Bootstrap v3.2.0 (http://getbootstrap.com)
  * Copyright 2011-2014 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
 if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires jQuery");+function(a){"use strict";function b(){var a=document.createElement("bootstrap"),b={WebkitTransition:"webkitTransitionEnd",MozTransition:"transitionend",OTransition:"oTransitionEnd otransitionend",transition:"transitionend"};for(var c in b)if(void 0!==a.style[c])return{end:b[c]};return!1}a.fn.emulateTransitionEnd=function(b){var c=!1,d=this;a(this).one("bsTransitionEnd",function(){c=!0});var e=function(){c||a(d).trigger(a.support.transition.end)};return setTimeout(e,b),this},a(function(){a.support.transition=b(),a.support.transition&&(a.event.special.bsTransitionEnd={bindType:a.support.transition.end,delegateType:a.support.transition.end,handle:function(b){return a(b.target).is(this)?b.handleObj.handler.apply(this,arguments):void 0}})})}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var c=a(this),e=c.data("bs.alert");e||c.data("bs.alert",e=new d(this)),"string"==typeof b&&e[b].call(c)})}var c='[data-dismiss="alert"]',d=function(b){a(b).on("click",c,this.close)};d.VERSION="3.2.0",d.prototype.close=function(b){function c(){f.detach().trigger("closed.bs.alert").remove()}var d=a(this),e=d.attr("data-target");e||(e=d.attr("href"),e=e&&e.replace(/.*(?=#[^\s]*$)/,""));var f=a(e);b&&b.preventDefault(),f.length||(f=d.hasClass("alert")?d:d.parent()),f.trigger(b=a.Event("close.bs.alert")),b.isDefaultPrevented()||(f.removeClass("in"),a.support.transition&&f.hasClass("fade")?f.one("bsTransitionEnd",c).emulateTransitionEnd(150):c())};var e=a.fn.alert;a.fn.alert=b,a.fn.alert.Constructor=d,a.fn.alert.noConflict=function(){return a.fn.alert=e,this},a(document).on("click.bs.alert.data-api",c,d.prototype.close)}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.button"),f="object"==typeof b&&b;e||d.data("bs.button",e=new c(this,f)),"toggle"==b?e.toggle():b&&e.setState(b)})}var c=function(b,d){this.$element=a(b),this.options=a.extend({},c.DEFAULTS,d),this.isLoading=!1};c.VERSION="3.2.0",c.DEFAULTS={loadingText:"loading..."},c.prototype.setState=function(b){var c="disabled",d=this.$element,e=d.is("input")?"val":"html",f=d.data();b+="Text",null==f.resetText&&d.data("resetText",d[e]()),d[e](null==f[b]?this.options[b]:f[b]),setTimeout(a.proxy(function(){"loadingText"==b?(this.isLoading=!0,d.addClass(c).attr(c,c)):this.isLoading&&(this.isLoading=!1,d.removeClass(c).removeAttr(c))},this),0)},c.prototype.toggle=function(){var a=!0,b=this.$element.closest('[data-toggle="buttons"]');if(b.length){var c=this.$element.find("input");"radio"==c.prop("type")&&(c.prop("checked")&&this.$element.hasClass("active")?a=!1:b.find(".active").removeClass("active")),a&&c.prop("checked",!this.$element.hasClass("active")).trigger("change")}a&&this.$element.toggleClass("active")};var d=a.fn.button;a.fn.button=b,a.fn.button.Constructor=c,a.fn.button.noConflict=function(){return a.fn.button=d,this},a(document).on("click.bs.button.data-api",'[data-toggle^="button"]',function(c){var d=a(c.target);d.hasClass("btn")||(d=d.closest(".btn")),b.call(d,"toggle"),c.preventDefault()})}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.carousel"),f=a.extend({},c.DEFAULTS,d.data(),"object"==typeof b&&b),g="string"==typeof b?b:f.slide;e||d.data("bs.carousel",e=new c(this,f)),"number"==typeof b?e.to(b):g?e[g]():f.interval&&e.pause().cycle()})}var c=function(b,c){this.$element=a(b).on("keydown.bs.carousel",a.proxy(this.keydown,this)),this.$indicators=this.$element.find(".carousel-indicators"),this.options=c,this.paused=this.sliding=this.interval=this.$active=this.$items=null,"hover"==this.options.pause&&this.$element.on("mouseenter.bs.carousel",a.proxy(this.pause,this)).on("mouseleave.bs.carousel",a.proxy(this.cycle,this))};c.VERSION="3.2.0",c.DEFAULTS={interval:5e3,pause:"hover",wrap:!0},c.prototype.keydown=function(a){switch(a.which){case 37:this.prev();break;case 39:this.next();break;default:return}a.preventDefault()},c.prototype.cycle=function(b){return b||(this.paused=!1),this.interval&&clearInterval(this.interval),this.options.interval&&!this.paused&&(this.interval=setInterval(a.proxy(this.next,this),this.options.interval)),this},c.prototype.getItemIndex=function(a){return this.$items=a.parent().children(".item"),this.$items.index(a||this.$active)},c.prototype.to=function(b){var c=this,d=this.getItemIndex(this.$active=this.$element.find(".item.active"));return b>this.$items.length-1||0>b?void 0:this.sliding?this.$element.one("slid.bs.carousel",function(){c.to(b)}):d==b?this.pause().cycle():this.slide(b>d?"next":"prev",a(this.$items[b]))},c.prototype.pause=function(b){return b||(this.paused=!0),this.$element.find(".next, .prev").length&&a.support.transition&&(this.$element.trigger(a.support.transition.end),this.cycle(!0)),this.interval=clearInterval(this.interval),this},c.prototype.next=function(){return this.sliding?void 0:this.slide("next")},c.prototype.prev=function(){return this.sliding?void 0:this.slide("prev")},c.prototype.slide=function(b,c){var d=this.$element.find(".item.active"),e=c||d[b](),f=this.interval,g="next"==b?"left":"right",h="next"==b?"first":"last",i=this;if(!e.length){if(!this.options.wrap)return;e=this.$element.find(".item")[h]()}if(e.hasClass("active"))return this.sliding=!1;var j=e[0],k=a.Event("slide.bs.carousel",{relatedTarget:j,direction:g});if(this.$element.trigger(k),!k.isDefaultPrevented()){if(this.sliding=!0,f&&this.pause(),this.$indicators.length){this.$indicators.find(".active").removeClass("active");var l=a(this.$indicators.children()[this.getItemIndex(e)]);l&&l.addClass("active")}var m=a.Event("slid.bs.carousel",{relatedTarget:j,direction:g});return a.support.transition&&this.$element.hasClass("slide")?(e.addClass(b),e[0].offsetWidth,d.addClass(g),e.addClass(g),d.one("bsTransitionEnd",function(){e.removeClass([b,g].join(" ")).addClass("active"),d.removeClass(["active",g].join(" ")),i.sliding=!1,setTimeout(function(){i.$element.trigger(m)},0)}).emulateTransitionEnd(1e3*d.css("transition-duration").slice(0,-1))):(d.removeClass("active"),e.addClass("active"),this.sliding=!1,this.$element.trigger(m)),f&&this.cycle(),this}};var d=a.fn.carousel;a.fn.carousel=b,a.fn.carousel.Constructor=c,a.fn.carousel.noConflict=function(){return a.fn.carousel=d,this},a(document).on("click.bs.carousel.data-api","[data-slide], [data-slide-to]",function(c){var d,e=a(this),f=a(e.attr("data-target")||(d=e.attr("href"))&&d.replace(/.*(?=#[^\s]+$)/,""));if(f.hasClass("carousel")){var g=a.extend({},f.data(),e.data()),h=e.attr("data-slide-to");h&&(g.interval=!1),b.call(f,g),h&&f.data("bs.carousel").to(h),c.preventDefault()}}),a(window).on("load",function(){a('[data-ride="carousel"]').each(function(){var c=a(this);b.call(c,c.data())})})}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.collapse"),f=a.extend({},c.DEFAULTS,d.data(),"object"==typeof b&&b);!e&&f.toggle&&"show"==b&&(b=!b),e||d.data("bs.collapse",e=new c(this,f)),"string"==typeof b&&e[b]()})}var c=function(b,d){this.$element=a(b),this.options=a.extend({},c.DEFAULTS,d),this.transitioning=null,this.options.parent&&(this.$parent=a(this.options.parent)),this.options.toggle&&this.toggle()};c.VERSION="3.2.0",c.DEFAULTS={toggle:!0},c.prototype.dimension=function(){var a=this.$element.hasClass("width");return a?"width":"height"},c.prototype.show=function(){if(!this.transitioning&&!this.$element.hasClass("in")){var c=a.Event("show.bs.collapse");if(this.$element.trigger(c),!c.isDefaultPrevented()){var d=this.$parent&&this.$parent.find("> .panel > .in");if(d&&d.length){var e=d.data("bs.collapse");if(e&&e.transitioning)return;b.call(d,"hide"),e||d.data("bs.collapse",null)}var f=this.dimension();this.$element.removeClass("collapse").addClass("collapsing")[f](0),this.transitioning=1;var g=function(){this.$element.removeClass("collapsing").addClass("collapse in")[f](""),this.transitioning=0,this.$element.trigger("shown.bs.collapse")};if(!a.support.transition)return g.call(this);var h=a.camelCase(["scroll",f].join("-"));this.$element.one("bsTransitionEnd",a.proxy(g,this)).emulateTransitionEnd(350)[f](this.$element[0][h])}}},c.prototype.hide=function(){if(!this.transitioning&&this.$element.hasClass("in")){var b=a.Event("hide.bs.collapse");if(this.$element.trigger(b),!b.isDefaultPrevented()){var c=this.dimension();this.$element[c](this.$element[c]())[0].offsetHeight,this.$element.addClass("collapsing").removeClass("collapse").removeClass("in"),this.transitioning=1;var d=function(){this.transitioning=0,this.$element.trigger("hidden.bs.collapse").removeClass("collapsing").addClass("collapse")};return a.support.transition?void this.$element[c](0).one("bsTransitionEnd",a.proxy(d,this)).emulateTransitionEnd(350):d.call(this)}}},c.prototype.toggle=function(){this[this.$element.hasClass("in")?"hide":"show"]()};var d=a.fn.collapse;a.fn.collapse=b,a.fn.collapse.Constructor=c,a.fn.collapse.noConflict=function(){return a.fn.collapse=d,this},a(document).on("click.bs.collapse.data-api",'[data-toggle="collapse"]',function(c){var d,e=a(this),f=e.attr("data-target")||c.preventDefault()||(d=e.attr("href"))&&d.replace(/.*(?=#[^\s]+$)/,""),g=a(f),h=g.data("bs.collapse"),i=h?"toggle":e.data(),j=e.attr("data-parent"),k=j&&a(j);h&&h.transitioning||(k&&k.find('[data-toggle="collapse"][data-parent="'+j+'"]').not(e).addClass("collapsed"),e[g.hasClass("in")?"addClass":"removeClass"]("collapsed")),b.call(g,i)})}(jQuery),+function(a){"use strict";function b(b){b&&3===b.which||(a(e).remove(),a(f).each(function(){var d=c(a(this)),e={relatedTarget:this};d.hasClass("open")&&(d.trigger(b=a.Event("hide.bs.dropdown",e)),b.isDefaultPrevented()||d.removeClass("open").trigger("hidden.bs.dropdown",e))}))}function c(b){var c=b.attr("data-target");c||(c=b.attr("href"),c=c&&/#[A-Za-z]/.test(c)&&c.replace(/.*(?=#[^\s]*$)/,""));var d=c&&a(c);return d&&d.length?d:b.parent()}function d(b){return this.each(function(){var c=a(this),d=c.data("bs.dropdown");d||c.data("bs.dropdown",d=new g(this)),"string"==typeof b&&d[b].call(c)})}var e=".dropdown-backdrop",f='[data-toggle="dropdown"]',g=function(b){a(b).on("click.bs.dropdown",this.toggle)};g.VERSION="3.2.0",g.prototype.toggle=function(d){var e=a(this);if(!e.is(".disabled, :disabled")){var f=c(e),g=f.hasClass("open");if(b(),!g){"ontouchstart"in document.documentElement&&!f.closest(".navbar-nav").length&&a('<div class="dropdown-backdrop"/>').insertAfter(a(this)).on("click",b);var h={relatedTarget:this};if(f.trigger(d=a.Event("show.bs.dropdown",h)),d.isDefaultPrevented())return;e.trigger("focus"),f.toggleClass("open").trigger("shown.bs.dropdown",h)}return!1}},g.prototype.keydown=function(b){if(/(38|40|27)/.test(b.keyCode)){var d=a(this);if(b.preventDefault(),b.stopPropagation(),!d.is(".disabled, :disabled")){var e=c(d),g=e.hasClass("open");if(!g||g&&27==b.keyCode)return 27==b.which&&e.find(f).trigger("focus"),d.trigger("click");var h=" li:not(.divider):visible a",i=e.find('[role="menu"]'+h+', [role="listbox"]'+h);if(i.length){var j=i.index(i.filter(":focus"));38==b.keyCode&&j>0&&j--,40==b.keyCode&&j<i.length-1&&j++,~j||(j=0),i.eq(j).trigger("focus")}}}};var h=a.fn.dropdown;a.fn.dropdown=d,a.fn.dropdown.Constructor=g,a.fn.dropdown.noConflict=function(){return a.fn.dropdown=h,this},a(document).on("click.bs.dropdown.data-api",b).on("click.bs.dropdown.data-api",".dropdown form",function(a){a.stopPropagation()}).on("click.bs.dropdown.data-api",f,g.prototype.toggle).on("keydown.bs.dropdown.data-api",f+', [role="menu"], [role="listbox"]',g.prototype.keydown)}(jQuery),+function(a){"use strict";function b(b,d){return this.each(function(){var e=a(this),f=e.data("bs.modal"),g=a.extend({},c.DEFAULTS,e.data(),"object"==typeof b&&b);f||e.data("bs.modal",f=new c(this,g)),"string"==typeof b?f[b](d):g.show&&f.show(d)})}var c=function(b,c){this.options=c,this.$body=a(document.body),this.$element=a(b),this.$backdrop=this.isShown=null,this.scrollbarWidth=0,this.options.remote&&this.$element.find(".modal-content").load(this.options.remote,a.proxy(function(){this.$element.trigger("loaded.bs.modal")},this))};c.VERSION="3.2.0",c.DEFAULTS={backdrop:!0,keyboard:!0,show:!0},c.prototype.toggle=function(a){return this.isShown?this.hide():this.show(a)},c.prototype.show=function(b){var c=this,d=a.Event("show.bs.modal",{relatedTarget:b});this.$element.trigger(d),this.isShown||d.isDefaultPrevented()||(this.isShown=!0,this.checkScrollbar(),this.$body.addClass("modal-open"),this.setScrollbar(),this.escape(),this.$element.on("click.dismiss.bs.modal",'[data-dismiss="modal"]',a.proxy(this.hide,this)),this.backdrop(function(){var d=a.support.transition&&c.$element.hasClass("fade");c.$element.parent().length||c.$element.appendTo(c.$body),c.$element.show().scrollTop(0),d&&c.$element[0].offsetWidth,c.$element.addClass("in").attr("aria-hidden",!1),c.enforceFocus();var e=a.Event("shown.bs.modal",{relatedTarget:b});d?c.$element.find(".modal-dialog").one("bsTransitionEnd",function(){c.$element.trigger("focus").trigger(e)}).emulateTransitionEnd(300):c.$element.trigger("focus").trigger(e)}))},c.prototype.hide=function(b){b&&b.preventDefault(),b=a.Event("hide.bs.modal"),this.$element.trigger(b),this.isShown&&!b.isDefaultPrevented()&&(this.isShown=!1,this.$body.removeClass("modal-open"),this.resetScrollbar(),this.escape(),a(document).off("focusin.bs.modal"),this.$element.removeClass("in").attr("aria-hidden",!0).off("click.dismiss.bs.modal"),a.support.transition&&this.$element.hasClass("fade")?this.$element.one("bsTransitionEnd",a.proxy(this.hideModal,this)).emulateTransitionEnd(300):this.hideModal())},c.prototype.enforceFocus=function(){a(document).off("focusin.bs.modal").on("focusin.bs.modal",a.proxy(function(a){this.$element[0]===a.target||this.$element.has(a.target).length||this.$element.trigger("focus")},this))},c.prototype.escape=function(){this.isShown&&this.options.keyboard?this.$element.on("keyup.dismiss.bs.modal",a.proxy(function(a){27==a.which&&this.hide()},this)):this.isShown||this.$element.off("keyup.dismiss.bs.modal")},c.prototype.hideModal=function(){var a=this;this.$element.hide(),this.backdrop(function(){a.$element.trigger("hidden.bs.modal")})},c.prototype.removeBackdrop=function(){this.$backdrop&&this.$backdrop.remove(),this.$backdrop=null},c.prototype.backdrop=function(b){var c=this,d=this.$element.hasClass("fade")?"fade":"";if(this.isShown&&this.options.backdrop){var e=a.support.transition&&d;if(this.$backdrop=a('<div class="modal-backdrop '+d+'" />').appendTo(this.$body),this.$element.on("click.dismiss.bs.modal",a.proxy(function(a){a.target===a.currentTarget&&("static"==this.options.backdrop?this.$element[0].focus.call(this.$element[0]):this.hide.call(this))},this)),e&&this.$backdrop[0].offsetWidth,this.$backdrop.addClass("in"),!b)return;e?this.$backdrop.one("bsTransitionEnd",b).emulateTransitionEnd(150):b()}else if(!this.isShown&&this.$backdrop){this.$backdrop.removeClass("in");var f=function(){c.removeBackdrop(),b&&b()};a.support.transition&&this.$element.hasClass("fade")?this.$backdrop.one("bsTransitionEnd",f).emulateTransitionEnd(150):f()}else b&&b()},c.prototype.checkScrollbar=function(){document.body.clientWidth>=window.innerWidth||(this.scrollbarWidth=this.scrollbarWidth||this.measureScrollbar())},c.prototype.setScrollbar=function(){var a=parseInt(this.$body.css("padding-right")||0,10);this.scrollbarWidth&&this.$body.css("padding-right",a+this.scrollbarWidth)},c.prototype.resetScrollbar=function(){this.$body.css("padding-right","")},c.prototype.measureScrollbar=function(){var a=document.createElement("div");a.className="modal-scrollbar-measure",this.$body.append(a);var b=a.offsetWidth-a.clientWidth;return this.$body[0].removeChild(a),b};var d=a.fn.modal;a.fn.modal=b,a.fn.modal.Constructor=c,a.fn.modal.noConflict=function(){return a.fn.modal=d,this},a(document).on("click.bs.modal.data-api",'[data-toggle="modal"]',function(c){var d=a(this),e=d.attr("href"),f=a(d.attr("data-target")||e&&e.replace(/.*(?=#[^\s]+$)/,"")),g=f.data("bs.modal")?"toggle":a.extend({remote:!/#/.test(e)&&e},f.data(),d.data());d.is("a")&&c.preventDefault(),f.one("show.bs.modal",function(a){a.isDefaultPrevented()||f.one("hidden.bs.modal",function(){d.is(":visible")&&d.trigger("focus")})}),b.call(f,g,this)})}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.tooltip"),f="object"==typeof b&&b;(e||"destroy"!=b)&&(e||d.data("bs.tooltip",e=new c(this,f)),"string"==typeof b&&e[b]())})}var c=function(a,b){this.type=this.options=this.enabled=this.timeout=this.hoverState=this.$element=null,this.init("tooltip",a,b)};c.VERSION="3.2.0",c.DEFAULTS={animation:!0,placement:"top",selector:!1,template:'<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',trigger:"hover focus",title:"",delay:0,html:!1,container:!1,viewport:{selector:"body",padding:0}},c.prototype.init=function(b,c,d){this.enabled=!0,this.type=b,this.$element=a(c),this.options=this.getOptions(d),this.$viewport=this.options.viewport&&a(this.options.viewport.selector||this.options.viewport);for(var e=this.options.trigger.split(" "),f=e.length;f--;){var g=e[f];if("click"==g)this.$element.on("click."+this.type,this.options.selector,a.proxy(this.toggle,this));else if("manual"!=g){var h="hover"==g?"mouseenter":"focusin",i="hover"==g?"mouseleave":"focusout";this.$element.on(h+"."+this.type,this.options.selector,a.proxy(this.enter,this)),this.$element.on(i+"."+this.type,this.options.selector,a.proxy(this.leave,this))}}this.options.selector?this._options=a.extend({},this.options,{trigger:"manual",selector:""}):this.fixTitle()},c.prototype.getDefaults=function(){return c.DEFAULTS},c.prototype.getOptions=function(b){return b=a.extend({},this.getDefaults(),this.$element.data(),b),b.delay&&"number"==typeof b.delay&&(b.delay={show:b.delay,hide:b.delay}),b},c.prototype.getDelegateOptions=function(){var b={},c=this.getDefaults();return this._options&&a.each(this._options,function(a,d){c[a]!=d&&(b[a]=d)}),b},c.prototype.enter=function(b){var c=b instanceof this.constructor?b:a(b.currentTarget).data("bs."+this.type);return c||(c=new this.constructor(b.currentTarget,this.getDelegateOptions()),a(b.currentTarget).data("bs."+this.type,c)),clearTimeout(c.timeout),c.hoverState="in",c.options.delay&&c.options.delay.show?void(c.timeout=setTimeout(function(){"in"==c.hoverState&&c.show()},c.options.delay.show)):c.show()},c.prototype.leave=function(b){var c=b instanceof this.constructor?b:a(b.currentTarget).data("bs."+this.type);return c||(c=new this.constructor(b.currentTarget,this.getDelegateOptions()),a(b.currentTarget).data("bs."+this.type,c)),clearTimeout(c.timeout),c.hoverState="out",c.options.delay&&c.options.delay.hide?void(c.timeout=setTimeout(function(){"out"==c.hoverState&&c.hide()},c.options.delay.hide)):c.hide()},c.prototype.show=function(){var b=a.Event("show.bs."+this.type);if(this.hasContent()&&this.enabled){this.$element.trigger(b);var c=a.contains(document.documentElement,this.$element[0]);if(b.isDefaultPrevented()||!c)return;var d=this,e=this.tip(),f=this.getUID(this.type);this.setContent(),e.attr("id",f),this.$element.attr("aria-describedby",f),this.options.animation&&e.addClass("fade");var g="function"==typeof this.options.placement?this.options.placement.call(this,e[0],this.$element[0]):this.options.placement,h=/\s?auto?\s?/i,i=h.test(g);i&&(g=g.replace(h,"")||"top"),e.detach().css({top:0,left:0,display:"block"}).addClass(g).data("bs."+this.type,this),this.options.container?e.appendTo(this.options.container):e.insertAfter(this.$element);var j=this.getPosition(),k=e[0].offsetWidth,l=e[0].offsetHeight;if(i){var m=g,n=this.$element.parent(),o=this.getPosition(n);g="bottom"==g&&j.top+j.height+l-o.scroll>o.height?"top":"top"==g&&j.top-o.scroll-l<0?"bottom":"right"==g&&j.right+k>o.width?"left":"left"==g&&j.left-k<o.left?"right":g,e.removeClass(m).addClass(g)}var p=this.getCalculatedOffset(g,j,k,l);this.applyPlacement(p,g);var q=function(){d.$element.trigger("shown.bs."+d.type),d.hoverState=null};a.support.transition&&this.$tip.hasClass("fade")?e.one("bsTransitionEnd",q).emulateTransitionEnd(150):q()}},c.prototype.applyPlacement=function(b,c){var d=this.tip(),e=d[0].offsetWidth,f=d[0].offsetHeight,g=parseInt(d.css("margin-top"),10),h=parseInt(d.css("margin-left"),10);isNaN(g)&&(g=0),isNaN(h)&&(h=0),b.top=b.top+g,b.left=b.left+h,a.offset.setOffset(d[0],a.extend({using:function(a){d.css({top:Math.round(a.top),left:Math.round(a.left)})}},b),0),d.addClass("in");var i=d[0].offsetWidth,j=d[0].offsetHeight;"top"==c&&j!=f&&(b.top=b.top+f-j);var k=this.getViewportAdjustedDelta(c,b,i,j);k.left?b.left+=k.left:b.top+=k.top;var l=k.left?2*k.left-e+i:2*k.top-f+j,m=k.left?"left":"top",n=k.left?"offsetWidth":"offsetHeight";d.offset(b),this.replaceArrow(l,d[0][n],m)},c.prototype.replaceArrow=function(a,b,c){this.arrow().css(c,a?50*(1-a/b)+"%":"")},c.prototype.setContent=function(){var a=this.tip(),b=this.getTitle();a.find(".tooltip-inner")[this.options.html?"html":"text"](b),a.removeClass("fade in top bottom left right")},c.prototype.hide=function(){function b(){"in"!=c.hoverState&&d.detach(),c.$element.trigger("hidden.bs."+c.type)}var c=this,d=this.tip(),e=a.Event("hide.bs."+this.type);return this.$element.removeAttr("aria-describedby"),this.$element.trigger(e),e.isDefaultPrevented()?void 0:(d.removeClass("in"),a.support.transition&&this.$tip.hasClass("fade")?d.one("bsTransitionEnd",b).emulateTransitionEnd(150):b(),this.hoverState=null,this)},c.prototype.fixTitle=function(){var a=this.$element;(a.attr("title")||"string"!=typeof a.attr("data-original-title"))&&a.attr("data-original-title",a.attr("title")||"").attr("title","")},c.prototype.hasContent=function(){return this.getTitle()},c.prototype.getPosition=function(b){b=b||this.$element;var c=b[0],d="BODY"==c.tagName;return a.extend({},"function"==typeof c.getBoundingClientRect?c.getBoundingClientRect():null,{scroll:d?document.documentElement.scrollTop||document.body.scrollTop:b.scrollTop(),width:d?a(window).width():b.outerWidth(),height:d?a(window).height():b.outerHeight()},d?{top:0,left:0}:b.offset())},c.prototype.getCalculatedOffset=function(a,b,c,d){return"bottom"==a?{top:b.top+b.height,left:b.left+b.width/2-c/2}:"top"==a?{top:b.top-d,left:b.left+b.width/2-c/2}:"left"==a?{top:b.top+b.height/2-d/2,left:b.left-c}:{top:b.top+b.height/2-d/2,left:b.left+b.width}},c.prototype.getViewportAdjustedDelta=function(a,b,c,d){var e={top:0,left:0};if(!this.$viewport)return e;var f=this.options.viewport&&this.options.viewport.padding||0,g=this.getPosition(this.$viewport);if(/right|left/.test(a)){var h=b.top-f-g.scroll,i=b.top+f-g.scroll+d;h<g.top?e.top=g.top-h:i>g.top+g.height&&(e.top=g.top+g.height-i)}else{var j=b.left-f,k=b.left+f+c;j<g.left?e.left=g.left-j:k>g.width&&(e.left=g.left+g.width-k)}return e},c.prototype.getTitle=function(){var a,b=this.$element,c=this.options;return a=b.attr("data-original-title")||("function"==typeof c.title?c.title.call(b[0]):c.title)},c.prototype.getUID=function(a){do a+=~~(1e6*Math.random());while(document.getElementById(a));return a},c.prototype.tip=function(){return this.$tip=this.$tip||a(this.options.template)},c.prototype.arrow=function(){return this.$arrow=this.$arrow||this.tip().find(".tooltip-arrow")},c.prototype.validate=function(){this.$element[0].parentNode||(this.hide(),this.$element=null,this.options=null)},c.prototype.enable=function(){this.enabled=!0},c.prototype.disable=function(){this.enabled=!1},c.prototype.toggleEnabled=function(){this.enabled=!this.enabled},c.prototype.toggle=function(b){var c=this;b&&(c=a(b.currentTarget).data("bs."+this.type),c||(c=new this.constructor(b.currentTarget,this.getDelegateOptions()),a(b.currentTarget).data("bs."+this.type,c))),c.tip().hasClass("in")?c.leave(c):c.enter(c)},c.prototype.destroy=function(){clearTimeout(this.timeout),this.hide().$element.off("."+this.type).removeData("bs."+this.type)};var d=a.fn.tooltip;a.fn.tooltip=b,a.fn.tooltip.Constructor=c,a.fn.tooltip.noConflict=function(){return a.fn.tooltip=d,this}}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.popover"),f="object"==typeof b&&b;(e||"destroy"!=b)&&(e||d.data("bs.popover",e=new c(this,f)),"string"==typeof b&&e[b]())})}var c=function(a,b){this.init("popover",a,b)};if(!a.fn.tooltip)throw new Error("Popover requires tooltip.js");c.VERSION="3.2.0",c.DEFAULTS=a.extend({},a.fn.tooltip.Constructor.DEFAULTS,{placement:"right",trigger:"click",content:"",template:'<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'}),c.prototype=a.extend({},a.fn.tooltip.Constructor.prototype),c.prototype.constructor=c,c.prototype.getDefaults=function(){return c.DEFAULTS},c.prototype.setContent=function(){var a=this.tip(),b=this.getTitle(),c=this.getContent();a.find(".popover-title")[this.options.html?"html":"text"](b),a.find(".popover-content").empty()[this.options.html?"string"==typeof c?"html":"append":"text"](c),a.removeClass("fade top bottom left right in"),a.find(".popover-title").html()||a.find(".popover-title").hide()},c.prototype.hasContent=function(){return this.getTitle()||this.getContent()},c.prototype.getContent=function(){var a=this.$element,b=this.options;return a.attr("data-content")||("function"==typeof b.content?b.content.call(a[0]):b.content)},c.prototype.arrow=function(){return this.$arrow=this.$arrow||this.tip().find(".arrow")},c.prototype.tip=function(){return this.$tip||(this.$tip=a(this.options.template)),this.$tip};var d=a.fn.popover;a.fn.popover=b,a.fn.popover.Constructor=c,a.fn.popover.noConflict=function(){return a.fn.popover=d,this}}(jQuery),+function(a){"use strict";function b(c,d){var e=a.proxy(this.process,this);this.$body=a("body"),this.$scrollElement=a(a(c).is("body")?window:c),this.options=a.extend({},b.DEFAULTS,d),this.selector=(this.options.target||"")+" .nav li > a",this.offsets=[],this.targets=[],this.activeTarget=null,this.scrollHeight=0,this.$scrollElement.on("scroll.bs.scrollspy",e),this.refresh(),this.process()}function c(c){return this.each(function(){var d=a(this),e=d.data("bs.scrollspy"),f="object"==typeof c&&c;e||d.data("bs.scrollspy",e=new b(this,f)),"string"==typeof c&&e[c]()})}b.VERSION="3.2.0",b.DEFAULTS={offset:10},b.prototype.getScrollHeight=function(){return this.$scrollElement[0].scrollHeight||Math.max(this.$body[0].scrollHeight,document.documentElement.scrollHeight)},b.prototype.refresh=function(){var b="offset",c=0;a.isWindow(this.$scrollElement[0])||(b="position",c=this.$scrollElement.scrollTop()),this.offsets=[],this.targets=[],this.scrollHeight=this.getScrollHeight();var d=this;this.$body.find(this.selector).map(function(){var d=a(this),e=d.data("target")||d.attr("href"),f=/^#./.test(e)&&a(e);return f&&f.length&&f.is(":visible")&&[[f[b]().top+c,e]]||null}).sort(function(a,b){return a[0]-b[0]}).each(function(){d.offsets.push(this[0]),d.targets.push(this[1])})},b.prototype.process=function(){var a,b=this.$scrollElement.scrollTop()+this.options.offset,c=this.getScrollHeight(),d=this.options.offset+c-this.$scrollElement.height(),e=this.offsets,f=this.targets,g=this.activeTarget;if(this.scrollHeight!=c&&this.refresh(),b>=d)return g!=(a=f[f.length-1])&&this.activate(a);if(g&&b<=e[0])return g!=(a=f[0])&&this.activate(a);for(a=e.length;a--;)g!=f[a]&&b>=e[a]&&(!e[a+1]||b<=e[a+1])&&this.activate(f[a])},b.prototype.activate=function(b){this.activeTarget=b,a(this.selector).parentsUntil(this.options.target,".active").removeClass("active");var c=this.selector+'[data-target="'+b+'"],'+this.selector+'[href="'+b+'"]',d=a(c).parents("li").addClass("active");d.parent(".dropdown-menu").length&&(d=d.closest("li.dropdown").addClass("active")),d.trigger("activate.bs.scrollspy")};var d=a.fn.scrollspy;a.fn.scrollspy=c,a.fn.scrollspy.Constructor=b,a.fn.scrollspy.noConflict=function(){return a.fn.scrollspy=d,this},a(window).on("load.bs.scrollspy.data-api",function(){a('[data-spy="scroll"]').each(function(){var b=a(this);c.call(b,b.data())})})}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.tab");e||d.data("bs.tab",e=new c(this)),"string"==typeof b&&e[b]()})}var c=function(b){this.element=a(b)};c.VERSION="3.2.0",c.prototype.show=function(){var b=this.element,c=b.closest("ul:not(.dropdown-menu)"),d=b.data("target");if(d||(d=b.attr("href"),d=d&&d.replace(/.*(?=#[^\s]*$)/,"")),!b.parent("li").hasClass("active")){var e=c.find(".active:last a")[0],f=a.Event("show.bs.tab",{relatedTarget:e});if(b.trigger(f),!f.isDefaultPrevented()){var g=a(d);this.activate(b.closest("li"),c),this.activate(g,g.parent(),function(){b.trigger({type:"shown.bs.tab",relatedTarget:e})})}}},c.prototype.activate=function(b,c,d){function e(){f.removeClass("active").find("> .dropdown-menu > .active").removeClass("active"),b.addClass("active"),g?(b[0].offsetWidth,b.addClass("in")):b.removeClass("fade"),b.parent(".dropdown-menu")&&b.closest("li.dropdown").addClass("active"),d&&d()}var f=c.find("> .active"),g=d&&a.support.transition&&f.hasClass("fade");g?f.one("bsTransitionEnd",e).emulateTransitionEnd(150):e(),f.removeClass("in")};var d=a.fn.tab;a.fn.tab=b,a.fn.tab.Constructor=c,a.fn.tab.noConflict=function(){return a.fn.tab=d,this},a(document).on("click.bs.tab.data-api",'[data-toggle="tab"], [data-toggle="pill"]',function(c){c.preventDefault(),b.call(a(this),"show")})}(jQuery),+function(a){"use strict";function b(b){return this.each(function(){var d=a(this),e=d.data("bs.affix"),f="object"==typeof b&&b;e||d.data("bs.affix",e=new c(this,f)),"string"==typeof b&&e[b]()})}var c=function(b,d){this.options=a.extend({},c.DEFAULTS,d),this.$target=a(this.options.target).on("scroll.bs.affix.data-api",a.proxy(this.checkPosition,this)).on("click.bs.affix.data-api",a.proxy(this.checkPositionWithEventLoop,this)),this.$element=a(b),this.affixed=this.unpin=this.pinnedOffset=null,this.checkPosition()};c.VERSION="3.2.0",c.RESET="affix affix-top affix-bottom",c.DEFAULTS={offset:0,target:window},c.prototype.getPinnedOffset=function(){if(this.pinnedOffset)return this.pinnedOffset;this.$element.removeClass(c.RESET).addClass("affix");var a=this.$target.scrollTop(),b=this.$element.offset();return this.pinnedOffset=b.top-a},c.prototype.checkPositionWithEventLoop=function(){setTimeout(a.proxy(this.checkPosition,this),1)},c.prototype.checkPosition=function(){if(this.$element.is(":visible")){var b=a(document).height(),d=this.$target.scrollTop(),e=this.$element.offset(),f=this.options.offset,g=f.top,h=f.bottom;"object"!=typeof f&&(h=g=f),"function"==typeof g&&(g=f.top(this.$element)),"function"==typeof h&&(h=f.bottom(this.$element));var i=null!=this.unpin&&d+this.unpin<=e.top?!1:null!=h&&e.top+this.$element.height()>=b-h?"bottom":null!=g&&g>=d?"top":!1;if(this.affixed!==i){null!=this.unpin&&this.$element.css("top","");var j="affix"+(i?"-"+i:""),k=a.Event(j+".bs.affix");this.$element.trigger(k),k.isDefaultPrevented()||(this.affixed=i,this.unpin="bottom"==i?this.getPinnedOffset():null,this.$element.removeClass(c.RESET).addClass(j).trigger(a.Event(j.replace("affix","affixed"))),"bottom"==i&&this.$element.offset({top:b-this.$element.height()-h}))}}};var d=a.fn.affix;a.fn.affix=b,a.fn.affix.Constructor=c,a.fn.affix.noConflict=function(){return a.fn.affix=d,this},a(window).on("load",function(){a('[data-spy="affix"]').each(function(){var c=a(this),d=c.data();d.offset=d.offset||{},d.offsetBottom&&(d.offset.bottom=d.offsetBottom),d.offsetTop&&(d.offset.top=d.offsetTop),b.call(c,d)})})}(jQuery);
-/*
-Mithril v0.1.22
-http://github.com/lhorie/mithril.js
-(c) Leo Horie
-License: MIT
-*/
-Mithril=m=new function a(b,c){function d(a){return{}.toString.call(a)}function e(a){return d(a)==I}function f(a){return d(a)==J}function g(a){return"function"==typeof a}function h(a){return d(a)==K}function i(){for(var a,b=Array.prototype.slice,c=b.call(arguments,0),g=(!(null==c[1]||!e(c[1])||"tag"in c[1]||"subtree"in c[1])),h=g?c[1]:{},i=("class"in h?"class":"className"),j={tag:"div",attrs:{}},k=[];a=L.exec(c[0]);)if(""==a[1])j.tag=a[2];else if("#"==a[1])j.attrs.id=a[2];else if("."==a[1])k.push(a[2]);else if("["==a[3][0]){var l=M.exec(a[3]);j.attrs[l[1]]=l[3]||(l[2]?"":!0)}k.length>0&&(j.attrs[i]=k.join(" "));var m=g?c[2]:c[1];j.children=f(m)||"[object Arguments]"==d(m)?b.call(m,0):c.slice(g?2:1);for(var n in h)j.attrs[n]=n==i?(j.attrs[n]||"")+" "+h[n]:h[n];return j}function j(a,e,i,m,p,q,r,s,t,u,v){if(null==p&&(p=""),"retain"===p.subtree)return q;var w=d(q),x=d(p);if(null==q||w!=x){if(null!=q)if(i&&i.nodes){var y=s-m,z=y+(x==J?p:q.nodes).length;l(i.nodes.slice(y,z),i.slice(y,z))}else q.nodes&&l(q.nodes,q);q=new p.constructor,q.tag&&(q={}),q.nodes=[]}if(x==J){p=o(p);for(var A=[],B=q.length===p.length,C=0,D=1,E=2,F=3,G={},H=[],K=!1,L=0;L<q.length;L++)q[L]&&q[L].attrs&&null!=q[L].attrs.key&&(K=!0,G[q[L].attrs.key]={action:D,index:L});if(K){for(var L=0;L<p.length;L++)if(p[L]&&p[L].attrs)if(null!=p[L].attrs.key){var M=p[L].attrs.key;G[M]=G[M]?{action:F,index:L,from:G[M].index,element:a.childNodes[G[M].index]||b.document.createElement("div")}:{action:E,index:L}}else H.push({index:L,element:a.childNodes[L]||b.document.createElement("div")});for(var O,P=Object.keys(G).map(function(a){return G[a]}),Q=P.sort(function(a,b){return a.action-b.action||a.index-b.index}),R=q.slice(),L=0;O=Q[L];L++){if(O.action==D&&(l(q[O.index].nodes,q[O.index]),R.splice(O.index,1)),O.action==E){var S=b.document.createElement("div");S.key=p[O.index].attrs.key,a.insertBefore(S,a.childNodes[O.index]),R.splice(O.index,0,{attrs:{key:p[O.index].attrs.key},nodes:[S]})}O.action==F&&(a.childNodes[O.index]!==O.element&&null!==O.element&&a.insertBefore(O.element,a.childNodes[O.index]),R[O.index]=q[O.from])}for(var L=0;L<H.length;L++){var O=H[L];a.insertBefore(O.element,a.childNodes[O.index]),R[O.index]=q[O.index]}q=R,q.nodes=[];for(var T,L=0;T=a.childNodes[L];L++)q.nodes.push(T)}for(var L=0,U=0;L<p.length;L++){var V=j(a,e,q,s,p[L],q[U],r,s+C||C,t,u,v);V!==c&&(V.nodes.intact||(B=!1),C+=f(V)?V.length:1,q[U++]=V)}if(!B){for(var L=0;L<p.length;L++)null!=q[L]&&(A=A.concat(q[L].nodes));for(var W,L=0;W=q.nodes[L];L++)null!=W.parentNode&&A.indexOf(W)<0&&l([W],[q[L]]);for(var W,L=q.nodes.length;W=A[L];L++)null==W.parentNode&&a.appendChild(W);p.length<q.length&&(q.length=p.length),q.nodes=A}}else if(null!=p&&x==I){if((p.tag!=q.tag||Object.keys(p.attrs).join()!=Object.keys(q.attrs).join()||p.attrs.id!=q.attrs.id)&&(l(q.nodes),q.configContext&&g(q.configContext.onunload)&&q.configContext.onunload()),!h(p.tag))return;var W,X=0===q.nodes.length;if(p.attrs.xmlns?u=p.attrs.xmlns:"svg"===p.tag?u="http://www.w3.org/2000/svg":"math"===p.tag&&(u="http://www.w3.org/1998/Math/MathML"),X?(W=u===c?b.document.createElement(p.tag):b.document.createElementNS(u,p.tag),q={tag:p.tag,children:j(W,p.tag,c,c,p.children,q.children,!0,0,p.attrs.contenteditable?W:t,u,v),attrs:k(W,p.tag,p.attrs,{},u),nodes:[W]},a.insertBefore(W,a.childNodes[s]||null)):(W=q.nodes[0],k(W,p.tag,p.attrs,q.attrs,u),q.children=j(W,p.tag,c,c,p.children,q.children,!1,0,p.attrs.contenteditable?W:t,u,v),q.nodes.intact=!0,r===!0&&null!=W&&a.insertBefore(W,a.childNodes[s]||null)),g(p.attrs.config)){var Y=q.configContext=q.configContext||{},Z=function(a,b){return function(){return a.attrs.config.apply(a,b)}};v.push(Z(p,[W,!X,Y,q]))}}else if(!g(x)){var A;0===q.nodes.length?(p.$trusted?A=n(a,s,p):(A=[b.document.createTextNode(p)],a.nodeName.match(N)||a.insertBefore(A[0],a.childNodes[s]||null)),q="string number boolean".indexOf(typeof p)>-1?new p.constructor(p):p,q.nodes=A):q.valueOf()!==p.valueOf()||r===!0?(A=q.nodes,t&&t===b.document.activeElement||(p.$trusted?(l(A,q),A=n(a,s,p)):"textarea"===e?a.value=p:t?t.innerHTML=p:((1==A[0].nodeType||A.length>1)&&(l(q.nodes,q),A=[b.document.createTextNode(p)]),a.insertBefore(A[0],a.childNodes[s]||null),A[0].nodeValue=p)),q=new p.constructor(p),q.nodes=A):q.nodes.intact=!0}return q}function k(a,c,d,f,h){for(var i in d){var j=d[i],k=f[i];if(!(i in f)||k!==j){f[i]=j;try{if("config"===i)continue;if(g(j)&&0==i.indexOf("on"))a[i]=p(j,a);else if("style"===i&&e(j)){for(var l in j)(null==k||k[l]!==j[l])&&(a.style[l]=j[l]);for(var l in k)l in j||(a.style[l]="")}else null!=h?"href"===i?a.setAttributeNS("http://www.w3.org/1999/xlink","href",j):"className"===i?a.setAttribute("class",j):a.setAttribute(i,j):i in a&&"list"!=i&&"style"!=i&&"form"!=i?(a!==b.document.activeElement||"value"!=i)&&(a[i]=j):a.setAttribute(i,j)}catch(m){if(m.message.indexOf("Invalid argument")<0)throw m}}}return f}function l(a,b){for(var c=a.length-1;c>-1;c--)a[c]&&a[c].parentNode&&(a[c].parentNode.removeChild(a[c]),b=[].concat(b),b[c]&&m(b[c]));0!=a.length&&(a.length=0)}function m(a){if(a.configContext&&g(a.configContext.onunload)&&a.configContext.onunload(),a.children)if(f(a.children))for(var b=0;b<a.children.length;b++)m(a.children[b]);else a.children.tag&&m(a.children)}function n(a,c,d){var e=a.childNodes[c];if(e){var f=1!=e.nodeType,g=b.document.createElement("span");f?(a.insertBefore(g,e),g.insertAdjacentHTML("beforebegin",d),a.removeChild(g)):e.insertAdjacentHTML("beforebegin",d)}else a.insertAdjacentHTML("beforeend",d);for(var h=[];a.childNodes[c]!==e;)h.push(a.childNodes[c]),c++;return h}function o(a){for(var b=[],c=0;c<a.length;c++){var d=a[c];f(d)?b.push.apply(b,o(d)):b.push(d)}return b}function p(a,b){return function(c){c=c||event,i.redraw.strategy("diff"),i.startComputation();try{return a.call(b,c)}finally{U||(U=-1),i.endComputation()}}}function q(a){var b=P.indexOf(a);return 0>b?P.push(a)-1:b}function r(a){var b=function(){return arguments.length&&(a=arguments[0]),a};return b.toJSON=function(){return a},b}function s(){for(var a=i.redraw.strategy(),b=0;b<R.length;b++)T[b]&&"none"!=a&&i.render(R[b],S[b].view(T[b]),"all"==a);W&&(W(),W=null),U=null,V=new Date,i.redraw.strategy("diff")}function t(a){return a.slice($[i.route.mode].length)}function u(a,b,c){ab={};var d=c.indexOf("?");-1!==d&&(ab=y(c.substr(d+1,c.length)),c=c.substr(0,d));for(var e in b){if(e==c)return i.module(a,b[e]),!0;var f=new RegExp("^"+e.replace(/:[^\/]+?\.{3}/g,"(.*?)").replace(/:[^\/]+/g,"([^\\/]+)")+"/?$");if(f.test(c))return c.replace(f,function(){for(var c=e.match(/:[^\/]+/g)||[],d=[].slice.call(arguments,1,-2),f=0;f<c.length;f++)ab[c[f].replace(/:|\./g,"")]=decodeURIComponent(d[f]);i.module(a,b[e])}),!0}}function v(a){if(a=a||event,!a.ctrlKey&&!a.metaKey&&2!=a.which){a.preventDefault?a.preventDefault():a.returnValue=!1;var b=a.currentTarget||this;i.route(b[i.route.mode].slice($[i.route.mode].length))}}function w(){"hash"!=i.route.mode&&b.location.hash?b.location.hash=b.location.hash:b.scrollTo(0,0)}function x(a,b){var c=[];for(var d in a){var f=b?b+"["+d+"]":d,g=a[d];c.push(e(g)?x(g,f):encodeURIComponent(f)+"="+encodeURIComponent(g))}return c.join("&")}function y(a){for(var b=a.split("&"),c={},d=0;d<b.length;d++){var e=b[d].split("=");c[z(e[0])]=e[1]?z(e[1]):1===e.length?!0:""}return c}function z(a){return decodeURIComponent(a.replace(/\+/g," "))}function A(a){var b=q(a);l(a.childNodes,Q[b]),Q[b]=c}function B(a){return prop=i.prop(),a.then(prop),prop.then=function(b,c){return B(a.then(b,c))},prop}function C(a,b){function c(a){n=a||l,p.map(function(a){n==k&&a.resolve(o)||a.reject(o)})}function d(a,b,c,d){if((e(o)||g(o))&&g(a))try{var f=0;a.call(o,function(a){f++||(o=a,b())},function(a){f++||(o=a,c())})}catch(h){i.deferred.onerror(h),o=h,c()}else d()}function f(){var e;try{e=o&&o.then}catch(l){return i.deferred.onerror(l),o=l,n=j,f()}d(e,function(){n=h,f()},function(){n=j,f()},function(){try{n==h&&g(a)?o=a(o):n==j&&g(b)&&(o=b(o),n=h)}catch(f){return i.deferred.onerror(f),o=f,c()}o==m?(o=TypeError(),c()):d(e,function(){c(k)},c,function(){c(n==h&&k)})})}var h=1,j=2,k=3,l=4,m=this,n=0,o=0,p=[];m.promise={},m.resolve=function(a){return n||(o=a,n=h,f()),this},m.reject=function(a){return n||(o=a,n=j,f()),this},m.promise.then=function(a,b){var c=new C(a,b);return n==k?c.resolve(o):n==l?c.reject(o):p.push(c),c.promise}}function D(a){return a}function E(a){if(!a.dataType||"jsonp"!==a.dataType.toLowerCase()){var c=new b.XMLHttpRequest;if(c.open(a.method,a.url,!0,a.user,a.password),c.onreadystatechange=function(){4===c.readyState&&(c.status>=200&&c.status<300?a.onload({type:"load",target:c}):a.onerror({type:"error",target:c}))},a.serialize==JSON.stringify&&a.data&&"GET"!=a.method&&c.setRequestHeader("Content-Type","application/json; charset=utf-8"),a.deserialize==JSON.parse&&c.setRequestHeader("Accept","application/json, text/*"),g(a.config)){var d=a.config(c,a);null!=d&&(c=d)}return c.send("GET"!=a.method&&a.data?a.data:""),c}var e="mithril_callback_"+(new Date).getTime()+"_"+Math.round(1e16*Math.random()).toString(36),f=b.document.createElement("script");b[e]=function(c){delete b[e],b.document.body.removeChild(f),a.onload({type:"load",target:{responseText:c}})},f.onerror=function(){return delete b[e],b.document.body.removeChild(f),a.onerror({type:"error",target:{status:500,responseText:JSON.stringify({error:"Error making jsonp request"})}}),!1},f.onload=function(){return!1},f.src=a.url+(a.url.indexOf("?")>0?"&":"?")+(a.callbackKey?a.callbackKey:"callback")+"="+e+"&"+x(a.data||{}),b.document.body.appendChild(f)}function F(a,b,c){return b&&Object.keys(b).length>0&&("GET"==a.method?a.url=a.url+(a.url.indexOf("?")<0?"?":"&")+x(b):a.data=c(b)),a}function G(a,b){var c=a.match(/:[a-z]\w+/gi);if(c&&b)for(var d=0;d<c.length;d++){var e=c[d].slice(1);a=a.replace(c[d],b[e]),delete b[e]}return a}var H,I="[object Object]",J="[object Array]",K="[object String]",L=/(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g,M=/\[(.+?)(?:=("|'|)(.*?)\2)?\]/,N=/AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|KEYGEN|LINK|META|PARAM|SOURCE|TR‌​ACK|WBR/,O={appendChild:function(a){H===c&&(H=b.document.createElement("html")),b.document.documentElement&&b.document.documentElement!==a?b.document.replaceChild(a,b.document.documentElement):b.document.appendChild(a),this.childNodes=b.document.childNodes},insertBefore:function(a){this.appendChild(a)},childNodes:[]},P=[],Q={};i.render=function(a,d,e){var f=[];if(!a)throw new Error("Please ensure the DOM element exists before rendering a template into it.");var g=q(a),h=a==b.document,i=h||a==b.document.documentElement?O:a;h&&"html"!=d.tag&&(d={tag:"html",attrs:{},children:d}),Q[g]===c&&l(i.childNodes),e===!0&&A(a),Q[g]=j(i,null,c,c,d,Q[g],!1,0,null,c,f);for(var k=0;k<f.length;k++)f[k]()},i.trust=function(a){return a=new String(a),a.$trusted=!0,a},i.prop=function(a){return(e(a)||g(a))&&null!==a&&g(a.then)?B(a):r(a)};var R=[],S=[],T=[],U=null,V=0,W=null,X=16;i.module=function(a,b){var c=R.indexOf(a);0>c&&(c=R.length);var d=!1;if(T[c]&&g(T[c].onunload)){var e={preventDefault:function(){d=!0}};T[c].onunload(e)}return d?void 0:(i.redraw.strategy("all"),i.startComputation(),R[c]=a,S[c]=b,T[c]=new b.controller,i.endComputation(),T[c])},i.redraw=function(a){var c=b.cancelAnimationFrame||b.clearTimeout,d=b.requestAnimationFrame||b.setTimeout;U&&a!==!0?(new Date-V>X||d==b.requestAnimationFrame)&&(U>0&&c(U),U=d(s,X)):(s(),U=d(function(){U=null},X))},i.redraw.strategy=i.prop();var Y=0;i.startComputation=function(){Y++},i.endComputation=function(){Y=Math.max(Y-1,0),0==Y&&i.redraw()},i.withAttr=function(a,b){return function(c){c=c||event;var d=c.currentTarget||this;b(a in d?d[a]:d.getAttribute(a))}};var Z,$={pathname:"",hash:"#",search:"?"},_=function(){},ab={};return i.route=function(){if(0===arguments.length)return Z;if(3===arguments.length&&h(arguments[1])){var a=arguments[0],c=arguments[1],d=arguments[2];_=function(b){var e=Z=t(b);u(a,d,e)||i.route(c,!0)};var f="hash"==i.route.mode?"onhashchange":"onpopstate";b[f]=function(){Z!=t(b.location[i.route.mode])&&_(b.location[i.route.mode])},W=w,b[f]()}else if(arguments[0].addEventListener){var g=arguments[0],j=arguments[1],k=arguments[2];j||(k.href=g.getAttribute("href"),g.href=b.location.pathname+$[i.route.mode]+k.href,g.removeEventListener("click",v),g.addEventListener("click",v))}else if(h(arguments[0])){Z=arguments[0];var l=e(arguments[1])?x(arguments[1]):null;l&&(Z+=(-1===Z.indexOf("?")?"?":"&")+l);var m=(3==arguments.length?arguments[2]:arguments[1])===!0;b.history.pushState?(W=function(){b.history[m?"replaceState":"pushState"](null,b.document.title,$[i.route.mode]+Z),w()},_($[i.route.mode]+Z)):b.location[i.route.mode]=Z}},i.route.param=function(a){return ab[a]},i.route.mode="search",i.deferred=function(){var a=new C;return a.promise=B(a.promise),a},i.deferred.onerror=function(a){if("[object Error]"==d(a)&&!a.constructor.toString().match(/ Error/))throw a},i.sync=function(a){function b(a,b){return function(g){return f[a]=g,b||(c="reject"),0==--e&&(d.promise(f),d[c](f)),g}}var c="resolve",d=i.deferred(),e=a.length,f=new Array(e);if(a.length>0)for(var g=0;g<a.length;g++)a[g].then(b(g,!0),b(g,!1));else d.resolve();return d.promise},i.request=function(a){a.background!==!0&&i.startComputation();var b=i.deferred(),c=a.dataType&&"jsonp"===a.dataType.toLowerCase(),d=a.serialize=c?D:a.serialize||JSON.stringify,e=a.deserialize=c?D:a.deserialize||JSON.parse,g=a.extract||function(a){return 0===a.responseText.length&&e===JSON.parse?null:a.responseText};return a.url=G(a.url,a.data),a=F(a,a.data,d),a.onload=a.onerror=function(c){try{c=c||event;var d=("load"==c.type?a.unwrapSuccess:a.unwrapError)||D,h=d(e(g(c.target,a)));if("load"==c.type)if(f(h)&&a.type)for(var j=0;j<h.length;j++)h[j]=new a.type(h[j]);else a.type&&(h=new a.type(h));b["load"==c.type?"resolve":"reject"](h)}catch(c){i.deferred.onerror(c),b.reject(c)}a.background!==!0&&i.endComputation()},E(a),b.promise},i.deps=function(a){return b=a},i.deps.factory=a,i}("undefined"!=typeof window?window:{}),"undefined"!=typeof module&&null!==module&&(module.exports=m),"function"==typeof define&&define.amd&&define(function(){return m});
-//# sourceMappingURL=mithril.min.map
+Mithril = m = new function app(window, undefined) {
+	var sObj = "[object Object]", sArr = "[object Array]", sStr = "[object String]"
+	function type(obj) {return {}.toString.call(obj)}
+	function isObj(obj) {return type(obj) == sObj}
+	function isArr(obj) {return type(obj) == sArr}
+	function isFn(obj) {return typeof obj == "function"}
+	function isStr(obj){ return type(obj) == sStr}
+	var parser = /(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g, attrParser = /\[(.+?)(?:=("|'|)(.*?)\2)?\]/
+	var voidElements = /AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|KEYGEN|LINK|META|PARAM|SOURCE|TR‌​ACK|WBR/
+
+	/*
+	 * @typedef {String} Tag
+	 * A string that looks like -> div.classname#id[param=one][param2=two]
+	 * Which describes a DOM node
+	 */
+
+	/*
+	 *
+	 * @param {Tag} The DOM node tag
+	 * @param {Object=[]} optional key-value pairs to be mapped to DOM attrs
+	 * @param {...mNode=[]} Zero or more Mithril child nodes. Can be an array, or splat (optional)
+	 *
+	 */
+	function m() {
+		var arrSlice = Array.prototype.slice;
+		var args = arrSlice.call(arguments, 0)
+		var hasAttrs = args[1] != null && isObj(args[1]) && !("tag" in args[1]) && !("subtree" in args[1])
+		var attrs = hasAttrs ? args[1] : {}
+		var classAttrName = "class" in attrs ? "class" : "className"
+		var cell = {tag: "div", attrs: {}}
+		var match, classes = []
+		while (match = parser.exec(args[0])) {
+			if (match[1] == "") cell.tag = match[2]
+			else if (match[1] == "#") cell.attrs.id = match[2]
+			else if (match[1] == ".") classes.push(match[2])
+			else if (match[3][0] == "[") {
+				var pair = attrParser.exec(match[3])
+				cell.attrs[pair[1]] = pair[3] || (pair[2] ? "" :true)
+			}
+		}
+		if (classes.length > 0) cell.attrs[classAttrName] = classes.join(" ")
+
+
+		var children = hasAttrs ? args[2] : args[1]
+		if (isArr(children) || type(children) == "[object Arguments]") {
+			cell.children = arrSlice.call(children, 0)
+		}
+		else {
+			cell.children = hasAttrs ? args.slice(2) : args.slice(1)
+		}
+
+		for (var attrName in attrs) {
+			if (attrName == classAttrName) cell.attrs[attrName] = (cell.attrs[attrName] || "") + " " + attrs[attrName]
+			else cell.attrs[attrName] = attrs[attrName]
+		}
+		return cell
+	}
+	function build(parentElement, parentTag, parentCache, parentIndex, data, cached, shouldReattach, index, editable, namespace, configs) {
+		//`build` is a recursive function that manages creation/diffing/removal of DOM elements based on comparison between `data` and `cached`
+		//the diff algorithm can be summarized as this:
+		//1 - compare `data` and `cached`
+		//2 - if they are different, copy `data` to `cached` and update the DOM based on what the difference is
+		//3 - recursively apply this algorithm for every array and for the children of every virtual element
+
+		//the `cached` data structure is essentially the same as the previous redraw's `data` data structure, with a few additions:
+		//- `cached` always has a property called `nodes`, which is a list of DOM elements that correspond to the data represented by the respective virtual element
+		//- in order to support attaching `nodes` as a property of `cached`, `cached` is *always* a non-primitive object, i.e. if the data was a string, then cached is a String instance. If data was `null` or `undefined`, cached is `new String("")`
+		//- `cached also has a `configContext` property, which is the state storage object exposed by config(element, isInitialized, context)
+		//- when `cached` is an Object, it represents a virtual element; when it's an Array, it represents a list of elements; when it's a String, Number or Boolean, it represents a text node
+
+		//`parentElement` is a DOM element used for W3C DOM API calls
+		//`parentTag` is only used for handling a corner case for textarea values
+		//`parentCache` is used to remove nodes in some multi-node cases
+		//`parentIndex` and `index` are used to figure out the offset of nodes. They're artifacts from before arrays started being flattened and are likely refactorable
+		//`data` and `cached` are, respectively, the new and old nodes being diffed
+		//`shouldReattach` is a flag indicating whether a parent node was recreated (if so, and if this node is reused, then this node must reattach itself to the new parent)
+		//`editable` is a flag that indicates whether an ancestor is contenteditable
+		//`namespace` indicates the closest HTML namespace as it cascades down from an ancestor
+		//`configs` is a list of config functions to run after the topmost `build` call finishes running
+
+		//there's logic that relies on the assumption that null and undefined data are equivalent to empty strings
+		//- this prevents lifecycle surprises from procedural helpers that mix implicit and explicit return statements
+		//- it simplifies diffing code
+		if (data == null) data = ""
+		if (data.subtree === "retain") return cached
+		var cachedType = type(cached), dataType = type(data)
+		if (cached == null || cachedType != dataType) {
+			if (cached != null) {
+				if (parentCache && parentCache.nodes) {
+					var offset = index - parentIndex
+					var end = offset + (dataType == sArr ? data : cached.nodes).length
+					clear(parentCache.nodes.slice(offset, end), parentCache.slice(offset, end))
+				}
+				else if (cached.nodes) clear(cached.nodes, cached)
+			}
+			cached = new data.constructor
+			if (cached.tag) cached = {} //if constructor creates a virtual dom element, use a blank object as the base cached node instead of copying the virtual el (#277)
+			cached.nodes = []
+		}
+
+		if (dataType == sArr) {
+			data = flatten(data)
+			var nodes = [], intact = cached.length === data.length, subArrayCount = 0
+
+			//keys algorithm: sort elements without recreating them if keys are present
+			//1) create a map of all existing keys, and mark all for deletion
+			//2) add new keys to map and mark them for addition
+			//3) if key exists in new list, change action from deletion to a move
+			//4) for each key, handle its corresponding action as marked in previous steps
+			//5) copy unkeyed items into their respective gaps
+			var DELETION = 1, INSERTION = 2 , MOVE = 3
+			var existing = {}, unkeyed = [], shouldMaintainIdentities = false
+			for (var i = 0; i < cached.length; i++) {
+				if (cached[i] && cached[i].attrs && cached[i].attrs.key != null) {
+					shouldMaintainIdentities = true
+					existing[cached[i].attrs.key] = {action: DELETION, index: i}
+				}
+			}
+			if (shouldMaintainIdentities) {
+				for (var i = 0; i < data.length; i++) {
+					if (data[i] && data[i].attrs) {
+						if (data[i].attrs.key != null) {
+							var key = data[i].attrs.key
+							if (!existing[key]) existing[key] = {action: INSERTION, index: i}
+							else existing[key] = {
+								action: MOVE,
+								index: i,
+								from: existing[key].index,
+								element: parentElement.childNodes[existing[key].index] || window.document.createElement("div")
+							}
+						}
+						else unkeyed.push({index: i, element: parentElement.childNodes[i] || window.document.createElement("div")})
+					}
+				}
+				var actions = Object.keys(existing).map(function(key) {return existing[key]})
+				var changes = actions.sort(function(a, b) {return a.action - b.action || a.index - b.index})
+				var newCached = cached.slice()
+
+				for (var i = 0, change; change = changes[i]; i++) {
+					if (change.action == DELETION) {
+						clear(cached[change.index].nodes, cached[change.index])
+						newCached.splice(change.index, 1)
+					}
+					if (change.action == INSERTION) {
+						var dummy = window.document.createElement("div")
+						dummy.key = data[change.index].attrs.key
+						parentElement.insertBefore(dummy, parentElement.childNodes[change.index])
+						newCached.splice(change.index, 0, {attrs: {key: data[change.index].attrs.key}, nodes: [dummy]})
+					}
+
+					if (change.action == MOVE) {
+						if (parentElement.childNodes[change.index] !== change.element && change.element !== null) {
+							parentElement.insertBefore(change.element, parentElement.childNodes[change.index])
+						}
+						newCached[change.index] = cached[change.from]
+					}
+				}
+				for (var i = 0; i < unkeyed.length; i++) {
+					var change = unkeyed[i]
+					parentElement.insertBefore(change.element, parentElement.childNodes[change.index])
+					newCached[change.index] = cached[change.index]
+				}
+				cached = newCached
+				cached.nodes = []
+				for (var i = 0, child; child = parentElement.childNodes[i]; i++) cached.nodes.push(child)
+			}
+			//end key algorithm
+
+			for (var i = 0, cacheCount = 0; i < data.length; i++) {
+				//diff each item in the array
+				var item = build(parentElement, parentTag, cached, index, data[i], cached[cacheCount], shouldReattach, index + subArrayCount || subArrayCount, editable, namespace, configs)
+				if (item === undefined) continue
+				if (!item.nodes.intact) intact = false
+				subArrayCount += isArr(item) ? item.length : 1
+				cached[cacheCount++] = item
+			}
+			if (!intact) {
+				//diff the array itself
+
+				//update the list of DOM nodes by collecting the nodes from each item
+				for (var i = 0; i < data.length; i++) {
+					if (cached[i] != null) nodes = nodes.concat(cached[i].nodes)
+				}
+				//remove items from the end of the array if the new array is shorter than the old one
+				//if errors ever happen here, the issue is most likely a bug in the construction of the `cached` data structure somewhere earlier in the program
+				for (var i = 0, node; node = cached.nodes[i]; i++) {
+					if (node.parentNode != null && nodes.indexOf(node) < 0) clear([node], [cached[i]])
+				}
+				//add items to the end if the new array is longer than the old one
+				for (var i = cached.nodes.length, node; node = nodes[i]; i++) {
+					if (node.parentNode == null) parentElement.appendChild(node)
+				}
+				if (data.length < cached.length) cached.length = data.length
+				cached.nodes = nodes
+			}
+		}
+		else if (data != null && dataType == sObj) {
+			//if an element is different enough from the one in cache, recreate it
+			if (data.tag != cached.tag || Object.keys(data.attrs).join() != Object.keys(cached.attrs).join() || data.attrs.id != cached.attrs.id) {
+				clear(cached.nodes)
+				if (cached.configContext && isFn(cached.configContext.onunload)) cached.configContext.onunload()
+			}
+			if (!isStr(data.tag)) return
+
+			var node, isNew = cached.nodes.length === 0
+			if (data.attrs.xmlns) namespace = data.attrs.xmlns
+			else if (data.tag === "svg") namespace = "http://www.w3.org/2000/svg"
+			else if (data.tag === "math") namespace = "http://www.w3.org/1998/Math/MathML"
+			if (isNew) {
+				node = namespace === undefined ? window.document.createElement(data.tag) : window.document.createElementNS(namespace, data.tag)
+				cached = {
+					tag: data.tag,
+					//process children before attrs so that select.value works correctly
+					children: build(node, data.tag, undefined, undefined, data.children, cached.children, true, 0, data.attrs.contenteditable ? node : editable, namespace, configs),
+					attrs: setAttributes(node, data.tag, data.attrs, {}, namespace),
+					nodes: [node]
+				}
+				parentElement.insertBefore(node, parentElement.childNodes[index] || null)
+			}
+			else {
+				node = cached.nodes[0]
+				setAttributes(node, data.tag, data.attrs, cached.attrs, namespace)
+				cached.children = build(node, data.tag, undefined, undefined, data.children, cached.children, false, 0, data.attrs.contenteditable ? node : editable, namespace, configs)
+				cached.nodes.intact = true
+				if (shouldReattach === true && node != null) parentElement.insertBefore(node, parentElement.childNodes[index] || null)
+			}
+			//schedule configs to be called. They are called after `build` finishes running
+			if (isFn(data.attrs["config"])) {
+				var context = cached.configContext = cached.configContext || {}
+
+				// bind
+				var callback = function(data, args) {
+					return function() {
+						return data.attrs["config"].apply(data, args)
+					}
+				}
+				configs.push(callback(data, [node, !isNew, context, cached]))
+			}
+		}
+		else if (!isFn(dataType)) {
+			//handle text nodes
+			var nodes
+			if (cached.nodes.length === 0) {
+				if (data.$trusted) {
+					nodes = injectHTML(parentElement, index, data)
+				}
+				else {
+					nodes = [window.document.createTextNode(data)]
+					if (!parentElement.nodeName.match(voidElements)) parentElement.insertBefore(nodes[0], parentElement.childNodes[index] || null)
+				}
+				cached = "string number boolean".indexOf(typeof data) > -1 ? new data.constructor(data) : data
+				cached.nodes = nodes
+			}
+			else if (cached.valueOf() !== data.valueOf() || shouldReattach === true) {
+				nodes = cached.nodes
+				if (!editable || editable !== window.document.activeElement) {
+					if (data.$trusted) {
+						clear(nodes, cached)
+						nodes = injectHTML(parentElement, index, data)
+					}
+					else {
+						//corner case: replacing the nodeValue of a text node that is a child of a textarea/contenteditable doesn't work
+						//we need to update the value property of the parent textarea or the innerHTML of the contenteditable element instead
+						if (parentTag === "textarea") parentElement.value = data
+						else if (editable) editable.innerHTML = data
+						else {
+							if (nodes[0].nodeType == 1 || nodes.length > 1) { //was a trusted string
+								clear(cached.nodes, cached)
+								nodes = [window.document.createTextNode(data)]
+							}
+							parentElement.insertBefore(nodes[0], parentElement.childNodes[index] || null)
+							nodes[0].nodeValue = data
+						}
+					}
+				}
+				cached = new data.constructor(data)
+				cached.nodes = nodes
+			}
+			else cached.nodes.intact = true
+		}
+
+		return cached
+	}
+	function setAttributes(node, tag, dataAttrs, cachedAttrs, namespace) {
+		for (var attrName in dataAttrs) {
+			var dataAttr = dataAttrs[attrName]
+			var cachedAttr = cachedAttrs[attrName]
+			if (!(attrName in cachedAttrs) || (cachedAttr !== dataAttr)) {
+				cachedAttrs[attrName] = dataAttr
+				try {
+					//`config` isn't a real attributes, so ignore it
+					//we don't ignore `key` because it must be unique and having it on the DOM helps debugging
+					if (attrName === "config") continue
+					//hook event handlers to the auto-redrawing system
+					else if (isFn(dataAttr) && attrName.indexOf("on") == 0) {
+						node[attrName] = autoredraw(dataAttr, node)
+					}
+					//handle `style: {...}`
+					else if (attrName === "style" && isObj(dataAttr)) {
+						for (var rule in dataAttr) {
+							if (cachedAttr == null || cachedAttr[rule] !== dataAttr[rule]) node.style[rule] = dataAttr[rule]
+						}
+						for (var rule in cachedAttr) {
+							if (!(rule in dataAttr)) node.style[rule] = ""
+						}
+					}
+					//handle SVG
+					else if (namespace != null) {
+						if (attrName === "href") node.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataAttr)
+						else if (attrName === "className") node.setAttribute("class", dataAttr)
+						else node.setAttribute(attrName, dataAttr)
+					}
+					//handle cases that are properties (but ignore cases where we should use setAttribute instead)
+					//- list and form are typically used as strings, but are DOM element references in js
+					//- when using CSS selectors (e.g. `m("[style='']")`), style is used as a string, but it's an object in js
+					else if (attrName in node && !(attrName == "list" || attrName == "style" || attrName == "form")) {
+						//FIXME: don't clobber value if still typing (see #151 and #214)
+						//it appears browsers work like this:
+						//- user types, updates UI immediately
+						//- event handler, however, does NOT fire immediately if there's javascript running (because js is single threaded)
+						//- once js finishes, then it runs rAF callback, which clobbers the input if we're using naive bidirectional bindings
+						//- THEN it fires the event handler with the new input value
+						//so if the input value is updated during the small window between registering a UI change natively and the end of non-idle js time, the input loses the value update from that event
+						if (!(node === window.document.activeElement && attrName == "value")) node[attrName] = dataAttr
+					}
+					else node.setAttribute(attrName, dataAttr)
+				}
+				catch (e) {
+					//swallow IE's invalid argument errors to mimic HTML's fallback-to-doing-nothing-on-invalid-attributes behavior
+					if (e.message.indexOf("Invalid argument") < 0) throw e
+				}
+			}
+		}
+		return cachedAttrs
+	}
+	function clear(nodes, cached) {
+		for (var i = nodes.length - 1; i > -1; i--) {
+			if (nodes[i] && nodes[i].parentNode) {
+				nodes[i].parentNode.removeChild(nodes[i])
+				cached = [].concat(cached)
+				if (cached[i]) unload(cached[i])
+			}
+		}
+		if (nodes.length != 0) nodes.length = 0
+	}
+	function unload(cached) {
+		if (cached.configContext && isFn(cached.configContext.onunload)) cached.configContext.onunload()
+		if (cached.children) {
+			if (isArr(cached.children)) {
+				for (var i = 0; i < cached.children.length; i++) unload(cached.children[i])
+			}
+			else if (cached.children.tag) unload(cached.children)
+		}
+	}
+	function injectHTML(parentElement, index, data) {
+		var nextSibling = parentElement.childNodes[index]
+		if (nextSibling) {
+			var isElement = nextSibling.nodeType != 1
+			var placeholder = window.document.createElement("span")
+			if (isElement) {
+				parentElement.insertBefore(placeholder, nextSibling)
+				placeholder.insertAdjacentHTML("beforebegin", data)
+				parentElement.removeChild(placeholder)
+			}
+			else nextSibling.insertAdjacentHTML("beforebegin", data)
+		}
+		else parentElement.insertAdjacentHTML("beforeend", data)
+		var nodes = []
+		while (parentElement.childNodes[index] !== nextSibling) {
+			nodes.push(parentElement.childNodes[index])
+			index++
+		}
+		return nodes
+	}
+	function flatten(data) {
+		var flattened = []
+		for (var i = 0; i < data.length; i++) {
+			var item = data[i]
+			if (isArr(item)) flattened.push.apply(flattened, flatten(item))
+			else flattened.push(item)
+		}
+		return flattened
+	}
+	function autoredraw(callback, object) {
+		return function(e) {
+			e = e || event
+			m.redraw.strategy("diff")
+			m.startComputation()
+			try {return callback.call(object, e)}
+			finally {
+				//FIXME: force asynchronous redraw for event handlers, to prevent double redraw in cases like onkeypress+oninput (#151)
+				//this solution isn't ideal because it creates a small window of opportunity for events to get lost (see #214).
+				if (!lastRedrawId) lastRedrawId = -1
+				m.endComputation()
+			}
+		}
+	}
+
+	var html
+	var documentNode = {
+		appendChild: function(node) {
+			if (html === undefined) html = window.document.createElement("html")
+			if (window.document.documentElement && window.document.documentElement !== node) {
+				window.document.replaceChild(node, window.document.documentElement)
+			}
+			else window.document.appendChild(node)
+			this.childNodes = window.document.childNodes
+		},
+		insertBefore: function(node) {
+			this.appendChild(node)
+		},
+		childNodes: []
+	}
+	var nodeCache = [], cellCache = {}
+	m.render = function(root, cell, forceRecreation) {
+		var configs = []
+		if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.")
+		var id = getCellCacheKey(root)
+		var isDocumentRoot = root == window.document
+		var node = isDocumentRoot || root == window.document.documentElement ? documentNode : root
+//		var node = isDocumentRoot || root == window.document.documentElement ? documentNode : window.document.getElementById(root);
+		if (isDocumentRoot && cell.tag != "html") cell = {tag: "html", attrs: {}, children: cell}
+		if (cellCache[id] === undefined) clear(node.childNodes)
+		if (forceRecreation === true) reset(root)
+		cellCache[id] = build(node, null, undefined, undefined, cell, cellCache[id], false, 0, null, undefined, configs)
+		for (var i = 0; i < configs.length; i++) configs[i]()
+	}
+	function getCellCacheKey(element) {
+		var index = nodeCache.indexOf(element)
+		return index < 0 ? nodeCache.push(element) - 1 : index
+	}
+
+	m.trust = function(value) {
+		value = new String(value)
+		value.$trusted = true
+		return value
+	}
+
+	function gettersetter(store) {
+		var prop = function() {
+			if (arguments.length) store = arguments[0]
+			return store
+		}
+
+		prop.toJSON = function() {
+			return store
+		}
+
+		return prop
+	}
+
+	m.prop = function (store) {
+		if ((isObj(store) || isFn(store)) && store !== null && isFn(store.then)) {
+			return propify(store)
+		}
+
+		return gettersetter(store)
+	}
+
+	var roots = [], modules = [], controllers = [], lastRedrawId = null, lastRedrawCallTime = 0, computePostRedrawHook = null, prevented = false
+	var FRAME_BUDGET = 16 //60 frames per second = 1 call per 16 ms
+	m.module = function(root, module) {
+		var index = roots.indexOf(root)
+		if (index < 0) index = roots.length
+		var isPrevented = false
+		if (controllers[index] && isFn(controllers[index].onunload)) {
+			var event = {
+				preventDefault: function() {isPrevented = true}
+			}
+			controllers[index].onunload(event)
+		}
+		if (!isPrevented) {
+			m.redraw.strategy("all")
+			m.startComputation()
+			roots[index] = root
+			modules[index] = module
+			controllers[index] = new module.controller
+			m.endComputation()
+			return controllers[index]
+		}
+	}
+	m.redraw = function(force) {
+		var cancel = window.cancelAnimationFrame || window.clearTimeout
+		var defer = window.requestAnimationFrame || window.setTimeout
+		//lastRedrawId is a positive number if a second redraw is requested before the next animation frame
+		//lastRedrawId is -1 if the redraw is the first one in a event handler (see #151)
+		//lastRedrawID is null if it's the first redraw and not an event handler
+		if (lastRedrawId && force !== true) {
+			//when setTimeout: only reschedule redraw if time between now and previous redraw is bigger than a frame, otherwise keep currently scheduled timeout
+			//when rAF: always reschedule redraw
+			if (new Date - lastRedrawCallTime > FRAME_BUDGET || defer == window.requestAnimationFrame) {
+				if (lastRedrawId > 0) cancel(lastRedrawId)
+				lastRedrawId = defer(redraw, FRAME_BUDGET)
+			}
+		}
+		else {
+			redraw()
+			lastRedrawId = defer(function() {lastRedrawId = null}, FRAME_BUDGET)
+		}
+	}
+	m.redraw.strategy = m.prop()
+	function redraw() {
+		var mode = m.redraw.strategy()
+		for (var i = 0; i < roots.length; i++) {
+			if (controllers[i] && mode != "none") m.render(roots[i], modules[i].view(controllers[i]), mode == "all")
+		}
+		//after rendering within a routed context, we need to scroll back to the top, and fetch the document title for history.pushState
+		if (computePostRedrawHook) {
+			computePostRedrawHook()
+			computePostRedrawHook = null
+		}
+		lastRedrawId = null
+		lastRedrawCallTime = new Date
+		m.redraw.strategy("diff")
+	}
+
+	var pendingRequests = 0
+	m.startComputation = function() {pendingRequests++}
+	m.endComputation = function() {
+		pendingRequests = Math.max(pendingRequests - 1, 0)
+		if (pendingRequests == 0) m.redraw()
+	}
+
+	m.withAttr = function(prop, withAttrCallback) {
+		return function(e) {
+			e = e || event
+			var currentTarget = e.currentTarget || this
+			withAttrCallback(prop in currentTarget ? currentTarget[prop] : currentTarget.getAttribute(prop))
+		}
+	}
+
+	//routing
+	var modes = {pathname: "", hash: "#", search: "?"}
+	var redirect = function() {}, routeParams = {}, currentRoute
+	m.route = function() {
+		if (arguments.length === 0) return currentRoute
+		else if (arguments.length === 3 && isStr(arguments[1])) {
+			var root = arguments[0], defaultRoute = arguments[1], router = arguments[2]
+			redirect = function(source) {
+				var path = currentRoute = normalizeRoute(source)
+				if (!routeByValue(root, router, path)) {
+					m.route(defaultRoute, true)
+				}
+			}
+			var listener = m.route.mode == "hash" ? "onhashchange" : "onpopstate"
+			window[listener] = function() {
+				if (currentRoute != normalizeRoute(window.location[m.route.mode])) {
+					redirect(window.location[m.route.mode])
+				}
+			}
+			computePostRedrawHook = setScroll
+			window[listener]()
+		}
+		else if (arguments[0].addEventListener) {
+			var element = arguments[0]
+			var isInitialized = arguments[1]
+			var context = arguments[2]
+			if (!isInitialized) {
+				context.href = element.getAttribute("href")
+				element.href = window.location.pathname + modes[m.route.mode] + context.href
+				element.removeEventListener("click", routeUnobtrusive)
+				element.addEventListener("click", routeUnobtrusive)
+			}
+		}
+		else if (isStr(arguments[0])) {
+			currentRoute = arguments[0]
+			var querystring = isObj(arguments[1]) ? buildQueryString(arguments[1]) : null
+			if (querystring) currentRoute += (currentRoute.indexOf("?") === -1 ? "?" : "&") + querystring
+
+			var shouldReplaceHistoryEntry = (arguments.length == 3 ? arguments[2] : arguments[1]) === true
+
+			if (window.history.pushState) {
+				computePostRedrawHook = function() {
+					window.history[shouldReplaceHistoryEntry ? "replaceState" : "pushState"](null, window.document.title, modes[m.route.mode] + currentRoute)
+					setScroll()
+				}
+				redirect(modes[m.route.mode] + currentRoute)
+			}
+			else window.location[m.route.mode] = currentRoute
+		}
+	}
+	m.route.param = function(key) {return routeParams[key]}
+	m.route.mode = "search"
+	function normalizeRoute(route) {return route.slice(modes[m.route.mode].length)}
+	function routeByValue(root, router, path) {
+		routeParams = {}
+
+		var queryStart = path.indexOf("?")
+		if (queryStart !== -1) {
+			routeParams = parseQueryString(path.substr(queryStart + 1, path.length))
+			path = path.substr(0, queryStart)
+		}
+
+		for (var route in router) {
+			if (route == path) {
+				m.module(root, router[route])
+				return true
+			}
+
+			var matcher = new RegExp("^" + route.replace(/:[^\/]+?\.{3}/g, "(.*?)").replace(/:[^\/]+/g, "([^\\/]+)") + "\/?$")
+
+			if (matcher.test(path)) {
+				path.replace(matcher, function() {
+					var keys = route.match(/:[^\/]+/g) || []
+					var values = [].slice.call(arguments, 1, -2)
+					for (var i = 0; i < keys.length; i++) routeParams[keys[i].replace(/:|\./g, "")] = decodeURIComponent(values[i])
+					m.module(root, router[route])
+				})
+				return true
+			}
+		}
+	}
+	function routeUnobtrusive(e) {
+		e = e || event
+		if (e.ctrlKey || e.metaKey || e.which == 2) return
+		if (e.preventDefault) e.preventDefault()
+		else e.returnValue = false
+		var currentTarget = e.currentTarget || this
+		m.route(currentTarget[m.route.mode].slice(modes[m.route.mode].length))
+	}
+	function setScroll() {
+		if (m.route.mode != "hash" && window.location.hash) window.location.hash = window.location.hash
+		else window.scrollTo(0, 0)
+	}
+	function buildQueryString(object, prefix) {
+		var str = []
+		for(var prop in object) {
+			var key = prefix ? prefix + "[" + prop + "]" : prop, value = object[prop]
+			str.push(isObj(value) ? buildQueryString(value, key) : encodeURIComponent(key) + "=" + encodeURIComponent(value))
+		}
+		return str.join("&")
+	}
+	function parseQueryString(str) {
+		var pairs = str.split("&"), params = {}
+		for (var i = 0; i < pairs.length; i++) {
+			var pair = pairs[i].split("=")
+			params[decodeSpace(pair[0])] = pair[1] ? decodeSpace(pair[1]) : (pair.length === 1 ? true : "")
+		}
+		return params
+	}
+	function decodeSpace(string) {
+		return decodeURIComponent(string.replace(/\+/g, " "))
+	}
+	function reset(root) {
+		var cacheKey = getCellCacheKey(root)
+		clear(root.childNodes, cellCache[cacheKey])
+		cellCache[cacheKey] = undefined
+	}
+
+	m.deferred = function () {
+		var deferred = new Deferred()
+		deferred.promise = propify(deferred.promise)
+		return deferred
+	}
+	function propify(promise) {
+		prop = m.prop()
+		promise.then(prop)
+		prop.then = function(resolve, reject) {
+			return propify(promise.then(resolve, reject))
+		}
+		return prop
+	}
+	//Promiz.mithril.js | Zolmeister | MIT
+	//a modified version of Promiz.js, which does not conform to Promises/A+ for two reasons:
+	//1) `then` callbacks are called synchronously (because setTimeout is too slow, and the setImmediate polyfill is too big
+	//2) throwing subclasses of Error cause the error to be bubbled up instead of triggering rejection (because the spec does not account for the important use case of default browser error handling, i.e. message w/ line number)
+	function Deferred(successCallback, failureCallback) {
+		var RESOLVING = 1, REJECTING = 2, RESOLVED = 3, REJECTED = 4
+		var self = this, state = 0, promiseValue = 0, next = []
+
+		self["promise"] = {}
+
+		self["resolve"] = function(value) {
+			if (!state) {
+				promiseValue = value
+				state = RESOLVING
+
+				fire()
+			}
+			return this
+		}
+
+		self["reject"] = function(value) {
+			if (!state) {
+				promiseValue = value
+				state = REJECTING
+				
+				fire()
+			}
+			return this
+		}
+
+		self.promise["then"] = function(successCallback, failureCallback) {
+			var deferred = new Deferred(successCallback, failureCallback)
+			if (state == RESOLVED) {
+				deferred.resolve(promiseValue)
+			}
+			else if (state == REJECTED) {
+				deferred.reject(promiseValue)
+			}
+			else {
+				next.push(deferred)
+			}
+			return deferred.promise
+		}
+		
+		function finish(type) {
+			state = type || REJECTED
+			next.map(function(deferred) {
+				state == RESOLVED && deferred.resolve(promiseValue) || deferred.reject(promiseValue)
+			})
+		}
+
+		function thennable(then, successCallback, failureCallback, notThennableCallback) {
+			if ((isObj(promiseValue) || isFn(promiseValue)) && isFn(then)) {
+				try {
+					// count protects against abuse calls from spec checker
+					var count = 0
+					then.call(promiseValue, function(value) {
+						if (count++) return
+						promiseValue = value
+						successCallback()
+					}, function (value) {
+						if (count++) return
+						promiseValue = value
+						failureCallback()
+					})
+				}
+				catch (e) {
+					m.deferred.onerror(e)
+					promiseValue = e
+					failureCallback()
+				}
+			} else {
+				notThennableCallback()
+			}
+		}
+
+		function fire() {
+			// check if it's a thenable
+			var then
+			try {
+				then = promiseValue && promiseValue.then
+			}
+			catch (e) {
+				m.deferred.onerror(e)
+				promiseValue = e
+				state = REJECTING
+				return fire()
+			}
+			thennable(then, function() {
+				state = RESOLVING
+				fire()
+			}, function() {
+				state = REJECTING
+				fire()
+			}, function() {
+				try {
+					if (state == RESOLVING && isFn(successCallback)) {
+						promiseValue = successCallback(promiseValue)
+					}
+					else if (state == REJECTING && isFn(failureCallback)) {
+						promiseValue = failureCallback(promiseValue)
+						state = RESOLVING
+					}
+				}
+				catch (e) {
+					m.deferred.onerror(e)
+					promiseValue = e
+					return finish()
+				}
+
+				if (promiseValue == self) {
+					promiseValue = TypeError()
+					finish()
+				}
+				else {
+					thennable(then, function () {
+						finish(RESOLVED)
+					}, finish, function () {
+						finish(state == RESOLVING && RESOLVED)
+					})
+				}
+			})
+		}
+	}
+	m.deferred.onerror = function(e) {
+		if (type(e) == "[object Error]" && !e.constructor.toString().match(/ Error/)) throw e
+	}
+
+	m.sync = function(args) {
+		var method = "resolve"
+		function synchronizer(pos, resolved) {
+			return function(value) {
+				results[pos] = value
+				if (!resolved) method = "reject"
+				if (--outstanding == 0) {
+					deferred.promise(results)
+					deferred[method](results)
+				}
+				return value
+			}
+		}
+
+		var deferred = m.deferred()
+		var outstanding = args.length
+		var results = new Array(outstanding)
+		if (args.length > 0) {
+			for (var i = 0; i < args.length; i++) {
+				args[i].then(synchronizer(i, true), synchronizer(i, false))
+			}
+		}
+		else deferred.resolve()
+
+		return deferred.promise
+	}
+	function identity(value) {return value}
+
+	function ajax(options) {
+		if (options.dataType && options.dataType.toLowerCase() === "jsonp") {
+			var callbackKey = "mithril_callback_" + new Date().getTime() + "_" + (Math.round(Math.random() * 1e16)).toString(36)
+			var script = window.document.createElement("script")
+
+			window[callbackKey] = function(resp){
+				delete window[callbackKey]
+				window.document.body.removeChild(script)
+				options.onload({
+					type: "load",
+					target: {
+						responseText: resp
+					}
+				})
+			}
+
+			script.onerror = function(e) {
+				delete window[callbackKey]
+				window.document.body.removeChild(script)
+
+				options.onerror({
+					type: "error",
+					target: {
+						status: 500,
+						responseText: JSON.stringify({error: "Error making jsonp request"})
+					}
+				})
+
+				return false
+			}
+
+			script.onload = function(e) {
+				return false
+			}
+
+
+			script.src = options.url
+				+ (options.url.indexOf("?") > 0 ? "&" : "?")
+				+ (options.callbackKey ? options.callbackKey : "callback")
+				+ "=" + callbackKey
+				+ "&" + buildQueryString(options.data || {})
+			window.document.body.appendChild(script)
+		}
+		else {
+			var xhr = new window.XMLHttpRequest
+			xhr.open(options.method, options.url, true, options.user, options.password)
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState === 4) {
+					if (xhr.status >= 200 && xhr.status < 300) options.onload({type: "load", target: xhr})
+					else options.onerror({type: "error", target: xhr})
+				}
+			}
+			if (options.serialize == JSON.stringify && options.data && options.method != "GET") {
+				xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8")
+			}
+			if (options.deserialize == JSON.parse) {
+				xhr.setRequestHeader("Accept", "application/json, text/*");
+			}
+			if (isFn(options.config)) {
+				var maybeXhr = options.config(xhr, options)
+				if (maybeXhr != null) xhr = maybeXhr
+			}
+
+			xhr.send(options.method == "GET" || !options.data ? "" : options.data)
+			return xhr
+		}
+	}
+	function bindData(xhrOptions, data, serialize) {
+		if (data && Object.keys(data).length > 0) {
+			if (xhrOptions.method == "GET") {
+				xhrOptions.url = xhrOptions.url + (xhrOptions.url.indexOf("?") < 0 ? "?" : "&") + buildQueryString(data)
+			}
+			else xhrOptions.data = serialize(data)
+		}
+		return xhrOptions
+	}
+	function parameterizeUrl(url, data) {
+		var tokens = url.match(/:[a-z]\w+/gi)
+		if (tokens && data) {
+			for (var i = 0; i < tokens.length; i++) {
+				var key = tokens[i].slice(1)
+				url = url.replace(tokens[i], data[key])
+				delete data[key]
+			}
+		}
+		return url
+	}
+
+	m.request = function(xhrOptions) {
+		if (xhrOptions.background !== true) m.startComputation()
+		var deferred = m.deferred()
+		var isJSONP = xhrOptions.dataType && xhrOptions.dataType.toLowerCase() === "jsonp"
+		var serialize = xhrOptions.serialize = isJSONP ? identity : xhrOptions.serialize || JSON.stringify
+		var deserialize = xhrOptions.deserialize = isJSONP ? identity : xhrOptions.deserialize || JSON.parse
+		var extract = xhrOptions.extract || function(xhr) {
+			return xhr.responseText.length === 0 && deserialize === JSON.parse ? null : xhr.responseText
+		}
+		xhrOptions.url = parameterizeUrl(xhrOptions.url, xhrOptions.data)
+		xhrOptions = bindData(xhrOptions, xhrOptions.data, serialize)
+		xhrOptions.onload = xhrOptions.onerror = function(e) {
+			try {
+				e = e || event
+				var unwrap = (e.type == "load" ? xhrOptions.unwrapSuccess : xhrOptions.unwrapError) || identity
+				var response = unwrap(deserialize(extract(e.target, xhrOptions)))
+				if (e.type == "load") {
+					if (isArr(response) && xhrOptions.type) {
+						for (var i = 0; i < response.length; i++) response[i] = new xhrOptions.type(response[i])
+					}
+					else if (xhrOptions.type) response = new xhrOptions.type(response)
+				}
+				deferred[e.type == "load" ? "resolve" : "reject"](response)
+			}
+			catch (e) {
+				m.deferred.onerror(e)
+				deferred.reject(e)
+			}
+			if (xhrOptions.background !== true) m.endComputation()
+		}
+		ajax(xhrOptions)
+		return deferred.promise
+	}
+
+	//testing API
+	m.deps = function(mock) {return window = mock}
+	//for internal testing only, do not use `m.deps.factory`
+	m.deps.factory = app
+
+	return m
+}(typeof window != "undefined" ? window : {})
+
+if (typeof module != "undefined" && module !== null) module.exports = m
+if (typeof define == "function" && define.amd) define(function() {return m})
+
+;;;
+
 
 ;(function(){
 
@@ -2139,8 +3775,7 @@ var Treebeard = {};
  */
 Treebeard.model = function (level){
     return {
-        indent :  level,
-        id : Math.floor(Math.random()*(100)),
+        id : Math.floor(Math.random()*(10000)),
         load : true,
         status : true,
         show : true,
@@ -2183,6 +3818,9 @@ Treebeard.controller = function () {
     this.lastLocation = 0; // The last scrollTop location, updates on every scroll.
     this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
     this.currentPage = m.prop(1);
+    this.dropzone = null;
+    this.droppedItem = {};
+
 
     /*
      *  Rebuilds the tree data with an API
@@ -2302,6 +3940,7 @@ Treebeard.controller = function () {
                 }
             }
         });
+        if(self.options.uploads){ self.apply_dropzone(); }
     };
 
     /*
@@ -2313,7 +3952,7 @@ Treebeard.controller = function () {
         parent.remove_child(itemID);
         //console.log("Parent after", parent);
         if(self.options.onDelete){
-            self.options.onDelete.call(parent);
+            self.options.ondelete.call(parent);
         }
         //console.log("Treedata", self.treeData);
         self.flatten(self.treeData.children, self.visibleTop);
@@ -2445,6 +4084,9 @@ Treebeard.controller = function () {
             self.calculate_height();
             m.redraw(true);
         }
+        if(self.options.ontogglefolder){
+            self.options.ontogglefolder.call(tree);
+        }
     };
 
     /*
@@ -2558,8 +4200,6 @@ Treebeard.controller = function () {
         $('.tb-paginate').removeClass('active');
         $('.tb-scroll').addClass('active');
         self.refresh_range(0);
-
-
     };
 
     /*
@@ -2619,6 +4259,68 @@ Treebeard.controller = function () {
             self.refresh_range(index);
         }
     };
+
+    /*
+     *  Apply dropzone to grid
+     */
+    this.apply_dropzone = function(){
+        if(self.dropzone){ self.destroy_dropzone(); }               // Destroy existing dropzone setup
+        var eventList = ["drop", "dragstart","dragend","dragenter","dragover", "dragleave","addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending","success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"];
+        var options = $.extend({
+            init: function() {
+                for (var i = 0; i < eventList.length; i++){
+                    var ev = eventList[i];
+                    console.log("Event", ev, self.options.dropzone[ev]);
+                    if(self.options.dropzone[ev]){
+                        this.on(ev, function(arg) { self.options.dropzone[ev].call(self, arg); });
+                    }
+                }
+            },
+            accept : function(file, done){
+//                console.log("Accept this", this);
+//                this.options.url = '/upload';
+                done();
+            },
+            drop : function(event){
+                // get item
+                var rowId =  $(event.target).closest('.tb-row').attr('data-id');
+                var item  = Indexes[rowId];
+                self.droppedItem = item;
+                console.log("Drop item", item);
+//                this.options.url = 'http://localhost/laravel/public/api/file/';
+            },
+            addedfile : function(file){
+                console.log("Added this", this);
+                console.log("Added file", file);
+            },
+            dragenter : function(event){
+                console.log("dragging");
+            },
+            success : function(file, response){
+                console.log("response", response);
+                var mockResponse = new Treebeard.model();
+                var mockTree = new Item(mockResponse);
+                console.log("dropped", self.droppedItem);
+                self.droppedItem.add(mockTree);
+                self.flatten(self.treeData.children, self.visibleTop);
+
+            },
+            sending : function(file, xhr, formData){
+                console.log("file", file);
+                console.log("Xhr", xhr);
+                console.log("formData", formData);
+            }
+        }, self.options.dropzone);           // Extend default options
+        self.dropzone = new Dropzone("#grid", options );            // Initialize dropzone
+    };
+
+    /*
+     *  Remove dropzone from grid
+     */
+    this.destroy_dropzone = function(){
+        self.dropzone.destroy();
+    };
+
 
     /*
      *  conditionals for what to show for toggle state
@@ -2685,7 +4387,7 @@ Treebeard.view = function(ctrl){
                     m("#tb-tbody", [
                         m('.tb-tbody-inner', [
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
-                                ctrl.showRange.map(function(item){
+                                ctrl.showRange.map(function(item, index){
                                     var indent = ctrl.flatData[item].depth;
                                     var id = ctrl.flatData[item].id;
                                     var row = ctrl.flatData[item].row;
@@ -2702,10 +4404,13 @@ Treebeard.view = function(ctrl){
                                         "data-id" : id,
                                         "data-level": indent,
                                         "data-index": item,
+                                        "data-rIndex": index,
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-                                            ctrl.options.onClickRow.call(Indexes[row.id]);
+                                            if(ctrl.options.onselectrow){
+                                                ctrl.options.onselectrow.call(Indexes[row.id]);
+                                            }
                                             Pubsub.publish('itemclick', Indexes[row.id]);
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
@@ -2813,31 +4518,43 @@ Treebeard.view = function(ctrl){
             ])
         ])
     ];
-
 };
 
 /*
  *  Starts treebard with user options;
  */
 Treebeard.run = function(element, options){
+    var self = this;
     Treebeard.options = $.extend({
-        rowHeight : 35,
-        showTotal : 15,
-        paginate : false,
-        lazyLoad : false,
-        useDropzone : false,
-        uploadURL : "",
-        columns : [],
-        onDelete : function(){
-            console.log(this);
+        rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
+        showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
+        paginate : false,       // Whether the applet starts with pagination or not.
+        showPaginate : false,    // Show the buttons that allow users to switch between scroll and paginate. NOT YET IMPLEMENTED
+        lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
+        uploads : true,         // Turns dropzone on/off.
+        columns : [],           // Defines columns based on data
+        beforedelete : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
+            // this = Item to be deleted.
         },
-        onClickRow : function(){
-//        console.log("This", this);
-//        console.log("Next", this.next());
-//        console.log("Parent", this.parent());
+        ondelete : function(){  // When row is deleted successfully
+            // this = parent of deleted row
+            console.log("ondelete", this);
+        },                      //
+        onselectrow : function(){
+            // this = row
+            console.log("onselectrow", this);
         },
-        itemclick : function(){
-
+        ontogglefolder : function(){
+            // this = toggled folder
+            console.log("ontogglefolder", this);
+        },
+        dropzone : {            // All dropzone options.
+            url: "http://www.torrentplease.com/dropzone.php",  // Users provide single URL, if they need to generate url dynamicaly they can use the events.
+            dropend : function(item, event){     // An example dropzone event to override.
+                // this = dropzone object
+                // item = item in the tree
+                // event = event
+            }
         }
     }, options);
     m.module(element, Treebeard);

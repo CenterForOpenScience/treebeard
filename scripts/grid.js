@@ -232,8 +232,7 @@ var Treebeard = {};
  */
 Treebeard.model = function (level){
     return {
-        indent :  level,
-        id : Math.floor(Math.random()*(100)),
+        id : Math.floor(Math.random()*(10000)),
         load : true,
         status : true,
         show : true,
@@ -276,6 +275,9 @@ Treebeard.controller = function () {
     this.lastLocation = 0; // The last scrollTop location, updates on every scroll.
     this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
     this.currentPage = m.prop(1);
+    this.dropzone = null;
+    this.droppedItem = {};
+
 
     /*
      *  Rebuilds the tree data with an API
@@ -395,6 +397,7 @@ Treebeard.controller = function () {
                 }
             }
         });
+        if(self.options.uploads){ self.apply_dropzone(); }
     };
 
     /*
@@ -406,7 +409,7 @@ Treebeard.controller = function () {
         parent.remove_child(itemID);
         //console.log("Parent after", parent);
         if(self.options.onDelete){
-            self.options.onDelete.call(parent);
+            self.options.ondelete.call(parent);
         }
         //console.log("Treedata", self.treeData);
         self.flatten(self.treeData.children, self.visibleTop);
@@ -538,6 +541,9 @@ Treebeard.controller = function () {
             self.calculate_height();
             m.redraw(true);
         }
+        if(self.options.ontogglefolder){
+            self.options.ontogglefolder.call(tree);
+        }
     };
 
     /*
@@ -651,8 +657,6 @@ Treebeard.controller = function () {
         $('.tb-paginate').removeClass('active');
         $('.tb-scroll').addClass('active');
         self.refresh_range(0);
-
-
     };
 
     /*
@@ -712,6 +716,68 @@ Treebeard.controller = function () {
             self.refresh_range(index);
         }
     };
+
+    /*
+     *  Apply dropzone to grid
+     */
+    this.apply_dropzone = function(){
+        if(self.dropzone){ self.destroy_dropzone(); }               // Destroy existing dropzone setup
+        var eventList = ["drop", "dragstart","dragend","dragenter","dragover", "dragleave","addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending","success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"];
+        var options = $.extend({
+            init: function() {
+                for (var i = 0; i < eventList.length; i++){
+                    var ev = eventList[i];
+                    console.log("Event", ev, self.options.dropzone[ev]);
+                    if(self.options.dropzone[ev]){
+                        this.on(ev, function(arg) { self.options.dropzone[ev].call(self, arg); });
+                    }
+                }
+            },
+            accept : function(file, done){
+//                console.log("Accept this", this);
+//                this.options.url = '/upload';
+                done();
+            },
+            drop : function(event){
+                // get item
+                var rowId =  $(event.target).closest('.tb-row').attr('data-id');
+                var item  = Indexes[rowId];
+                self.droppedItem = item;
+                console.log("Drop item", item);
+//                this.options.url = 'http://localhost/laravel/public/api/file/';
+            },
+            addedfile : function(file){
+                console.log("Added this", this);
+                console.log("Added file", file);
+            },
+            dragenter : function(event){
+                console.log("dragging");
+            },
+            success : function(file, response){
+                console.log("response", response);
+                var mockResponse = new Treebeard.model();
+                var mockTree = new Item(mockResponse);
+                console.log("dropped", self.droppedItem);
+                self.droppedItem.add(mockTree);
+                self.flatten(self.treeData.children, self.visibleTop);
+
+            },
+            sending : function(file, xhr, formData){
+                console.log("file", file);
+                console.log("Xhr", xhr);
+                console.log("formData", formData);
+            }
+        }, self.options.dropzone);           // Extend default options
+        self.dropzone = new Dropzone("#grid", options );            // Initialize dropzone
+    };
+
+    /*
+     *  Remove dropzone from grid
+     */
+    this.destroy_dropzone = function(){
+        self.dropzone.destroy();
+    };
+
 
     /*
      *  conditionals for what to show for toggle state
@@ -778,7 +844,7 @@ Treebeard.view = function(ctrl){
                     m("#tb-tbody", [
                         m('.tb-tbody-inner', [
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
-                                ctrl.showRange.map(function(item){
+                                ctrl.showRange.map(function(item, index){
                                     var indent = ctrl.flatData[item].depth;
                                     var id = ctrl.flatData[item].id;
                                     var row = ctrl.flatData[item].row;
@@ -795,10 +861,13 @@ Treebeard.view = function(ctrl){
                                         "data-id" : id,
                                         "data-level": indent,
                                         "data-index": item,
+                                        "data-rIndex": index,
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-                                            ctrl.options.onClickRow.call(Indexes[row.id]);
+                                            if(ctrl.options.onselectrow){
+                                                ctrl.options.onselectrow.call(Indexes[row.id]);
+                                            }
                                             Pubsub.publish('itemclick', Indexes[row.id]);
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
@@ -906,31 +975,43 @@ Treebeard.view = function(ctrl){
             ])
         ])
     ];
-
 };
 
 /*
  *  Starts treebard with user options;
  */
 Treebeard.run = function(element, options){
+    var self = this;
     Treebeard.options = $.extend({
-        rowHeight : 35,
-        showTotal : 15,
-        paginate : false,
-        lazyLoad : false,
-        useDropzone : false,
-        uploadURL : "",
-        columns : [],
-        onDelete : function(){
-            console.log(this);
+        rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
+        showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
+        paginate : false,       // Whether the applet starts with pagination or not.
+        showPaginate : false,    // Show the buttons that allow users to switch between scroll and paginate. NOT YET IMPLEMENTED
+        lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
+        uploads : true,         // Turns dropzone on/off.
+        columns : [],           // Defines columns based on data
+        beforedelete : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
+            // this = Item to be deleted.
         },
-        onClickRow : function(){
-//        console.log("This", this);
-//        console.log("Next", this.next());
-//        console.log("Parent", this.parent());
+        ondelete : function(){  // When row is deleted successfully
+            // this = parent of deleted row
+            console.log("ondelete", this);
+        },                      //
+        onselectrow : function(){
+            // this = row
+            console.log("onselectrow", this);
         },
-        itemclick : function(){
-
+        ontogglefolder : function(){
+            // this = toggled folder
+            console.log("ontogglefolder", this);
+        },
+        dropzone : {            // All dropzone options.
+            url: "http://www.torrentplease.com/dropzone.php",  // Users provide single URL, if they need to generate url dynamicaly they can use the events.
+            dropend : function(item, event){     // An example dropzone event to override.
+                // this = dropzone object
+                // item = item in the tree
+                // event = event
+            }
         }
     }, options);
     m.module(element, Treebeard);

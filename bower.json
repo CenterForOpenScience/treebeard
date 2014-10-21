@@ -23,6 +23,7 @@
   ],
   "dependencies": {
     "bootstrap": "~3.2.0",
-    "jquery-ui": "~1.11.0"
+    "jquery-ui": "~1.11.0",
+    "jquery-mockjax": "~1.6.0"
   }
 }
