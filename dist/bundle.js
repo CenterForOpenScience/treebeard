@@ -3740,9 +3740,10 @@ Treebeard.model = function (level){
         show : true,
         loadUrl : "small.json",
         person  : "JohnnyB. Goode",
-        title  :  "Around the World in 80 Days",
+        name  :  "Around the World in 80 Days",
         date : "Date",
         filtered : false,
+        kind : "file",
         children : []
     };
 };
@@ -3752,23 +3753,7 @@ Treebeard.model = function (level){
  */
 Treebeard.controller = function () {
     var self = this;
-    this.loadData = function(data){
-        console.log('filesData', data);
-        if (data instanceof Array){
-            self.flatten(data,0);
-        } else {
-            this.data = m.request({method: "GET", url: data})
-            .then(function(value){self.treeData = self.buildTree(value); })
-                .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
-                .then(function(){
-                console.log("tree data", self.treeData);
-                self.calculate_visible();
-                self.calculate_height();
-            });
-        }
-    };
 
-    this.data = self.loadData(Treebeard.options.filesData);
     this.flatData = [];
     this.treeData = {};
     this.filterText = m.prop("");
@@ -4278,10 +4263,9 @@ Treebeard.controller = function () {
                 }
             },
             accept : function(file, done){
-//                console.log("Accept this", this);
-
+//              console.log("Accept this", this);
                 if(self.options.addcheck(self.droppedItem, file)){
-                    $.when(self.options.calculateUrl(self.droppedItem))
+                    $.when(self.options.resolve_upload_url(self.droppedItem))
                         .then(function(newUrl){
                             console.log("then");
 
@@ -4343,29 +4327,56 @@ Treebeard.controller = function () {
      *  conditionals for what to show for toggle state
      */
     this.subFix = function(item){
+        var itemTree = Indexes[item.id];
         if(item.children.length > 0 || item.kind === "folder"){
             if(item.children.length > 0 && item.open){
                 return [
                     m("span.expand-icon-holder", m("i.fa.fa-minus-square-o", " ")),
-                    m("span.expand-icon-holder", m("i.fa.fa-folder-o", " "))
+                    m("span.expand-icon-holder", self.options.resolve_icon(itemTree))
                 ];
             } else {
                 return [
                     m("span.expand-icon-holder", m("i.fa.fa-plus-square-o", " ")),
-                    m("span.expand-icon-holder", m("i.fa.fa-folder-o", " "))
+                    m("span.expand-icon-holder", self.options.resolve_icon(itemTree))
                 ];
             }
         } else {
             return [
                 m("span.expand-icon-holder"),
-                m("span.expand-icon-holder", m("i.fa."+item.icon, " "))
+                m("span.expand-icon-holder", self.options.resolve_icon(itemTree))
             ];
         }
     };
+
+    this.loadData = function(data){
+        console.log('filesData', data);
+        if (data instanceof Array){
+            console.log(self);
+            $.when(self.buildTree(data)).then(function(value){
+                self.treeData = value;
+                Indexes[0] = value;
+                self.flatten(self.treeData.children);
+                return value;
+            }).done(function(){
+                self.calculate_visible();
+                self.calculate_height();
+            });
+        } else {
+            this.data = m.request({method: "GET", url: data})
+                .then(function(value){self.treeData = self.buildTree(value); })
+                .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
+                .then(function(){
+                    console.log("tree data", self.treeData);
+                    self.calculate_visible();
+                    self.calculate_height();
+                });
+        }
+    };
+    this.data = self.loadData(Treebeard.options.filesData);
 };
 
 Treebeard.view = function(ctrl){
-    //console.log(ctrl.showRange);
+    console.log(ctrl.showRange);
     return [
         m('.gridWrapper.row', {config : ctrl.init},  [
             m('.col-sm-8', [
@@ -4597,9 +4608,20 @@ Treebeard.run = function(options){
                 // item = item in the tree
                 // event = event
             }
-
         },
-        calculateUrl : function(item){
+        resolve_icon : function(item){     // Return a mithril m() object with the icon. Here the user can interject and add their own icons
+            console.log(item);
+            if(item.kind === "folder"){
+                return m("i.fa.fa-folder-o", " ");
+            }else {
+                if(item.data.icon){
+                    return m("i.fa."+item.icon, " ");
+                } else {
+                    return m("i.fa.fa-file ");
+                }
+            }
+        },
+        resolve_upload_url : function(item){       // Allows the user to calculate the url of each individual row just before file add.
             return "/upload";
         }
     }, options);
