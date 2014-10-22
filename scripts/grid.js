@@ -359,7 +359,7 @@
                 m.redraw(true);
                 self.lastLocation = scrollTop;
             });
-            $(".tdTitle").draggable({ helper: "clone" });
+            $(".td-title").draggable({ helper: "clone" });
             $(".tb-row").droppable({
                 tolerance : "touch",
                 cursor : "move",
@@ -866,7 +866,7 @@
                                 ])
                             ])
                         ]),
-                        m(".tb-rowTitles.m-t-md", [
+                        m(".tb-row-titles.m-t-md", [
                             ctrl.options.columns.map(function(col){
                                 var sortView = "";
                                 if(col.sort){
@@ -921,7 +921,7 @@
                                                 ]);
 
                                                 if(col.folderIcons === true){
-                                                   cell = m(".tb-td.tdTitle", {
+                                                   cell = m(".tb-td.td-title", {
                                                         "data-id" : id,
                                                         style : "padding-left: "+padding+"px; width:"+col.width },  [
                                                         m("span.tdFirst", {
