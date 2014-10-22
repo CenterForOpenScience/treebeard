@@ -46,34 +46,11 @@
          }
         var options = {
             divID : 'grid',
-            filesData : [{
-                id : Math.floor(Math.random()*(10000)),
-                load : true,
-                status : true,
-                show : true,
-                loadUrl : "small.json",
-                person  : "JohnnyB. Goode",
-                name  :  "Around the World in 80 Days",
-                date : "Date",
-                filtered : false,
-                kind : "file",
-                children : []
-            },{
-                id : Math.floor(Math.random()*(10000)),
-                load : true,
-                status : true,
-                show : true,
-                loadUrl : "small.json",
-                person  : "James Goode",
-                name  :  "adasdasdasd",
-                date : "Date",
-                filtered : false,
-                kind : "file",
-                children : []
-            }],
+            filesData : "small.json",
             rowHeight : 35,
             showTotal : 15,
             paginate : false,
+            paginateToggle : true,
             lazyLoad : false,
             useDropzone : false,
             uploadURL : "",

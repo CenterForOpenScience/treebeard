@@ -606,13 +606,13 @@ img.logo {
 .tb-tbody-inner {
   overflow: hidden;
 }
-.tb-rowTitles {
+.tb-row-titles {
   background: #EEE;
   padding: 10px 0px 5px 16px;
   border: 1px solid #CCC;
   border-bottom: none;
 }
-.tdTitle {
+.td-title {
   cursor: pointer;
 }
 .tb-th,

@@ -359,7 +359,7 @@
                 m.redraw(true);
                 self.lastLocation = scrollTop;
             });
-            $(".tdTitle").draggable({ helper: "clone" });
+            $(".td-title").draggable({ helper: "clone" });
             $(".tb-row").droppable({
                 tolerance : "touch",
                 cursor : "move",
@@ -866,7 +866,7 @@
                                 ])
                             ])
                         ]),
-                        m(".tb-rowTitles.m-t-md", [
+                        m(".tb-row-titles.m-t-md", [
                             ctrl.options.columns.map(function(col){
                                 var sortView = "";
                                 if(col.sort){
@@ -921,7 +921,7 @@
                                                 ]);
 
                                                 if(col.folderIcons === true){
-                                                   cell = m(".tb-td.tdTitle", {
+                                                   cell = m(".tb-td.td-title", {
                                                         "data-id" : id,
                                                         style : "padding-left: "+padding+"px; width:"+col.width },  [
                                                         m("span.tdFirst", {
@@ -968,44 +968,54 @@
 
                             ])
                         ]),
-                        m('.tb-footer', [
-                            m(".row", [
-                                m(".col-xs-4",
-                                    m('.btn-group.padder-10', [
-                                        m("button.btn.btn-default.btn-sm.active.tb-scroll",
-                                            { onclick : ctrl.toggle_scroll },
-                                            "Scroll"),
-                                        m("button.btn.btn-default.btn-sm.tb-paginate",
-                                            { onclick : ctrl.toggle_paginate },
-                                            "Paginate")
+                        (function() {
+                            if (ctrl.options.paginate || ctrl.options.paginateToggle) {
+                                return m('.tb-footer', [
+                                    m(".row", [
+                                        m(".col-xs-4",
+                                            (function() {
+                                                if (ctrl.options.paginateToggle) {
+                                                    return m('.btn-group.padder-10', [
+                                                        m("button.btn.btn-default.btn-sm.active.tb-scroll",
+                                                            { onclick : ctrl.toggle_scroll },
+                                                            "Scroll"),
+                                                        m("button.btn.btn-default.btn-sm.tb-paginate",
+                                                            { onclick : ctrl.toggle_paginate },
+                                                            "Paginate")
+                                                    ]);
+                                                }
+                                            }())
+                                        ),
+                                        m('.col-xs-8', [ m('.padder-10', [
+                                            (function(){
+                                                if(ctrl.options.paginate){
+                                                    return m('.pull-right', [
+                                                        m('button.btn.btn-default.btn-sm',
+                                                            { onclick : ctrl.page_down},
+                                                            [ m('i.fa.fa-chevron-left')]),
+                                                        m('input.h-mar-10',
+                                                            {
+                                                                type : "text",
+                                                                style : "width: 30px;",
+                                                                onkeyup: ctrl.jump_to_page,
+                                                                value : ctrl.currentPage()
+                                                            }
+                                                        ),
+                                                        m('span', "/ "+Math.ceil(ctrl.visibleIndexes.length/ctrl.options.showTotal)+" "),
+                                                        m('button.btn.btn-default.btn-sm',
+                                                            { onclick : ctrl.page_up},
+                                                            [ m('i.fa.fa-chevron-right')
+                                                            ])
+                                                    ]);
+                                                }
+                                            }())
+                                        ])])
                                     ])
-                                ),
-                                m('.col-xs-8', [ m('.padder-10', [
-                                    (function(){
-                                        if(ctrl.options.paginate){
-                                            return m('.pull-right', [
-                                                m('button.btn.btn-default.btn-sm',
-                                                    { onclick : ctrl.page_down},
-                                                    [ m('i.fa.fa-chevron-left')]),
-                                                m('input.h-mar-10',
-                                                    {
-                                                        type : "text",
-                                                        style : "width: 30px;",
-                                                        onkeyup: ctrl.jump_to_page,
-                                                        value : ctrl.currentPage()
-                                                    }
-                                                ),
-                                                m('span', "/ "+Math.ceil(ctrl.visibleIndexes.length/ctrl.options.showTotal)+" "),
-                                                m('button.btn.btn-default.btn-sm',
-                                                    { onclick : ctrl.page_up},
-                                                    [ m('i.fa.fa-chevron-right')
-                                                ])
-                                            ]);
-                                        }
-                                    }())
-                                ])])
-                            ])
-                        ])
+                                ]);
+                            }
+                        }())
+
+
                     ])
                 ]),
                 m('.col-sm-4', [
@@ -1031,7 +1041,7 @@
             rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
-            showPaginate : false,    // Show the buttons that allow users to switch between scroll and paginate. NOT YET IMPLEMENTED
+            paginateToggle : false,    // Show the buttons that allow users to switch between scroll and paginate. NOT YET IMPLEMENTED
             lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
             uploads : true,         // Turns dropzone on/off.
             columns : [],           // Defines columns based on data
