@@ -96,11 +96,14 @@ Item.prototype.add = function(component) {
  *  Move item from one place to another
  */
 Item.prototype.move = function(to){
-    var parentID = this.parentID;
     var toItem = Indexes[to];
+    var parentID = this.parentID;
     var parent = Indexes[parentID];
     toItem.add(this);
-    parent.remove_child(parseInt(this.id));
+    console.log("this", this);
+    if(parentID > -1){
+        parent.remove_child(parseInt(this.id));
+    }
 };
 
 /*
@@ -179,50 +182,6 @@ Item.prototype.sort_children = function(type, attr){
 
 
 /*
- *  Publish/Subscribe for main events / components taken from Addy Osmani
- */
-var Pubsub = {
-    topics : {},
-    token : -1,
-    publish : function(topic, args){
-        if ( !this.topics[topic] ) {
-            return false;
-        }
-        var subscribers = this.topics[topic],
-            len = subscribers ? subscribers.length : 0;
-        while (len--) {
-            subscribers[len].func( topic, args );
-        }
-        return this;
-    },
-    subscribe : function(topic, func){
-        if (!this.topics[topic]) {
-            this.topics[topic] = [];
-        }
-        var token = ( ++this.token ).toString();
-        this.topics[topic].push({
-            token: token,
-            func: func
-        });
-        return token;
-    },
-    unsubscribe : function(token){
-        for ( var m in this.topics ) {
-            if ( this.topics[m] ) {
-                for ( var i = 0, j = this.topics[m].length; i < j; i++ ) {
-                    if ( this.topics[m][i].token === token ) {
-                        this.topics[m].splice( i, 1 );
-                        return token;
-                    }
-                }
-            }
-        }
-        return this;
-    }
-};
-
-
-/*
  *  Initialize and namespace the module
  */
 var Treebeard = {};
@@ -232,8 +191,7 @@ var Treebeard = {};
  */
 Treebeard.model = function (level){
     return {
-        indent :  level,
-        id : Math.floor(Math.random()*(100)),
+        id : Math.floor(Math.random()*(10000)),
         load : true,
         status : true,
         show : true,
@@ -251,16 +209,23 @@ Treebeard.model = function (level){
  */
 Treebeard.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "small.json"})
-        .then(function(value){self.treeData = self.buildTree(value); })
-        .then(function(){ self.flatten(self.treeData.children);})
-        .then(function(){
-            //console.log(self.flatData);
-            //console.log(Indexes);
-            self.calculate_visible();
-            self.calculate_height();
-            //console.log("Treedata", self.treeData);
-        });
+    this.loadData = function(data){
+        console.log('filesData', data);
+        if (data instanceof Array){
+            self.flatten(data,0);
+        } else {
+            this.data = m.request({method: "GET", url: data})
+            .then(function(value){self.treeData = self.buildTree(value); })
+                .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
+                .then(function(){
+                console.log("tree data", self.treeData);
+                self.calculate_visible();
+                self.calculate_height();
+            });
+        }
+    };
+
+    this.data = self.loadData(Treebeard.options.filesData);
     this.flatData = [];
     this.treeData = {};
     this.filterText = m.prop("");
@@ -276,6 +241,10 @@ Treebeard.controller = function () {
     this.lastLocation = 0; // The last scrollTop location, updates on every scroll.
     this.lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
     this.currentPage = m.prop(1);
+    this.dropzone = null;
+    this.droppedItem = {};
+    this.check = { "move" : true, "delete" : true, "add" : true};
+
 
     /*
      *  Rebuilds the tree data with an API
@@ -287,8 +256,16 @@ Treebeard.controller = function () {
             children = data;
         } else {
             tree = new Item(data);
-            children = data.children;
-            tree.depth = parent.depth+1;
+            if(typeof data.data !== "undefined"){
+                children = data.data[0].children;
+            }else{
+                children = data.children;
+            }
+            if (tree.depth){
+                tree.depth = parent.depth+1;
+            }else{
+                tree.depth = 0;
+            }
             tree.kind = data.kind;
         }
         if(children){
@@ -383,18 +360,47 @@ Treebeard.controller = function () {
         });
         $(".tdTitle").draggable({ helper: "clone" });
         $(".tb-row").droppable({
-            tolerance : "pointer",
-            hoverClass : "highlight",
-            drop: function( event, ui ) {
+            tolerance : "touch",
+            cursor : "move",
+            out: function( event, ui ) {
+               $('.tb-row.tb-h-success').removeClass('tb-h-success');
+                $('.tb-row.tb-h-error').removeClass('tb-h-error');
+
+            },
+            over: function( event, ui ) {
                 var to = $(this).attr("data-id");
                 var from = ui.draggable.attr("data-id");
+                var toItem = Indexes[to];
                 var item = Indexes[from];
-                if (to !== from ){
-                    item.move(to);
-                    self.flatten(self.treeData.children, self.visibleTop);
+                console.log("Over to", to, "overfrom", from);
+                if(to !== from && self.options.movecheck(toItem, item)) {
+                    $(this).addClass('tb-h-success');
+                } else {
+                    $(this).addClass('tb-h-error');
+                }
+            },
+            drop: function( event, ui ) {
+
+                var to = $(this).attr("data-id");
+                var from = ui.draggable.attr("data-id");
+                var toItem = Indexes[to];
+                var item = Indexes[from];
+
+                if(to !== from){
+                    if(self.options.movecheck(toItem, item)){
+                        item.move(to);
+                        self.flatten(self.treeData.children, self.visibleTop);
+                        console.log("tree data", self.treeData);
+                    } else {
+                        alert("You can't move your item here.");
+                    }
+                }
+                if(self.options.onmove){
+                    self.options.onmove(toItem, item);
                 }
             }
         });
+        if(self.options.uploads){ self.apply_dropzone(); }
     };
 
     /*
@@ -405,8 +411,8 @@ Treebeard.controller = function () {
         var parent = Indexes[parentID];
         parent.remove_child(itemID);
         //console.log("Parent after", parent);
-        if(self.options.onDelete){
-            self.options.onDelete.call(parent);
+        if(self.options.ondelete){
+            self.options.ondelete.call(parent);
         }
         //console.log("Treedata", self.treeData);
         self.flatten(self.treeData.children, self.visibleTop);
@@ -538,6 +544,9 @@ Treebeard.controller = function () {
             self.calculate_height();
             m.redraw(true);
         }
+        if(self.options.ontogglefolder){
+            self.options.ontogglefolder.call(tree);
+        }
     };
 
     /*
@@ -651,8 +660,6 @@ Treebeard.controller = function () {
         $('.tb-paginate').removeClass('active');
         $('.tb-scroll').addClass('active');
         self.refresh_range(0);
-
-
     };
 
     /*
@@ -692,8 +699,6 @@ Treebeard.controller = function () {
         var firstIndex = self.showRange[0];
         // var visibleArray = self.visibleIndexes.map(function(visIndex){return visIndex;});
         var first = self.visibleIndexes.indexOf(firstIndex);
-        //console.log(visibleArray);
-        //console.log(first);
         if(first && first > 0) {
             self.refresh_range(first - self.options.showTotal);
             self.currentPage(self.currentPage()-1);
@@ -712,6 +717,68 @@ Treebeard.controller = function () {
             self.refresh_range(index);
         }
     };
+
+    /*
+     *  Apply dropzone to grid
+     */
+    this.apply_dropzone = function(){
+        if(self.dropzone){ self.destroy_dropzone(); }               // Destroy existing dropzone setup
+        var eventList = ["drop", "dragstart","dragend","dragenter","dragover", "dragleave","addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending","success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"];
+        var options = $.extend({
+            init: function() {
+                for (var i = 0; i < eventList.length; i++){
+                    var ev = eventList[i];
+                    console.log("Event", ev, self.options.dropzone[ev]);
+                    if(self.options.dropzone[ev]){
+                        this.on(ev, function(arg) { self.options.dropzone[ev].call(self, arg); });
+                    }
+                }
+            },
+            accept : function(file, done){
+//                console.log("Accept this", this);
+//                this.options.url = '/upload';
+                done();
+            },
+            drop : function(event){
+                // get item
+                var rowId =  $(event.target).closest('.tb-row').attr('data-id');
+                var item  = Indexes[rowId];
+                self.droppedItem = item;
+                console.log("Drop item", item);
+//                this.options.url = 'http://localhost/laravel/public/api/file/';
+            },
+            addedfile : function(file){
+                console.log("Added this", this);
+                console.log("Added file", file);
+            },
+            dragenter : function(event){
+                console.log("dragging");
+            },
+            success : function(file, response){
+                console.log("response", response);
+                var mockResponse = new Treebeard.model();
+                var mockTree = new Item(mockResponse);
+                console.log("dropped", self.droppedItem);
+                self.droppedItem.add(mockTree);
+                self.flatten(self.treeData.children, self.visibleTop);
+
+            },
+            sending : function(file, xhr, formData){
+                console.log("file", file);
+                console.log("Xhr", xhr);
+                console.log("formData", formData);
+            }
+        }, self.options.dropzone);           // Extend default options
+        self.dropzone = new Dropzone(self.options.divID, options );            // Initialize dropzone
+    };
+
+    /*
+     *  Remove dropzone from grid
+     */
+    this.destroy_dropzone = function(){
+        self.dropzone.destroy();
+    };
+
 
     /*
      *  conditionals for what to show for toggle state
@@ -778,7 +845,7 @@ Treebeard.view = function(ctrl){
                     m("#tb-tbody", [
                         m('.tb-tbody-inner', [
                             m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
-                                ctrl.showRange.map(function(item){
+                                ctrl.showRange.map(function(item, index){
                                     var indent = ctrl.flatData[item].depth;
                                     var id = ctrl.flatData[item].id;
                                     var row = ctrl.flatData[item].row;
@@ -795,11 +862,13 @@ Treebeard.view = function(ctrl){
                                         "data-id" : id,
                                         "data-level": indent,
                                         "data-index": item,
+                                        "data-rIndex": index,
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-                                            ctrl.options.onClickRow.call(Indexes[id]);
-                                            Pubsub.publish('itemclick', Indexes[id]);
+                                            if(ctrl.options.onselectrow){
+                                                ctrl.options.onselectrow.call(Indexes[row.id]);
+                                            }
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
                                             var cell;
@@ -808,7 +877,7 @@ Treebeard.view = function(ctrl){
                                                 m('span', row[col.data])
                                             ]);
 
-                                            if(col.folderIcons == true){
+                                            if(col.folderIcons === true){
                                                cell = m(".tb-td.tdTitle", {
                                                     "data-id" : id,
                                                     style : "padding-left: "+padding+"px; width:"+col.width },  [
@@ -820,7 +889,7 @@ Treebeard.view = function(ctrl){
                                                ]);
                                             }
 
-                                            if(col.actionIcons == true){
+                                            if(col.actionIcons === true){
                                                 cell = m(".tb-td", { style : "width:"+col.width }, [
                                                     m("button.btn.btn-danger.btn-xs", {
                                                         "data-id" : id,
@@ -906,32 +975,66 @@ Treebeard.view = function(ctrl){
             ])
         ])
     ];
-
 };
 
 /*
  *  Starts treebard with user options;
  */
-Treebeard.run = function(element, options){
+Treebeard.run = function(options){
+    var self = this;
     Treebeard.options = $.extend({
-        rowHeight : 35,
-        showTotal : 15,
-        paginate : false,
-        lazyLoad : false,
-        useDropzone : false,
-        uploadURL : "",
-        columns : [],
-        onDelete : function(){
-            console.log(this);
+        divID : "myGrid",
+        filesData : "small.json",
+        rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
+        showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
+        paginate : false,       // Whether the applet starts with pagination or not.
+        showPaginate : false,    // Show the buttons that allow users to switch between scroll and paginate. NOT YET IMPLEMENTED
+        lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
+        uploads : true,         // Turns dropzone on/off.
+        columns : [],           // Defines columns based on data
+        deletecheck : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
+            // this = Item to be deleted.
         },
-        onClickRow : function(){
-//        console.log("This", this);
-//        console.log("Next", this.next());
-//        console.log("Parent", this.parent());
+        ondelete : function(){  // When row is deleted successfully
+            // this = parent of deleted row
+            console.log("ondelete", this);
         },
-        itemclick : function(){
+        movecheck : function(to, from){
+            // This method gives the users an option to do checks and define their return
 
+            console.log("movecheck: to", to, "from", from);
+            return true;
+        },
+        onmove : function(to, from){  // After move happens
+            // to = actual tree object we are moving to
+            // from = actual tree object we are moving
+            console.log("onmove: to", to, "from", from);
+        },
+        addcheck : function(item, file){
+            // item = item to be added to
+            // info about the file being added
+            return true;
+        },
+        onadd : function(item, response){
+            // item = item that just received the added content
+            // response : what's returned from the server
+        },
+        onselectrow : function(){
+            // this = row
+            console.log("onselectrow", this);
+        },
+        ontogglefolder : function(){
+            // this = toggled folder
+            console.log("ontogglefolder", this);
+        },
+        dropzone : {            // All dropzone options.
+            url: "http://www.torrentplease.com/dropzone.php",  // Users provide single URL, if they need to generate url dynamicaly they can use the events.
+            dropend : function(item, event){     // An example dropzone event to override.
+                // this = dropzone object
+                // item = item in the tree
+                // event = event
+            }
         }
     }, options);
-    m.module(element, Treebeard);
+    m.module(document.getElementById(Treebeard.options.divID), Treebeard);
 };

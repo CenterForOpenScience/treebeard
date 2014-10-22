@@ -34,6 +34,7 @@
         </p>
     </div>
     <script src="bundle.js"></script>
+
     <script type="text/javascript">
         /*
          *  User defined options
@@ -52,19 +53,11 @@
             uploadURL : "",
             columns : [
                 {
-                    title: "Date",
-                    width : "25%",
-                    data : "date",
-                    sort : false,
-                    folderIcons : true
-                },
-                {
                     title: "Title",
-                    width : "25%",
+                    width : "50%",
                     data : "title",
                     sort : true,
-                    custom : myCustomFunc
-                    
+                    folderIcons : true
                 },
                 {
                     title: "Author",
@@ -79,36 +72,27 @@
                     sort : false,
                     actionIcons : true
                 }
-
             ],
-            onDelete : function(){
-                console.log(this);
-            },
-            onClickRow : function(){
-//        console.log("This", this);
-//        console.log("Next", this.next());
-//        console.log("Parent", this.parent());
-            },
-            itemclick : function(){
-
+            movecheck : function(to,from){
+                console.log("Custom move check. to:", to, "from", from, to.data.receive);
+                if(to.data.receive){
+                    return true;
+                } else {
+                    return false;
+                }
             }
-        };
 
-        function logger(topic, item){
-            console.log("topic", topic);
-            console.log("Item:", item);
         }
-        var myLogger = Pubsub.subscribe('itemclick', logger);
 
-        setTimeout(function(){
-            console.log("Time out");
-            console.log(myLogger);
-            Pubsub.unsubscribe(myLogger);
-        }, 5000);
+
         /*
          *  User defined code to implement Treebeard anywhere on the page.
          */
         Treebeard.run(document.getElementById("grid"), options);
+
+
+
+
     </script>
     </body>
 </html>
