@@ -31,7 +31,6 @@
      */
     function AscByAttr (data) {
         return function(a,b){
-            //console.log(a,b);
             var titleA = a.data[data].toLowerCase().replace(/\s+/g, " ");
             var titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
             if (titleA < titleB){
@@ -116,7 +115,6 @@
         var parentID = this.parentID;
         var parent = Indexes[parentID];
         toItem.add(this);
-        console.log("this", this);
         if(parentID > -1){
             parent.remove_child(parseInt(this.id));
         }
@@ -288,7 +286,6 @@
             var recursive = function redo(data, show, topLevel) {
                 var length = data.length;
                 for (var i = 0; i < length; i++) {
-                    //console.log( "openLevel", openLevel);
                     if(openLevel && data[i].depth <= openLevel ){
                         show = true;
                     }
@@ -314,7 +311,6 @@
                     }
                     Indexes[data[i].id] = data[i];
                     if(topLevel && i === length-1){
-                        //console.log("Redo");
                         self.calculate_visible(visibleTop);
                         self.calculate_height();
                         m.redraw();
@@ -332,7 +328,6 @@
             if (isInit) { return; }
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight/self.options.rowHeight);
-            //console.log("ShowTotal", self.options.showTotal);
             $('#tb-tbody').scroll(function(){
                 // snap scrolling to intervals of items;
                 // get current scroll top
@@ -352,7 +347,6 @@
                 var innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
                 scrollTop = $(this).scrollTop();
                 var location = scrollTop/innerHeight*100;
-                //console.log("Visible cache", self.visibleCache);
                 var index = Math.round(location/100*self.visibleCache);
                 self.rangeMargin = Math.round(itemsHeight*(scrollTop/innerHeight));
                 self.refresh_range(index);
@@ -373,7 +367,6 @@
                     var from = ui.draggable.attr("data-id");
                     var toItem = Indexes[to];
                     var item = Indexes[from];
-                    console.log("Over to", to, "overfrom", from);
                     if(to !== from && self.options.movecheck(toItem, item)) {
                         $(this).addClass('tb-h-success');
                     } else {
@@ -391,7 +384,6 @@
                         if(self.options.movecheck(toItem, item)){
                             item.move(to);
                             self.flatten(self.treeData.children, self.visibleTop);
-                            console.log("tree data", self.treeData);
                         } else {
                             alert("You can't move your item here.");
                         }
@@ -408,14 +400,11 @@
          *  Deletes item from tree and refreshes view
          */
         this.delete_node = function(parentID, itemID  ){
-            //console.log(parentID, itemID);
             var parent = Indexes[parentID];
             parent.remove_child(itemID);
-            //console.log("Parent after", parent);
             if(self.options.ondelete){
                 self.options.ondelete.call(parent);
             }
-            //console.log("Treedata", self.treeData);
             self.flatten(self.treeData.children, self.visibleTop);
         };
 
@@ -423,14 +412,11 @@
          *  Adds a new node;
          */
         this.add_node = function(parentID){
-            //console.log(parentID);
             // add to the tree and reflatten
             var newItem = new Treebeard.model();
             var item = new Item(newItem);
             var parent = Indexes[parentID];
-            //console.log(parent);
             parent.add(item);
-            //console.log("parent after", parent);
             self.flatten(self.treeData.children, self.visibleTop);
         };
 
@@ -508,7 +494,6 @@
             if (self.options.lazyLoad && item.row.kind === "folder" && item.row.children.length === 0) {
                 // lazyloading
                 $.when(self.options.resolve_lazyload_url(tree)).done(function(url){
-                    console.log('the url', url);
                     m.request({method: "GET", url: url})
                         .then(function (value) {
                             var child, i;
@@ -588,7 +573,6 @@
                 parent.children('.'+type+'-btn').removeClass('tb-sort-inactive');
                 self.sort[type] = true;
                 self.flatten(self.treeData.children, 0);
-                //console.log("Sorted ", counter);
             }
         };
 
@@ -642,7 +626,6 @@
          */
         this.refresh_range = function(begin){
             var len = self.visibleCache;
-            //console.log('vislen', len);
             var range = [];
             var counter = 0;
             self.visibleTop = begin;
@@ -690,7 +673,6 @@
             // get last shown item index and refresh view from that item onwards
             var lastIndex = self.showRange[self.options.showTotal-1];
             var last = self.visibleIndexes.indexOf(lastIndex);
-            //console.log("Last", last);
             if(last > -1 && last+1 < self.visibleCache){
                 self.refresh_range(last+1);
                 self.currentPage(self.currentPage()+1);
@@ -733,26 +715,21 @@
                 init: function() {
                     for (var i = 0; i < eventList.length; i++){
                         var ev = eventList[i];
-                        console.log("Event", ev, self.options.dropzone[ev]);
                         if(self.options.dropzone[ev]){
                             this.on(ev, function(arg) { self.options.dropzone[ev].call(self, arg); });
                         }
                     }
                 },
                 accept : function(file, done){
-    //              console.log("Accept this", this);
                     if(self.options.addcheck(self.droppedItem, file)){
                         $.when(self.options.resolve_upload_url(self.droppedItem))
                             .then(function(newUrl){
-                                console.log("then");
-
                                 if(newUrl){
                                     self.dropzone.url = newUrl;
                                 }
                                 return newUrl;
                             })
                             .done(function(){
-                                console.log("done");
                                 done();
                             });
                     } else {
@@ -764,29 +741,27 @@
                     var rowId =  $(event.target).closest('.tb-row').attr('data-id');
                     var item  = Indexes[rowId];
                     self.droppedItem = item;
-                    console.log("Drop item", item);
-    //                this.options.url = 'http://localhost/laravel/public/api/file/';
                 },
                 addedfile : function(file){
-                    console.log("Added this", this);
-                    console.log("Added file", file);
+//                    console.log("Added this", this);
+//                    console.log("Added file", file);
                 },
                 dragenter : function(event){
-                    console.log("dragging");
+//                    console.log("dragging");
                 },
                 success : function(file, response){
-                    console.log("response", response);
+//                    console.log("response", response);
                     var mockResponse = new Treebeard.model();
                     var mockTree = new Item(mockResponse);
-                    console.log("dropped", self.droppedItem);
+//                    console.log("dropped", self.droppedItem);
                     self.droppedItem.add(mockTree);
                     self.flatten(self.treeData.children, self.visibleTop);
 
                 },
                 sending : function(file, xhr, formData){
-                    console.log("file", file);
-                    console.log("Xhr", xhr);
-                    console.log("formData", formData);
+//                    console.log("file", file);
+//                    console.log("Xhr", xhr);
+//                    console.log("formData", formData);
                 }
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#'+self.options.divID, options );            // Initialize dropzone
@@ -826,9 +801,7 @@
         };
 
         this.loadData = function(data){
-            console.log('filesData', data);
             if (data instanceof Array){
-                console.log(self);
                 $.when(self.buildTree(data)).then(function(value){
                     self.treeData = value;
                     Indexes[0] = value;
@@ -843,7 +816,6 @@
                     .then(function(value){self.treeData = self.buildTree(value); })
                     .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
                     .then(function(){
-                        console.log("tree data", self.treeData);
                         self.calculate_visible();
                         self.calculate_height();
                     });
@@ -1093,7 +1065,6 @@
                 }
             },
             resolve_icon : function(item){     // Return a mithril m() object with the icon. Here the user can interject and add their own icons
-                console.log(item);
                 if(item.kind === "folder"){
                     return m("i.fa.fa-folder-o", " ");
                 }else {
