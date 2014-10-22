@@ -1,19 +1,22 @@
 {
-  "name": "mithrilgrid",
+  "name": "treebeard",
   "version": "0.1.0",
-  "homepage": "https://github.com/caneruguz/cm-mvc",
+  "homepage": "https://github.com/caneruguz/treebeard",
   "authors": [
-    "Caner Uguz <caneruguz@gmail.com>"
+    "Caner Uguz <caneruguz@gmail.com>",
+    "Faye Huynh"
   ],
-  "description": "Implementation of grid data display through Mithril",
-  "main": "index.html",
+  "description": "Hierarchical data renderer built with Mithril",
+  "main": "dist/treebeard.js",
   "keywords": [
+    "treebeard",
     "mithril",
     "grid",
-    "json"
+    "json",
+    "hierarchical"
   ],
-  "license": "MIT",
-  "private": true,
+  "license": "Apache 2",
+  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
@@ -23,7 +26,6 @@
   ],
   "dependencies": {
     "bootstrap": "~3.2.0",
-    "jquery-ui": "~1.11.0",
-    "jquery-mockjax": "~1.6.0"
+    "jquery-ui": "~1.11.0"
   }
 }

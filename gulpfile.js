@@ -4,6 +4,7 @@ var minifyCSS = require('gulp-minify-css');
 var less = require('gulp-less');
 var generate = require('./scripts/generate');
 var rename = require('gulp-rename');
+var uglify = require('gulp-uglify');
 
 var paths = {
     cssfiles : [
@@ -19,7 +20,6 @@ var paths = {
         "./node_modules/mithril/mithril.js",
         "./scripts/dropzone.js",
         "./scripts/grid.js"
-
     ],
     json : "./sample.json",
     less : "./less/*.less"
@@ -31,7 +31,7 @@ gulp.task('generate-max', function() {
         // pipe through plugin
         .pipe(generate(100000, 7))
         // set destination
-        .pipe(gulp.dest("./dist"));
+        .pipe(gulp.dest("./demo"));
 });
 
 gulp.task('generate-min', function() {
@@ -41,7 +41,7 @@ gulp.task('generate-min', function() {
         .pipe(generate(50, 6))
         .pipe(rename("small.json"))
         // set destination
-        .pipe(gulp.dest("./dist"));
+        .pipe(gulp.dest("./demo"));
 });
 
 
@@ -55,20 +55,45 @@ gulp.task('css', ["less"], function(){
     return gulp.src(paths.cssfiles)
         .pipe(concat('bundle.css'))
         .pipe(minifyCSS({keepBreaks:true}))
-        .pipe(gulp.dest('./dist/'));
+        .pipe(gulp.dest('./demo/'));
 });
 
 gulp.task('js', function(){
     return gulp.src(paths.jsfiles)
         .pipe(concat('bundle.js'))
-        .pipe(gulp.dest('./dist/'));
+        .pipe(gulp.dest('./demo/'));
 });
 
 gulp.task('watch', function() {
-    gulp.watch(paths.less, ['css']);
-    gulp.watch(paths.jsfiles, ['js']);
+    gulp.watch(paths.less, ['css', 'css-dist-min']);
+    gulp.watch(paths.jsfiles, ['js', 'js-dist-min']);
+});
 
+gulp.task('css-dist-min', ["less"], function(){
+    return gulp.src("./less/style.css")
+        .pipe(minifyCSS())
+        .pipe(rename("treebeard.min.css"))
+        .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('js-dist-min', function(){
+    return gulp.src('./scripts/grid.js')
+        .pipe(uglify())
+        .pipe(rename("treebeard.min.js"))
+        .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('css-dist-full', ["css-dist-min"], function(){
+    return gulp.src("./less/style.css")
+        .pipe(rename("treebeard.css"))
+        .pipe(gulp.dest('./dist'));
+});
+
+gulp.task('js-dist-full',  ["js-dist-min"], function(){
+    return gulp.src('./scripts/grid.js')
+        .pipe(rename("treebeard.js"))
+        .pipe(gulp.dest('./dist'));
 });
 
 
-gulp.task("default", ["css", "js", "watch"]);
+gulp.task("default", ["css", "js", "watch","js-dist-full", "css-dist-full" ]);
