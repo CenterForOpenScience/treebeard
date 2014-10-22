@@ -4263,7 +4263,11 @@ Treebeard.controller = function () {
             accept : function(file, done){
 //                console.log("Accept this", this);
 //                this.options.url = '/upload';
-                done();
+                if(self.options.addcheck(self.droppedItem, file)){
+                    done();
+                } else {
+                    alert("This isn't allowed");
+                }
             },
             drop : function(event){
                 // get item

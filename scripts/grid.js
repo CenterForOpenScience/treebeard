@@ -720,7 +720,11 @@ Treebeard.controller = function () {
             accept : function(file, done){
 //                console.log("Accept this", this);
 //                this.options.url = '/upload';
-                done();
+                if(self.options.addcheck(self.droppedItem, file)){
+                    done();
+                } else {
+                    alert("This isn't allowed");
+                }
             },
             drop : function(event){
                 // get item
@@ -963,7 +967,7 @@ Treebeard.view = function(ctrl){
 /*
  *  Starts treebard with user options;
  */
-Treebeard.run = function(element, options){
+Treebeard.run = function(divID, options){
     var self = this;
     Treebeard.options = $.extend({
         rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
@@ -973,6 +977,10 @@ Treebeard.run = function(element, options){
         lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
         uploads : true,         // Turns dropzone on/off.
         columns : [],           // Defines columns based on data
+        rewriteIcons : function(item){
+            //return html for icon or false if not used.
+            return false;
+        },
         deletecheck : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
             // this = Item to be deleted.
         },
@@ -1015,7 +1023,19 @@ Treebeard.run = function(element, options){
                 // item = item in the tree
                 // event = event
             }
+
+        },
+        calculateUrl : function(row){
+
+            return runapprCallback[row.addon]();
+
+            if(row.addon == s3){
+                s3urlcalculate.apply(this, arg);
+            }
+            ///
+
+            return row.urls.upload;
         }
     }, options);
-    m.module(element, Treebeard);
+    m.module(document.getElementById(divID), Treebeard);
 };
