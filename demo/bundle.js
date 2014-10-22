@@ -2942,7 +2942,7 @@ if (typeof exports == "object") {
             this.data = data;
             this.id = data.id || getUID();
         }
-        this.depth = null;
+        this.depth = 0;
         this.children =  [];
         this.parentID = null;
         this.kind = null;
@@ -2953,7 +2953,7 @@ if (typeof exports == "object") {
      */
     Item.prototype.add = function(component) {
         component.parentID = this.id;
-        component.depth = this.depth + 1;
+            component.depth = this.depth + 1;
         this.children.push(component);
         this.open = true;
         return this;
@@ -3112,11 +3112,7 @@ if (typeof exports == "object") {
                 }else{
                     children = data.children;
                 }
-                if (tree.depth){
-                    tree.depth = parent.depth+1;
-                }else{
-                    tree.depth = 0;
-                }
+                tree.depth = parent.depth+1;
                 tree.kind = data.kind;
             }
             if(children){
@@ -3670,6 +3666,8 @@ if (typeof exports == "object") {
                     .then(function(){
                         self.calculate_visible();
                         self.calculate_height();
+                        console.log("FlatData", self.flatData);
+                        console.log("treeData", self.treeData);
                     });
             }
         };
