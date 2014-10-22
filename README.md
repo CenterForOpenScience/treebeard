@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/caneruguz/treebeard/master/dist/treebeard.png" alt="Treebeard Logo"/>
+  <img src="https://raw.githubusercontent.com/caneruguz/treebeard/master/demo/treebeard.png" alt="Treebeard Logo"/>
 </p>
 <i style="text-align:center"> Logo designed by [fayetality](https://github.com/fayetality "fayetality")  </i>
 
