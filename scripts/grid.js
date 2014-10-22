@@ -505,20 +505,24 @@
             var len = self.flatData.length;
             var tree = Indexes[self.flatData[index].id];
             var item = self.flatData[index];
-            if (item.row.kind === "folder" && item.row.children.length === 0) {
+            if (self.options.lazyLoad && item.row.kind === "folder" && item.row.children.length === 0) {
                 // lazyloading
-                m.request({method: "GET", url: "small.json"})
-                    .then(function (value) {
-                        var child, i;
-                        for (i = 0; i < value.length; i++) {
-                            child = self.buildTree(value[i], tree);
-                            tree.add(child);
-                        }
-                        tree.data.open = true;
-                    })
-                    .then(function(){
-                        self.flatten(self.treeData.children, topIndex);
-                    });
+                $.when(self.options.resolve_lazyload_url(tree)).done(function(url){
+                    console.log('the url', url);
+                    m.request({method: "GET", url: url})
+                        .then(function (value) {
+                            var child, i;
+                            for (i = 0; i < value.length; i++) {
+                                child = self.buildTree(value[i], tree);
+                                tree.add(child);
+                            }
+                            tree.data.open = true;
+                        })
+                        .then(function(){
+                            self.flatten(self.treeData.children, topIndex);
+                        });
+                });
+
             } else {
                 var skip = false;
                 var skipLevel = item.depth;
@@ -1041,7 +1045,7 @@
             rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
-            paginateToggle : false,    // Show the buttons that allow users to switch between scroll and paginate. NOT YET IMPLEMENTED
+            paginateToggle : false,    // Show the buttons that allow users to switch between scroll and paginate.
             lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
             uploads : true,         // Turns dropzone on/off.
             columns : [],           // Defines columns based on data
@@ -1102,7 +1106,12 @@
             },
             resolve_upload_url : function(item){       // Allows the user to calculate the url of each individual row just before file add.
                 return "/upload";
+            },
+            resolve_lazyload_url : function(item){
+//                return item.data.urls.fetch;
+                return "small.json";
             }
+
         }, options);
         m.module(document.getElementById(Treebeard.options.divID), Treebeard);
     };
