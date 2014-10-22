@@ -736,8 +736,24 @@ Treebeard.controller = function () {
             },
             accept : function(file, done){
 //                console.log("Accept this", this);
-//                this.options.url = '/upload';
-                done();
+
+                if(self.options.addcheck(self.droppedItem, file)){
+                    $.when(self.options.calculateUrl(self.droppedItem))
+                        .then(function(newUrl){
+                            console.log("then");
+
+                            if(newUrl){
+                                self.dropzone.url = newUrl;
+                            }
+                            return newUrl;
+                        })
+                        .done(function(){
+                            console.log("done");
+                            done();
+                        });
+                } else {
+                    alert("This isn't allowed");
+                }
             },
             drop : function(event){
                 // get item
@@ -769,7 +785,7 @@ Treebeard.controller = function () {
                 console.log("formData", formData);
             }
         }, self.options.dropzone);           // Extend default options
-        self.dropzone = new Dropzone(self.options.divID, options );            // Initialize dropzone
+        self.dropzone = new Dropzone('#'+self.options.divID, options );            // Initialize dropzone
     };
 
     /*
@@ -992,6 +1008,10 @@ Treebeard.run = function(options){
         lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
         uploads : true,         // Turns dropzone on/off.
         columns : [],           // Defines columns based on data
+        rewriteIcons : function(item){
+            //return html for icon or false if not used.
+            return false;
+        },
         deletecheck : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
             // this = Item to be deleted.
         },
@@ -1034,6 +1054,10 @@ Treebeard.run = function(options){
                 // item = item in the tree
                 // event = event
             }
+
+        },
+        calculateUrl : function(item){
+            return "/upload";
         }
     }, options);
     m.module(document.getElementById(Treebeard.options.divID), Treebeard);

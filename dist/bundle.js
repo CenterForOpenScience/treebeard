@@ -3752,14 +3752,23 @@ Treebeard.model = function (level){
  */
 Treebeard.controller = function () {
     var self = this;
-    this.data = m.request({method: "GET", url: "small.json"})
-        .then(function(value){self.treeData = self.buildTree(value); })
-        .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
-        .then(function(){
-            console.log("tree data", self.treeData);
-            self.calculate_visible();
-            self.calculate_height();
-        });
+    this.loadData = function(data){
+        console.log('filesData', data);
+        if (data instanceof Array){
+            self.flatten(data,0);
+        } else {
+            this.data = m.request({method: "GET", url: data})
+            .then(function(value){self.treeData = self.buildTree(value); })
+                .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
+                .then(function(){
+                console.log("tree data", self.treeData);
+                self.calculate_visible();
+                self.calculate_height();
+            });
+        }
+    };
+
+    this.data = self.loadData(Treebeard.options.filesData);
     this.flatData = [];
     this.treeData = {};
     this.filterText = m.prop("");
@@ -3790,8 +3799,16 @@ Treebeard.controller = function () {
             children = data;
         } else {
             tree = new Item(data);
-            children = data.children;
-            tree.depth = parent.depth+1;
+            if(typeof data.data !== "undefined"){
+                children = data.data[0].children;
+            }else{
+                children = data.children;
+            }
+            if (tree.depth){
+                tree.depth = parent.depth+1;
+            }else{
+                tree.depth = 0;
+            }
             tree.kind = data.kind;
         }
         if(children){
@@ -4262,8 +4279,24 @@ Treebeard.controller = function () {
             },
             accept : function(file, done){
 //                console.log("Accept this", this);
-//                this.options.url = '/upload';
-                done();
+
+                if(self.options.addcheck(self.droppedItem, file)){
+                    $.when(self.options.calculateUrl(self.droppedItem))
+                        .then(function(newUrl){
+                            console.log("then");
+
+                            if(newUrl){
+                                self.dropzone.url = newUrl;
+                            }
+                            return newUrl;
+                        })
+                        .done(function(){
+                            console.log("done");
+                            done();
+                        });
+                } else {
+                    alert("This isn't allowed");
+                }
             },
             drop : function(event){
                 // get item
@@ -4295,7 +4328,7 @@ Treebeard.controller = function () {
                 console.log("formData", formData);
             }
         }, self.options.dropzone);           // Extend default options
-        self.dropzone = new Dropzone("#grid", options );            // Initialize dropzone
+        self.dropzone = new Dropzone('#'+self.options.divID, options );            // Initialize dropzone
     };
 
     /*
@@ -4392,14 +4425,9 @@ Treebeard.view = function(ctrl){
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-<<<<<<< HEAD
-                                            ctrl.options.onClickRow.call(Indexes[id]);
-                                            Pubsub.publish('itemclick', Indexes[id]);
-=======
                                             if(ctrl.options.onselectrow){
                                                 ctrl.options.onselectrow.call(Indexes[row.id]);
                                             }
->>>>>>> 8b13b94f42f729f8d9668fb3c8170be681fd6d80
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
                                             var cell;
@@ -4511,9 +4539,11 @@ Treebeard.view = function(ctrl){
 /*
  *  Starts treebard with user options;
  */
-Treebeard.run = function(element, options){
+Treebeard.run = function(options){
     var self = this;
     Treebeard.options = $.extend({
+        divID : "myGrid",
+        filesData : "small.json",
         rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
         showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
         paginate : false,       // Whether the applet starts with pagination or not.
@@ -4521,6 +4551,10 @@ Treebeard.run = function(element, options){
         lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
         uploads : true,         // Turns dropzone on/off.
         columns : [],           // Defines columns based on data
+        rewriteIcons : function(item){
+            //return html for icon or false if not used.
+            return false;
+        },
         deletecheck : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
             // this = Item to be deleted.
         },
@@ -4563,7 +4597,11 @@ Treebeard.run = function(element, options){
                 // item = item in the tree
                 // event = event
             }
+
+        },
+        calculateUrl : function(item){
+            return "/upload";
         }
     }, options);
-    m.module(element, Treebeard);
+    m.module(document.getElementById(Treebeard.options.divID), Treebeard);
 };
