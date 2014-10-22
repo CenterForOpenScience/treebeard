@@ -2705,8 +2705,8 @@ Treebeard.view = function(ctrl){
                                         style : "height: "+ctrl.options.rowHeight+"px;",
                                         onclick : function(){
                                             ctrl.set_detail_item(item);
-                                            ctrl.options.onClickRow.call(Indexes[row.id]);
-                                            Pubsub.publish('itemclick', Indexes[row.id]);
+                                            ctrl.options.onClickRow.call(Indexes[id]);
+                                            Pubsub.publish('itemclick', Indexes[id]);
                                         }}, [
                                         ctrl.options.columns.map(function(col, index) {
                                             var cell;
@@ -2730,11 +2730,11 @@ Treebeard.view = function(ctrl){
                                             if(col.actionIcons == true){
                                                 cell = m(".tb-td", { style : "width:"+col.width }, [
                                                     m("button.btn.btn-danger.btn-xs", {
-                                                        "data-id" : row.id,
+                                                        "data-id" : id,
                                                         onclick: function(){ctrl.delete_node(row.parent, id);}},
                                                         " X "),
                                                     m("button.btn.btn-success.btn-xs", {
-                                                        "data-id" : row.id,
+                                                        "data-id" : id,
                                                         onclick: function(){ ctrl.add_node(id);}
                                                     }," Add "),
                                                     m("button.btn.btn-info.btn-xs", {
