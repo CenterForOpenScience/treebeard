@@ -2870,6 +2870,10 @@ if (typeof exports == "object") {
     }
 }(this, function () {
 
+     function log(){
+
+     }
+
     // Create unique ids
     //
     var idCounter = 0;
@@ -2897,7 +2901,7 @@ if (typeof exports == "object") {
      // Sorts ascending based on any attribute on data
      //
     function AscByAttr (data) {
-        return function(a,b){
+        return function _compare(a,b){
             var titleA = a.data[data].toLowerCase().replace(/\s+/g, " ");
             var titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
             if (titleA < titleB){
@@ -2913,7 +2917,7 @@ if (typeof exports == "object") {
      // Sorts descending based on any attribute on data
      //
     function DescByAttr (data) {
-        return function(a,b){
+        return function _compare(a,b){
             var titleA = a.data[data].toLowerCase().replace(/\s/g, '');
             var titleB = b.data[data].toLowerCase().replace(/\s/g, '');
             if (titleA > titleB){
@@ -2945,7 +2949,7 @@ if (typeof exports == "object") {
 
      // Item constructor
      //
-    var Item = function(data) {
+    var Item = function _item(data) {
         if(data === undefined){
             this.data = {};
             this.id = getUID();
@@ -2961,7 +2965,7 @@ if (typeof exports == "object") {
 
      // Adds child item into the item
      //
-    Item.prototype.add = function(component) {
+    Item.prototype.add = function _item_add(component) {
         component.parentID = this.id;
             component.depth = this.depth + 1;
         this.children.push(component);
@@ -2971,7 +2975,7 @@ if (typeof exports == "object") {
 
      // Move item from one place to another
      //
-    Item.prototype.move = function(to){
+    Item.prototype.move = function _item_move(to){
         var toItem = Indexes[to];
         var parentID = this.parentID;
         var parent = Indexes[parentID];
@@ -2983,22 +2987,22 @@ if (typeof exports == "object") {
 
      // Deletes itself
      //
-    Item.prototype.remove_self = function(){
-            var parent = this.parentID;
+    Item.prototype.remove_self = function _item_remove_self(){
+            var parent = this.parent();
             var removed = removeByProperty(parent.children, 'id', this.id);
             return this;
     };
 
      // Deletes child, currently used for delete operations
      //
-    Item.prototype.remove_child = function(childID){
+    Item.prototype.remove_child = function _item_remove_child(childID){
         var removed = removeByProperty(this.children, 'id', childID);
         return this;
     };
 
      // Returns next sibling
      //
-    Item.prototype.next = function(){
+    Item.prototype.next = function _item_next(){
         var next, parent;
         parent = Indexes[this.parentID];
         for(var i =0; i < parent.children.length; i++){
@@ -3011,7 +3015,7 @@ if (typeof exports == "object") {
 
      // Returns previous sibling
      //
-    Item.prototype.prev = function(){
+    Item.prototype.prev = function _item_prev(){
         var prev, parent;
         parent = Indexes[this.parentID];
         for(var i =0; i < parent.children.length; i++){
@@ -3024,7 +3028,7 @@ if (typeof exports == "object") {
 
      // Returns single child based on id
      //
-    Item.prototype.child = function(id){
+    Item.prototype.child = function _item_child(id){
         var child;
         for(var i =0; i < this.children.length; i++){
             if(this.children[i].id === id){
@@ -3036,11 +3040,11 @@ if (typeof exports == "object") {
 
      // Returns parent directly above
      //
-    Item.prototype.parent = function(){
+    Item.prototype.parent = function _item_parent(){
         return Indexes[this.parentID];
     };
 
-    Item.prototype.sort_children = function(type, attr){
+    Item.prototype.sort_children = function _item_sort(type, attr){
         if(type === "asc"){
             this.children.sort(AscByAttr(attr));
         }
@@ -3055,7 +3059,7 @@ if (typeof exports == "object") {
 
      // An example of the data model, used for demo.
      //
-    Treebeard.model = function (level){
+    Treebeard.model = function _treebeard_model(level){
         return {
             id : Math.floor(Math.random()*(10000)),
             load : true,
@@ -3073,7 +3077,7 @@ if (typeof exports == "object") {
 
      // Grid methods
      //
-    Treebeard.controller = function () {
+    Treebeard.controller = function _treebeard_controller() {
         // private variables 
         var self = this;        // Treebard.controller
         var _filterOn = false;  // Filter state for use across the app
@@ -3178,7 +3182,7 @@ if (typeof exports == "object") {
             if (isInit) { return; }
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight/self.options.rowHeight);
-            $('#tb-tbody').scroll(function(){
+            $('#tb-tbody').scroll(function _scroll_hook(){
                 var scrollTop = $(this).scrollTop();                    // get current scroll top
                 var diff = scrollTop - _lastLocation;                    //Compare to last scroll location
                 if (diff > 0 && diff < self.options.rowHeight){         // going down, increase index
@@ -3197,13 +3201,20 @@ if (typeof exports == "object") {
                 m.redraw(true);
                 _lastLocation = scrollTop;
             });
+            if(self.options.allowMove){
+                move_on();
+            }
+            if(self.options.uploads){ _apply_dropzone(); }
+        };
+
+        function move_on (){
             $(".td-title").draggable({ helper: "clone" });
             $(".tb-row").droppable({
                 tolerance : "touch",
                 cursor : "move",
                 out: function ui_out( event, ui ) {
-                   $('.tb-row.tb-h-success').removeClass('tb-h-success');
-                   $('.tb-row.tb-h-error').removeClass('tb-h-error');
+                    $('.tb-row.tb-h-success').removeClass('tb-h-success');
+                    $('.tb-row.tb-h-error').removeClass('tb-h-error');
                 },
                 over: function _ui_over( event, ui ) {
                     var to = $(this).attr("data-id");
@@ -3222,30 +3233,40 @@ if (typeof exports == "object") {
                     var toItem = Indexes[to];
                     var item = Indexes[from];
                     if(to !== from){
-                        if(self.options.movecheck(toItem, item)){
+                        if(self.options.movecheck.call(self, toItem, item)){
                             item.move(to);
                             self.flatten(self.treeData.children, self.visibleTop);
+                            if(self.options.onmove){
+                                self.options.onmove(toItem, item);
+                            }
                         } else {
                             alert("You can't move your item here.");
                         }
                     }
-                    if(self.options.onmove){
-                        self.options.onmove(toItem, item);
-                    }
+
                 }
             });
-            if(self.options.uploads){ _apply_dropzone(); }
-        };
-
+        }
+        function move_off (){
+            $(".td-title").draggable("destroy");
+            $(".tb-row").droppable("destroy");
+        }
          // Deletes item from tree and refreshes view
          //
         this.delete_node = function _delete_node(parentID, itemID  ){
-            var parent = Indexes[parentID];
-            parent.remove_child(itemID);
-            if(self.options.ondelete){
-                self.options.ondelete.call(parent);
-            }
-            self.flatten(self.treeData.children, self.visibleTop);
+            var item = Indexes[itemID];
+            var itemcopy = $.extend({}, item);
+            $.when(self.options.deletecheck(item)).done(function _resolve_delete_check(check){
+                if(check){
+                    var parent = Indexes[parentID];
+                    parent.remove_child(itemID);
+                    self.flatten(self.treeData.children, self.visibleTop);
+                    if(self.options.ondelete) {
+                        self.options.ondelete.call(self, itemcopy);
+                    }
+                }
+            });
+
         };
 
          // Adds a new node;
@@ -3298,9 +3319,10 @@ if (typeof exports == "object") {
                 _calculate_visible(0);
                 _calculate_height();
                 m.redraw(true);
-                // restore location of scroll
-                $('#tb-tbody').scrollTop(_lastNonFilterLocation);
-                self.options.onfilterreset(filter);
+                $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
+                if(self.options.onfilterreset){
+                    self.options.onfilterreset.call(self, filter);
+                }
             } else {
                 if(!_filterOn){
                     _filterOn = true;
@@ -3313,21 +3335,22 @@ if (typeof exports == "object") {
                 _calculate_visible(index);
                 _calculate_height();
                 m.redraw(true);
-                self.options.onfilter(filter);
-
+                if(self.options.onfilter){
+                    self.options.onfilter.call(self, filter);
+                }
             }
         };
 
          // Toggles whether a folder is collapes or open
          //
-        this.toggle_folder = function _toggle_folder(topIndex, index) {
+        this.toggle_folder = function _toggle_folder(topIndex, index, event) {
             var len = self.flatData.length;
             var tree = Indexes[self.flatData[index].id];
             var item = self.flatData[index];
             if (self.options.lazyLoad && item.row.kind === "folder" && item.row.children.length === 0) {
-                $.when(self.options.resolve_lazyload_url(tree)).done(function(url){
+                $.when(self.options.resolve_lazyload_url(self, tree)).done(function _resolve_lazyload_done(url){
                     m.request({method: "GET", url: url})
-                        .then(function (value) {
+                        .then(function _geturl_buildtree(value) {
                             var child, i;
                             for (i = 0; i < value.length; i++) {
                                 child = self.build_tree(value[i], tree);
@@ -3335,7 +3358,7 @@ if (typeof exports == "object") {
                             }
                             tree.data.open = true;
                         })
-                        .then(function(){
+                        .then(function _geturl_flatten(){
                             self.flatten(self.treeData.children, topIndex);
                         });
                 });
@@ -3364,7 +3387,7 @@ if (typeof exports == "object") {
                 m.redraw(true);
             }
             if(self.options.ontogglefolder){
-                self.options.ontogglefolder.call(tree);
+                self.options.ontogglefolder.call(self, tree, event);
             }
         };
 
@@ -3380,7 +3403,7 @@ if (typeof exports == "object") {
             if(!_sort[type]){
                var counter = 0;
                var recursive = function redo(data){
-                    data.map( function(item){
+                    data.map( function _map_toggle(item){
                         item.sort_children(type, field);
                         if(item.children.length > 0 ){ redo(item.children); }
                         counter++;
@@ -3493,7 +3516,6 @@ if (typeof exports == "object") {
          //
         this.page_down = function _page_down(){
             var firstIndex = self.showRange[0];
-            // var visibleArray = self.visibleIndexes.map(function(visIndex){return visIndex;});
             var first = self.visibleIndexes.indexOf(firstIndex);
             if(first && first > 0) {
                 self.refresh_range(first - self.options.showTotal);
@@ -3503,12 +3525,10 @@ if (typeof exports == "object") {
 
          // During pagination jumps to specific page
          //
-        this.jump_to_page = function _jump_to_page(e){
-            var value = parseInt(e.target.value);
-            if(value && value > 0 && value <= (Math.ceil(self.visibleIndexes.length/self.options.showTotal))){
-                m.withAttr("value", self.currentPage)(e);
-                var page = parseInt(self.currentPage());
-                var index = (self.options.showTotal*(page-1));
+        this.go_to_page = function _go_to_page(value){
+            if(value && value > 0 && value <= (Math.ceil(self.visibleIndexes.length/self.options.showTotal))) {
+                var index = (self.options.showTotal * (value - 1));
+                self.currentPage(value);
                 self.refresh_range(index);
             }
         };
@@ -3517,26 +3537,28 @@ if (typeof exports == "object") {
          //
         function _apply_dropzone(){
             if(self.dropzone){ _destroy_dropzone(); }               // Destroy existing dropzone setup
-            var eventList = ["drop", "dragstart","dragend","dragenter","dragover", "dragleave","addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending","success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"];
+            var eventList = ["drop", "dragstart", "dragend", "dragenter", "dragover", "dragleave", "addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending", "success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"];
             var options = $.extend({
                 init: function _dz_init() {
                     for (var i = 0; i < eventList.length; i++){
                         var ev = eventList[i];
                         if(self.options.dropzone[ev]){
-                            this.on(ev, function(arg) { self.options.dropzone[ev].call(self, arg); });
+                            var dropzone = this;
+                            this.on(ev, function(arg) { self.options.dropzone[ev].call(dropzone, self, arg); });
                         }
                     }
                 },
                 accept : function _dz_accept(file, done){
-                    if(self.options.addcheck(self.droppedItem, file)){
-                        $.when(self.options.resolve_upload_url(self.droppedItem))
-                            .then(function(newUrl){
+                    console.log("Accept", this, self, file);
+                    if(self.options.addcheck.call(this, self, self.droppedItem, file)){
+                        $.when(self.options.resolve_upload_url.call(self, self.droppedItem))
+                            .then(function _resolve_upload_url_then(newUrl){
                                 if(newUrl){
                                     self.dropzone.url = newUrl;
                                 }
                                 return newUrl;
                             })
-                            .done(function(){
+                            .done(function _resolve_upload_url_done(){
                                 done();
                             });
                     } else {
@@ -3553,10 +3575,13 @@ if (typeof exports == "object") {
                     var mockTree = new Item(mockResponse);
                     self.droppedItem.add(mockTree);
                     self.flatten(self.treeData.children, self.visibleTop);
+                    if(self.options.onadd){
+                        self.options.onadd.call(this, self, self.droppedItem, file, response);
+                    }
                 }                
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#'+self.options.divID, options );            // Initialize dropzone
-        };
+        }
 
          // Remove dropzone from grid
          //
@@ -3566,20 +3591,24 @@ if (typeof exports == "object") {
 
         function _load_data(data){
             if (data instanceof Array){
-                $.when(self.build_tree(data)).then(function(value){
+                $.when(self.build_tree(data)).then(function _buildtree_then(value){
                     self.treeData = value;
                     Indexes[0] = value;
                     self.flatten(self.treeData.children);
                     return value;
-                }).done(function(){
+                }).done(function _buildtree_done(){
                     _calculate_visible();
                     _calculate_height();
                 });
             } else {
-                this.data = m.request({method: "GET", url: data})
-                    .then(function(value){self.treeData = self.build_tree(value); })
-                    .then(function(){ Indexes[0] = self.treeData; self.flatten(self.treeData.children);})
-                    .then(function(){
+                m.request({method: "GET", url: data})
+                    .then(function _request_buildtree(value){
+                        self.treeData = self.build_tree(value);
+                    })
+                    .then(function _request_flatten(){
+                        Indexes[0] = self.treeData; self.flatten(self.treeData.children);
+                    })
+                    .then(function _request_calculate(){
                         _calculate_visible();
                         _calculate_height();
                         console.log("FlatData", self.flatData);
@@ -3587,10 +3616,10 @@ if (typeof exports == "object") {
                     });
             }
         }
-        this.data = _load_data(Treebeard.options.filesData);
+        _load_data(Treebeard.options.filesData);
     };
 
-    Treebeard.view = function(ctrl){
+    Treebeard.view = function treebeard_view(ctrl){
         console.log(ctrl.showRange);
         return [
             m('.gridWrapper.row', {config : ctrl.init},  [
@@ -3619,7 +3648,7 @@ if (typeof exports == "object") {
                             }
                         }()),
                         m(".tb-row-titles.m-t-md", [
-                            ctrl.options.columns.map(function(col){
+                            ctrl.options.columns.map(function _map_column_titles(col){
                                 var sortView = "";
                                 if(col.sort){
                                     sortView =  [
@@ -3640,11 +3669,10 @@ if (typeof exports == "object") {
                         m("#tb-tbody", [
                             m('.tb-tbody-inner', [
                                 m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
-                                    ctrl.showRange.map(function(item, index){
+                                    ctrl.showRange.map(function _map_range_view(item, index){
                                         var indent = ctrl.flatData[item].depth;
                                         var id = ctrl.flatData[item].id;
                                         var row = ctrl.flatData[item].row;
-                                        //var cols = ctrl.options.columns;
                                         var padding, css;
                                         if(ctrl.filterOn){
                                             padding = 0;
@@ -3659,44 +3687,53 @@ if (typeof exports == "object") {
                                             "data-index": item,
                                             "data-rIndex": index,
                                             style : "height: "+ctrl.options.rowHeight+"px;",
-                                            onclick : function(){
+                                            onclick : function _row_click(event){
                                                 ctrl.selected = id;
                                                 if(ctrl.options.onselectrow){
-                                                    ctrl.options.onselectrow.call(Indexes[row.id]);
+                                                    ctrl.options.onselectrow.call(ctrl, Indexes[row.id], event);
                                                 }
                                             }}, [
-                                            ctrl.options.columns.map(function(col, index) {
+                                            ctrl.options.columns.map(function _map_columns_content(col) {
                                                 var cell;
-
                                                 cell = m(".tb-td", { style : "width:"+col.width }, [
                                                     m('span', row[col.data])
                                                 ]);
-
                                                 if(col.folderIcons === true){
                                                    cell = m(".tb-td.td-title", {
                                                         "data-id" : id,
                                                         style : "padding-left: "+padding+"px; width:"+col.width },  [
                                                         m("span.tdFirst", {
-                                                            onclick: function(){ ctrl.toggle_folder(ctrl.visibleTop, item);}
-                                                            },
+                                                            onclick: function _folder_toggle_click(event){
+                                                                ctrl.toggle_folder(ctrl.visibleTop, item, event);
+                                                            }},
                                                             (function _toggle_view(){
                                                                 var itemTree = Indexes[row.id];
                                                                 if(row.children.length > 0 || row.kind === "folder"){
                                                                     if(row.children.length > 0 && row.open){
                                                                         return [
-                                                                            m("span.expand-icon-holder", m("i.fa.fa-minus-square-o", " ")),
-                                                                            m("span.expand-icon-holder", ctrl.options.resolve_icon(itemTree))
+                                                                            m("span.expand-icon-holder",
+                                                                                m("i.fa.fa-minus-square-o", " ")
+                                                                            ),
+                                                                            m("span.expand-icon-holder",
+                                                                                ctrl.options.resolve_icon.call(self, itemTree)
+                                                                            )
                                                                         ];
                                                                     } else {
                                                                         return [
-                                                                            m("span.expand-icon-holder", m("i.fa.fa-plus-square-o", " ")),
-                                                                            m("span.expand-icon-holder", ctrl.options.resolve_icon(itemTree))
+                                                                            m("span.expand-icon-holder",
+                                                                                m("i.fa.fa-plus-square-o", " ")
+                                                                            ),
+                                                                            m("span.expand-icon-holder",
+                                                                                ctrl.options.resolve_icon.call(self, itemTree)
+                                                                            )
                                                                         ];
                                                                     }
                                                                 } else {
                                                                     return [
                                                                         m("span.expand-icon-holder"),
-                                                                        m("span.expand-icon-holder", ctrl.options.resolve_icon(itemTree))
+                                                                        m("span.expand-icon-holder",
+                                                                            ctrl.options.resolve_icon.call(self, itemTree)
+                                                                        )
                                                                     ];
                                                                 }
                                                             }())
@@ -3704,33 +3741,25 @@ if (typeof exports == "object") {
                                                         m("span.title-text", row[col.data]+" ")
                                                    ]);
                                                 }
-
                                                 if(col.actionIcons === true){
                                                     cell = m(".tb-td", { style : "width:"+col.width }, [
                                                         m("button.btn.btn-danger.btn-xs", {
                                                             "data-id" : id,
-                                                            onclick: function(){ctrl.delete_node(row.parent, id);}},
+                                                            onclick: function _delete_click(){
+                                                                ctrl.delete_node(row.parent, id);
+                                                            }},
                                                             " X "),
                                                         m("button.btn.btn-success.btn-xs", {
                                                             "data-id" : id,
-                                                            onclick: function(){ ctrl.add_node(id);}
-                                                        }," Add "),
-                                                        m("button.btn.btn-info.btn-xs", {
-                                                                "data-id" : id,
-                                                                onclick: function(){
-                                                                    var selector = '.tb-row[data-id="'+id+'"]';
-                                                                    $(selector).css('font-weight', 'bold');
-                                                                }},
-                                                            "?")
+                                                            onclick: function _add_click(){ ctrl.add_node(id);}
+                                                        }," Add ")
                                                     ]);
                                                 }
-
                                                 if(col.custom){
                                                     cell = m(".tb-td", { style : "width:"+col.width }, [
                                                         col.custom.call(row, col)
                                                     ]);
                                                 }
-
                                                 return cell;
                                             })
 
@@ -3745,7 +3774,7 @@ if (typeof exports == "object") {
                                 return m('.tb-footer', [
                                     m(".row", [
                                         m(".col-xs-4",
-                                            (function() {
+                                            (function _show_paginate_toggle() {
                                                 if (ctrl.options.paginateToggle) {
                                                     return m('.btn-group.padder-10', [
                                                         m("button.btn.btn-default.btn-sm.active.tb-scroll",
@@ -3759,8 +3788,10 @@ if (typeof exports == "object") {
                                             }())
                                         ),
                                         m('.col-xs-8', [ m('.padder-10', [
-                                            (function(){
+                                            (function _show_paginate(){
                                                 if(ctrl.options.paginate){
+                                                    var total_visible = ctrl.visibleIndexes.length;
+                                                    var total = Math.ceil(total_visible/ctrl.options.showTotal);
                                                     return m('.pull-right', [
                                                         m('button.btn.btn-default.btn-sm',
                                                             { onclick : ctrl.page_down},
@@ -3769,11 +3800,14 @@ if (typeof exports == "object") {
                                                             {
                                                                 type : "text",
                                                                 style : "width: 30px;",
-                                                                onkeyup: ctrl.jump_to_page,
+                                                                onkeyup: function(e){
+                                                                    var page = parseInt(e.target.value);
+                                                                    ctrl.go_to_page(page);
+                                                                },
                                                                 value : ctrl.currentPage()
                                                             }
                                                         ),
-                                                        m('span', "/ "+Math.ceil(ctrl.visibleIndexes.length/ctrl.options.showTotal)+" "),
+                                                        m('span', "/ "+total+" "),
                                                         m('button.btn.btn-default.btn-sm',
                                                             { onclick : ctrl.page_up},
                                                             [ m('i.fa.fa-chevron-right')
@@ -3796,7 +3830,7 @@ if (typeof exports == "object") {
 
      // Starts treebard with user options;
      //
-    Treebeard.run = function(options){
+    Treebeard.run = function _treebeard_run(options){
         Treebeard.options = $.extend({
             divID : "myGrid",
             filesData : "small.json",
@@ -3804,61 +3838,82 @@ if (typeof exports == "object") {
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
-            lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
+            lazyLoad : false,       // If true should not load the sub contents of unopen files.
             uploads : true,         // Turns dropzone on/off.
             columns : [],           // Defines columns based on data
-            showFilter : false,     // Gives the option to filter by showing the filter box.
+            showFilter : true,     // Gives the option to filter by showing the filter box.
             title : false,          // Title of the grid, boolean, string OR function that returns a string.
+            allowMove : true,       // Turn moving on or off.
             onfilter : function(filterText){   // Fires on keyup when filter text is changed.
-
+                // this = treebeard object;
+                // filterText = the value of the filtertext input box.
+                console.log("on filter: this", this, 'filterText', filterText);
             },
             onfilterreset : function(filterText){   // Fires when filter text is cleared.
-
+                // this = treebeard object;
+                // filterText = the value of the filtertext input box.
+                console.log("on filter reset: this", this, 'filterText', filterText);
             },
-            deletecheck : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
-                // this = Item to be deleted.
+            deletecheck : function(item){  // When user attempts to delete a row, allows for checking permissions etc.
+                // this = treebeard object;
+                // item = Item to be deleted.
             },
             ondelete : function(){  // When row is deleted successfully
-                // this = parent of deleted row
+                // this = treebeard object;
+                // item = a shallow copy of the item deleted, not a reference to the actual item
                 console.log("ondelete", this);
             },
-            movecheck : function(to, from){
-                // This method gives the users an option to do checks and define their return
-
+            movecheck : function(to, from){ //This method gives the users an option to do checks and define their return
+                // this = treebeard object;
+                // from = item that is being moved
+                // to = the target location
                 console.log("movecheck: to", to, "from", from);
                 return true;
             },
             onmove : function(to, from){  // After move happens
+                // this = treebeard object;
                 // to = actual tree object we are moving to
                 // from = actual tree object we are moving
                 console.log("onmove: to", to, "from", from);
             },
-            addcheck : function(item, file){
+            addcheck : function(treebeard, item, file){
+                // this = dropzone object
+                // treebeard = treebeard object
                 // item = item to be added to
-                // info about the file being added
+                // file = info about the file being added
+                console.log("Add check", this, treebeard, item, file);
                 return true;
             },
-            onadd : function(item, response){
-                // item = item that just received the added content
-                // response : what's returned from the server
+            onadd : function(treebeard, item, file, response){
+                // this = dropzone object;
+                // item = item the file was added to
+                // file = file that was added
+                // response = what's returned from the server
+                console.log("On add", this, treebeard, item, file, response);
             },
-            onselectrow : function(){
-                // this = row
-                console.log("onselectrow", this);
+            onselectrow : function(row, event){
+                // this = dropzone object
+                // row = item selected
+                // event = mouse click event object
+                console.log("onselectrow", this, row, event);
             },
-            ontogglefolder : function(){
-                // this = toggled folder
-                console.log("ontogglefolder", this);
+            ontogglefolder : function(item, event){
+                // this = dropzone object
+                // item = toggled folder item
+                // event = mouse click event object
+                console.log("ontogglefolder", this, item, event);
             },
             dropzone : {            // All dropzone options.
-                url: "http://www.torrentplease.com/dropzone.php",  // Users provide single URL, if they need to generate url dynamicaly they can use the events.
-                dropend : function(item, event){     // An example dropzone event to override.
+                url: "http://www.torrentplease.com/dropzone.php",  // When users provide single URL for all uploads
+                dragstart : function(treebeard, event){     // An example dropzone event to override.
                     // this = dropzone object
-                    // item = item in the tree
-                    // event = event
+                    // treebeard = treebeard object
+                    // event = event passed in
                 }
             },
-            resolve_icon : function(item){     // Return a mithril m() object with the icon. Here the user can interject and add their own icons
+            resolve_icon : function(item){     //Here the user can interject and add their own icons, uses m()
+                // this = treebeard object;
+                // Item = item acted on
                 if(item.kind === "folder"){
                     return m("i.fa.fa-folder-o", " ");
                 }else {
@@ -3869,11 +3924,14 @@ if (typeof exports == "object") {
                     }
                 }
             },
-            resolve_upload_url : function(item){       // Allows the user to calculate the url of each individual row just before file add.
+            resolve_upload_url : function(item){  // Allows the user to calculate the url of each individual row
+                // this = treebeard object;
+                // Item = item acted on
                 return "/upload";
             },
             resolve_lazyload_url : function(item){
-//                return item.data.urls.fetch;
+                // this = treebeard object;
+                // Item = item acted on
                 return "small.json";
             }
 
