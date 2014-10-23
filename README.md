@@ -23,7 +23,7 @@ Remember to reference the required files through bower_components.
 You can also just take the files in `/dist` folder. You need the css and js files, either minified or in full and add them to your project page.
 
 ```html
-<link rel="stylesheet" href="dist/treebeard.css" type="text/css" />
+<link rel="stylesheet" href="path/to/treebeard.css" type="text/css" />
 <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="path/to/mithril.js"></script>
 <script src="path/to/treebeard.js"></script>
@@ -44,15 +44,15 @@ Begin by cloning the project in any way that support your work flow, then go to 
 
 For NPM:
 
-```npm install```
+    npm install
 
 for Bower 
 
-```bower install```
+    bower install
 
 then run gulp like this 
 
-``` gulp ```
+    gulp 
 
 Gulp will be watching for changes in the CSS, LESS and JS files so any time you change the distribution folder will be automatically regenerated. 
 
@@ -61,4 +61,4 @@ If you would like a simple server instance for this app you can install http-ser
 https://www.npmjs.org/package/http-server
 Install with NPM:
 
-``` npm install http-server ```
+    npm install http-server
