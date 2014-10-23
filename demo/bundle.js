@@ -3670,6 +3670,10 @@ if (typeof exports == "object") {
                             m('.tb-tbody-inner', [
                                 m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
                                     ctrl.showRange.map(function _map_range_view(item, index){
+                                        var oddEvenClass = "tb-odd";
+                                        if(index % 2 === 0){
+                                            oddEvenClass = "tb-even";
+                                        }
                                         var indent = ctrl.flatData[item].depth;
                                         var id = ctrl.flatData[item].id;
                                         var row = ctrl.flatData[item].row;
@@ -3681,7 +3685,7 @@ if (typeof exports == "object") {
                                         }
                                         if(id === ctrl.selected){ css = "tb-row-active"; } else { css = ""; }
                                         return  m(".tb-row", {
-                                            "class" : css,
+                                            "class" : css + " " + oddEvenClass,
                                             "data-id" : id,
                                             "data-level": indent,
                                             "data-index": item,
