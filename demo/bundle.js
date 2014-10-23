@@ -3080,7 +3080,6 @@ if (typeof exports == "object") {
     Treebeard.controller = function _treebeard_controller() {
         // private variables 
         var self = this;        // Treebard.controller
-        var _filterOn = false;  // Filter state for use across the app
         var _sort = { asc : false, desc : false, column : "" }; // Temp variables for sorting
         var _lastLocation = 0; // The last scrollTop location, updates on every scroll.
         var _lastNonFilterLocation = 0; //The last scrolltop location before filter was used.
@@ -3099,8 +3098,9 @@ if (typeof exports == "object") {
         this.currentPage = m.prop(1); // for pagination
         this.dropzone = null;       // Treebeard's own dropzone object
         this.droppedItem = {};      // Cache of the dropped item 
-        
-         // Rebuilds the tree data with an API
+        this.filterOn = false;  // Filter state for use across the app
+
+        // Rebuilds the tree data with an API
          //
         this.build_tree = function _build_tree(data, parent){
             var tree, children, len, child;
@@ -3315,7 +3315,7 @@ if (typeof exports == "object") {
             m.withAttr("value", self.filterText)(e);
             var filter = self.filterText().toLowerCase();
             if(filter.length === 0){
-                _filterOn = false;
+                self.filterOn = false;
                 _calculate_visible(0);
                 _calculate_height();
                 m.redraw(true);
@@ -3324,8 +3324,8 @@ if (typeof exports == "object") {
                     self.options.onfilterreset.call(self, filter);
                 }
             } else {
-                if(!_filterOn){
-                    _filterOn = true;
+                if(!self.filterOn){
+                    self.filterOn = true;
                     _lastNonFilterLocation = _lastLocation;
                 }
                 var index = self.visibleTop;
@@ -3441,7 +3441,7 @@ if (typeof exports == "object") {
             self.visibleIndexes = [];
             for ( var i = 0; i < len; i++){
                 var o = self.flatData[i].row;
-                if(_filterOn){
+                if(self.filterOn){
                     if(_row_filter_result(o)) {
                         total++;
                         self.visibleIndexes.push(i);
