@@ -16,7 +16,9 @@
     "mithril": "^0.1.22",
     "through2": "^0.5.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "qunitjs": "^1.15.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
