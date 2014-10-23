@@ -770,207 +770,205 @@
     Treebeard.view = function treebeard_view(ctrl){
         console.log(ctrl.showRange);
         return [
-            m('.gridWrapper.row', {config : ctrl.init},  [
-                m('.col-sm-8', [
-                    m(".tb-table", [
-                        (function ShowHeadA(){
-                            if(ctrl.options.showFilter || ctrl.options.title){
-                               return m('.tb-head',[
-                                   m(".row", [
-                                       m(".col-xs-6", [
-                                           m("h3.tb-grid-title", FunctionOrString(ctrl.options.title))
-                                       ]),
-                                       m(".col-xs-6", [
-                                           (function ShowFilterA(){
-                                               if(ctrl.options.showFilter){
-                                                   return m("input.form-control[placeholder='filter'][type='text']",{
-                                                           style:"width:100%;display:inline;",
-                                                           onkeyup: ctrl.filter,
-                                                           value : ctrl.filterText()}
-                                                   );
-                                               }
-                                           }())
-                                       ])
-                                   ])
-                               ]);
+            m('.gridWrapper', {config : ctrl.init},  [
+                m(".tb-table", [
+                    (function ShowHeadA(){
+                        if(ctrl.options.showFilter || ctrl.options.title){
+                           return m('.tb-head',[
+                               m(".tb-head-title", [
+                                   m("h3", FunctionOrString(ctrl.options.title))
+                               ]),
+                               m(".tb-head-filter", [
+                                   (function ShowFilterA(){
+                                       if(ctrl.options.showFilter){
+                                           return m("input.form-control[placeholder='filter'][type='text']",{
+                                                   style:"width:100%;display:inline;",
+                                                   onkeyup: ctrl.filter,
+                                                   value : ctrl.filterText()}
+                                           );
+                                       }
+                                   }())
+                               ])
+                           ]);
+                        }
+                    }()),
+                    m(".tb-row-titles", [
+                        ctrl.options.columns.map(function _map_column_titles(col){
+                            var sortView = "";
+                            if(col.sort){
+                                sortView =  [
+                                     m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
+                                         onclick: ctrl.ascToggle, "data-direction": "asc", "data-field" : col.data
+                                     }),
+                                     m('i.fa.fa-sort-desc.tb-sort-inactive.desc-btn', {
+                                         onclick: ctrl.ascToggle, "data-direction": "desc", "data-field" : col.data
+                                     })
+                                ];
                             }
-                        }()),
-                        m(".tb-row-titles.m-t-md", [
-                            ctrl.options.columns.map(function _map_column_titles(col){
-                                var sortView = "";
-                                if(col.sort){
-                                    sortView =  [
-                                         m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
-                                             onclick: ctrl.ascToggle, "data-direction": "asc", "data-field" : col.data
-                                         }),
-                                         m('i.fa.fa-sort-desc.tb-sort-inactive.desc-btn', {
-                                             onclick: ctrl.ascToggle, "data-direction": "desc", "data-field" : col.data
-                                         })
-                                    ];
-                                }
-                                return m('.tb-th', { style : "width: "+ col.width }, [
-                                    m('span.padder-10', col.title),
-                                    sortView
-                                ]);
-                            })
-                        ]),
-                        m("#tb-tbody", [
-                            m('.tb-tbody-inner', [
-                                m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
-                                    ctrl.showRange.map(function _map_range_view(item, index){
-                                        var indent = ctrl.flatData[item].depth;
-                                        var id = ctrl.flatData[item].id;
-                                        var row = ctrl.flatData[item].row;
-                                        var padding, css;
-                                        if(ctrl.filterOn){
-                                            padding = 0;
-                                        } else {
-                                            padding = indent*20;
-                                        }
-                                        if(id === ctrl.selected){ css = "tb-row-active"; } else { css = ""; }
-                                        return  m(".tb-row", {
-                                            "class" : css,
-                                            "data-id" : id,
-                                            "data-level": indent,
-                                            "data-index": item,
-                                            "data-rIndex": index,
-                                            style : "height: "+ctrl.options.rowHeight+"px;",
-                                            onclick : function _row_click(event){
-                                                ctrl.selected = id;
-                                                if(ctrl.options.onselectrow){
-                                                    ctrl.options.onselectrow.call(ctrl, Indexes[row.id], event);
-                                                }
-                                            }}, [
-                                            ctrl.options.columns.map(function _map_columns_content(col) {
-                                                var cell;
-                                                cell = m(".tb-td", { style : "width:"+col.width }, [
-                                                    m('span', row[col.data])
-                                                ]);
-                                                if(col.folderIcons === true){
-                                                   cell = m(".tb-td.td-title", {
-                                                        "data-id" : id,
-                                                        style : "padding-left: "+padding+"px; width:"+col.width },  [
-                                                        m("span.tdFirst", {
-                                                            onclick: function _folder_toggle_click(event){
-                                                                ctrl.toggle_folder(ctrl.visibleTop, item, event);
-                                                            }},
-                                                            (function _toggle_view(){
-                                                                var itemTree = Indexes[row.id];
-                                                                if(row.children.length > 0 || row.kind === "folder"){
-                                                                    if(row.children.length > 0 && row.open){
-                                                                        return [
-                                                                            m("span.expand-icon-holder",
-                                                                                m("i.fa.fa-minus-square-o", " ")
-                                                                            ),
-                                                                            m("span.expand-icon-holder",
-                                                                                ctrl.options.resolve_icon.call(self, itemTree)
-                                                                            )
-                                                                        ];
-                                                                    } else {
-                                                                        return [
-                                                                            m("span.expand-icon-holder",
-                                                                                m("i.fa.fa-plus-square-o", " ")
-                                                                            ),
-                                                                            m("span.expand-icon-holder",
-                                                                                ctrl.options.resolve_icon.call(self, itemTree)
-                                                                            )
-                                                                        ];
-                                                                    }
+                            return m('.tb-th', { style : "width: "+ col.width }, [
+                                m('span.padder-10', col.title),
+                                sortView
+                            ]);
+                        })
+                    ]),
+                    m("#tb-tbody", [
+                        m('.tb-tbody-inner', [
+                            m('', { style : "padding-left: 15px;margin-top:"+ctrl.rangeMargin+"px" }, [
+                                ctrl.showRange.map(function _map_range_view(item, index){
+                                    var oddEvenClass = "tb-odd";
+                                    if(index % 2 === 0){
+                                        oddEvenClass = "tb-even";
+                                    }
+                                    var indent = ctrl.flatData[item].depth;
+                                    var id = ctrl.flatData[item].id;
+                                    var row = ctrl.flatData[item].row;
+                                    var padding, css;
+                                    if(ctrl.filterOn){
+                                        padding = 0;
+                                    } else {
+                                        padding = indent*20;
+                                    }
+                                    if(id === ctrl.selected){ css = "tb-row-active"; } else { css = ""; }
+                                    return  m(".tb-row", {
+                                        "class" : css + " " + oddEvenClass,
+                                        "data-id" : id,
+                                        "data-level": indent,
+                                        "data-index": item,
+                                        "data-rIndex": index,
+                                        style : "height: "+ctrl.options.rowHeight+"px;",
+                                        onclick : function _row_click(event){
+                                            ctrl.selected = id;
+                                            if(ctrl.options.onselectrow){
+                                                ctrl.options.onselectrow.call(ctrl, Indexes[row.id], event);
+                                            }
+                                        }}, [
+                                        ctrl.options.columns.map(function _map_columns_content(col) {
+                                            var cell;
+                                            cell = m(".tb-td", { style : "width:"+col.width }, [
+                                                m('span', row[col.data])
+                                            ]);
+                                            if(col.folderIcons === true){
+                                               cell = m(".tb-td.td-title", {
+                                                    "data-id" : id,
+                                                    style : "padding-left: "+padding+"px; width:"+col.width },  [
+                                                    m("span.tdFirst", {
+                                                        onclick: function _folder_toggle_click(event){
+                                                            ctrl.toggle_folder(ctrl.visibleTop, item, event);
+                                                        }},
+                                                        (function _toggle_view(){
+                                                            var itemTree = Indexes[row.id];
+                                                            if(row.children.length > 0 || row.kind === "folder"){
+                                                                if(row.children.length > 0 && row.open){
+                                                                    return [
+                                                                        m("span.tb-expand-icon-holder",
+                                                                            m("i.fa.fa-minus-square-o", " ")
+                                                                        ),
+                                                                        m("span.tb-expand-icon-holder",
+                                                                            ctrl.options.resolve_icon.call(self, itemTree)
+                                                                        )
+                                                                    ];
                                                                 } else {
                                                                     return [
-                                                                        m("span.expand-icon-holder"),
-                                                                        m("span.expand-icon-holder",
+                                                                        m("span.tb-expand-icon-holder",
+                                                                            m("i.fa.fa-plus-square-o", " ")
+                                                                        ),
+                                                                        m("span.tb-expand-icon-holder",
                                                                             ctrl.options.resolve_icon.call(self, itemTree)
                                                                         )
                                                                     ];
                                                                 }
-                                                            }())
-                                                        ),
-                                                        m("span.title-text", row[col.data]+" ")
-                                                   ]);
-                                                }
-                                                if(col.actionIcons === true){
-                                                    cell = m(".tb-td", { style : "width:"+col.width }, [
-                                                        m("button.btn.btn-danger.btn-xs", {
-                                                            "data-id" : id,
-                                                            onclick: function _delete_click(){
-                                                                ctrl.delete_node(row.parent, id);
-                                                            }},
-                                                            " X "),
-                                                        m("button.btn.btn-success.btn-xs", {
-                                                            "data-id" : id,
-                                                            onclick: function _add_click(){ ctrl.add_node(id);}
-                                                        }," Add ")
-                                                    ]);
-                                                }
-                                                if(col.custom){
-                                                    cell = m(".tb-td", { style : "width:"+col.width }, [
-                                                        col.custom.call(row, col)
-                                                    ]);
-                                                }
-                                                return cell;
-                                            })
-
-                                        ]);
-                                    })
-                                ])
-
-                            ])
-                        ]),
-                        (function() {
-                            if (ctrl.options.paginate || ctrl.options.paginateToggle) {
-                                return m('.tb-footer', [
-                                    m(".row", [
-                                        m(".col-xs-4",
-                                            (function _show_paginate_toggle() {
-                                                if (ctrl.options.paginateToggle) {
-                                                    return m('.btn-group.padder-10', [
-                                                        m("button.btn.btn-default.btn-sm.active.tb-scroll",
-                                                            { onclick : ctrl.toggle_scroll },
-                                                            "Scroll"),
-                                                        m("button.btn.btn-default.btn-sm.tb-paginate",
-                                                            { onclick : ctrl.toggle_paginate },
-                                                            "Paginate")
-                                                    ]);
-                                                }
-                                            }())
-                                        ),
-                                        m('.col-xs-8', [ m('.padder-10', [
-                                            (function _show_paginate(){
-                                                if(ctrl.options.paginate){
-                                                    var total_visible = ctrl.visibleIndexes.length;
-                                                    var total = Math.ceil(total_visible/ctrl.options.showTotal);
-                                                    return m('.pull-right', [
-                                                        m('button.btn.btn-default.btn-sm',
-                                                            { onclick : ctrl.page_down},
-                                                            [ m('i.fa.fa-chevron-left')]),
-                                                        m('input.h-mar-10',
-                                                            {
-                                                                type : "text",
-                                                                style : "width: 30px;",
-                                                                onkeyup: function(e){
-                                                                    var page = parseInt(e.target.value);
-                                                                    ctrl.go_to_page(page);
-                                                                },
-                                                                value : ctrl.currentPage()
+                                                            } else {
+                                                                return [
+                                                                    m("span.tb-expand-icon-holder"),
+                                                                    m("span.tb-expand-icon-holder",
+                                                                        ctrl.options.resolve_icon.call(self, itemTree)
+                                                                    )
+                                                                ];
                                                             }
-                                                        ),
-                                                        m('span', "/ "+total+" "),
-                                                        m('button.btn.btn-default.btn-sm',
-                                                            { onclick : ctrl.page_up},
-                                                            [ m('i.fa.fa-chevron-right')
-                                                            ])
-                                                    ]);
-                                                }
-                                            }())
-                                        ])])
-                                    ])
-                                ]);
-                            }
-                        }())
+                                                        }())
+                                                    ),
+                                                    m("span.title-text", row[col.data]+" ")
+                                               ]);
+                                            }
+                                            if(col.actionIcons === true){
+                                                cell = m(".tb-td", { style : "width:"+col.width }, [
+                                                    m("button.btn.btn-danger.btn-xs", {
+                                                        "data-id" : id,
+                                                        onclick: function _delete_click(){
+                                                            ctrl.delete_node(row.parent, id);
+                                                        }},
+                                                        " X "),
+                                                    m("button.btn.btn-success.btn-xs", {
+                                                        "data-id" : id,
+                                                        onclick: function _add_click(){ ctrl.add_node(id);}
+                                                    }," Add ")
+                                                ]);
+                                            }
+                                            if(col.custom){
+                                                cell = m(".tb-td", { style : "width:"+col.width }, [
+                                                    col.custom.call(row, col)
+                                                ]);
+                                            }
+                                            return cell;
+                                        })
 
+                                    ]);
+                                })
+                            ])
 
-                    ])
+                        ])
+                    ]),
+                    (function() {
+                        if (ctrl.options.paginate || ctrl.options.paginateToggle) {
+                            return m('.tb-footer', [
+                                m(".row", [
+                                    m(".col-xs-4",
+                                        (function _show_paginate_toggle() {
+                                            if (ctrl.options.paginateToggle) {
+                                                return m('.btn-group.padder-10', [
+                                                    m("button.btn.btn-default.btn-sm.active.tb-scroll",
+                                                        { onclick : ctrl.toggle_scroll },
+                                                        "Scroll"),
+                                                    m("button.btn.btn-default.btn-sm.tb-paginate",
+                                                        { onclick : ctrl.toggle_paginate },
+                                                        "Paginate")
+                                                ]);
+                                            }
+                                        }())
+                                    ),
+                                    m('.col-xs-8', [ m('.padder-10', [
+                                        (function _show_paginate(){
+                                            if(ctrl.options.paginate){
+                                                var total_visible = ctrl.visibleIndexes.length;
+                                                var total = Math.ceil(total_visible/ctrl.options.showTotal);
+                                                return m('.pull-right', [
+                                                    m('button.btn.btn-default.btn-sm',
+                                                        { onclick : ctrl.page_down},
+                                                        [ m('i.fa.fa-chevron-left')]),
+                                                    m('input.h-mar-10',
+                                                        {
+                                                            type : "text",
+                                                            style : "width: 30px;",
+                                                            onkeyup: function(e){
+                                                                var page = parseInt(e.target.value);
+                                                                ctrl.go_to_page(page);
+                                                            },
+                                                            value : ctrl.currentPage()
+                                                        }
+                                                    ),
+                                                    m('span', "/ "+total+" "),
+                                                    m('button.btn.btn-default.btn-sm',
+                                                        { onclick : ctrl.page_up},
+                                                        [ m('i.fa.fa-chevron-right')
+                                                        ])
+                                                ]);
+                                            }
+                                        }())
+                                    ])])
+                                ])
+                            ]);
+                        }
+                    }())
                 ])
             ])
         ];
@@ -990,7 +988,7 @@
             uploads : true,         // Turns dropzone on/off.
             columns : [],           // Defines columns based on data
             showFilter : true,     // Gives the option to filter by showing the filter box.
-            title : false,          // Title of the grid, boolean, string OR function that returns a string.
+            title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
             onfilter : function(filterText){   // Fires on keyup when filter text is changed.
                 // this = treebeard object;
