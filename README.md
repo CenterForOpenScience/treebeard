@@ -20,7 +20,15 @@ You can install Treebeard with bower. In your project simply run
 Remember to reference the required files through bower_components. 
 
 
-You can also just take the files in `/dist` folder. You need the css and js files, either minified or in full. 
+You can also just take the files in `/dist` folder. You need the css and js files, either minified or in full and add them to your project page.
+
+```html
+<link rel="stylesheet" href="dist/treebeard.css" type="text/css" />
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="path/to/mithril.js"></script>
+<script src="path/to/treebeard.js"></script>
+```
+
 
 * * * 
 Read more about using the library in the Wiki: https://github.com/caneruguz/treebeard/wiki
