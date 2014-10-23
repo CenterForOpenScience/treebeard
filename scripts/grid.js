@@ -25,6 +25,19 @@
     function getUID() {
         return idCounter++;
     }
+    function isFunction(x) {
+        return Object.prototype.toString.call(x) === '[object Function]';
+    }
+    function FunctionOrString(x){
+        if(!x){
+            return "";
+        }
+        if(isFunction(x)){
+            return x();
+        } else {
+            return x;
+        }
+    }
 
     /*
      *  Sorts ascending based on any attribute on data
@@ -463,6 +476,7 @@
                 m.redraw(true);
                 // restore location of scroll
                 $('#tb-tbody').scrollTop(self.lastNonFilterLocation);
+                self.options.onfilterreset(filter);
             } else {
                 if(!self.filterOn){
                     self.filterOn = true;
@@ -476,6 +490,8 @@
                 self.calculate_visible(index);
                 self.calculate_height();
                 m.redraw(true);
+                self.options.onfilter(filter);
+
             }
         };
 
@@ -828,18 +844,28 @@
             m('.gridWrapper.row', {config : ctrl.init},  [
                 m('.col-sm-8', [
                     m(".tb-table", [
-                        m('.tb-head',[
-                            m(".row", [
-                                m(".col-xs-8", [
-                                    m("input.form-control[placeholder='filter'][type='text']",{
-                                        style:"width:300px;display:inline; margin-right:20px;",
-                                        onkeyup: ctrl.filter,
-                                        value : ctrl.filterText()}
-                                    ),
-                                    m('span', { style : "width: 120px"}, "Visible : " + ctrl.visibleCache)
-                                ])
-                            ])
-                        ]),
+                        (function ShowHeadA(){
+                            if(ctrl.options.showFilter || ctrl.options.title){
+                               return m('.tb-head',[
+                                   m(".row", [
+                                       m(".col-xs-6", [
+                                           m("h3.tb-grid-title", FunctionOrString(ctrl.options.title))
+                                       ]),
+                                       m(".col-xs-6", [
+                                           (function ShowFilterA(){
+                                               if(ctrl.options.showFilter){
+                                                   return m("input.form-control[placeholder='filter'][type='text']",{
+                                                           style:"width:100%;display:inline;",
+                                                           onkeyup: ctrl.filter,
+                                                           value : ctrl.filterText()}
+                                                   );
+                                               }
+                                           }())
+                                       ])
+                                   ])
+                               ]);
+                            }
+                        }()),
                         m(".tb-row-titles.m-t-md", [
                             ctrl.options.columns.map(function(col){
                                 var sortView = "";
@@ -1015,10 +1041,18 @@
             rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
-            paginateToggle : false,    // Show the buttons that allow users to switch between scroll and paginate.
+            paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             lazyLoad : false,       // If true should not load the sub contents of unopen files. NOT YET IMPLEMENTED.
             uploads : true,         // Turns dropzone on/off.
             columns : [],           // Defines columns based on data
+            showFilter : false,     // Gives the option to filter by showing the filter box.
+            title : false,          // Title of the grid, boolean, string OR function that returns a string.
+            onfilter : function(filterText){   // Fires on keyup when filter text is changed.
+
+            },
+            onfilterreset : function(filterText){   // Fires when filter text is cleared.
+
+            },
             deletecheck : function(){  // When user attempts to delete a row, allows for checking permissions etc. NOT YET IMPLEMENTED
                 // this = Item to be deleted.
             },
