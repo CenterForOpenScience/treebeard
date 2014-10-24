@@ -83,6 +83,7 @@
             lazyLoad : true,
             useDropzone : false,
             uploadURL : "",
+            allowMove : true,
             columns : [
                 {
                     title: "Title",
@@ -106,7 +107,7 @@
                         var that = this;
                         return m("button.btn.btn-danger.btn-xs", {
                             onclick: function _deleteClick() {
-                                that.deleteNode(row.parent, row.id);
+                                that.deleteNode(row.parentID, row.id);
                             }
                         }, " X ")
 

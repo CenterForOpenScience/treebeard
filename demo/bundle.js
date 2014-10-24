@@ -2881,7 +2881,7 @@ if (typeof exports == "object") {
 
      // Create unique ids
      // A TODO: Think about using own ids for unique
-        idCounter = 0;
+        idCounter = -1;
     function getUID() {
         idCounter = idCounter + 1;
         return idCounter;
@@ -2968,7 +2968,7 @@ if (typeof exports == "object") {
      // Adds child item into the item
      //
     Item.prototype.add = function _itemAdd(component) {
-        // component.parentID = this.id;
+        component.parentID = this.id;
         component.depth = this.depth + 1;
         this.children.push(component);
         this.open = true;
@@ -3154,7 +3154,7 @@ if (typeof exports == "object") {
         this.deleteNode = function _deleteNode(parentID, itemID) {
             var item = Indexes[itemID],
                 itemcopy = $.extend({}, item);
-            $.when(self.options.deletecheck(item)).done(function _resolveDeleteCheck(check) {
+            $.when(self.options.deletecheck.call(self, item)).done(function _resolveDeleteCheck(check) {
                 if (check) {
                     var parent = Indexes[parentID];
                     parent.removeChild(itemID);
@@ -3170,12 +3170,21 @@ if (typeof exports == "object") {
         // A TODO On resize of the main container rerun showtotal; .
 
         // Adds a new node;
-        this.addNode = function _addNode(parentID) { // A TODO: Adding programmatically. startAdd : give them context of item being added to endAdd : Actually add the subitem,  Duplicate.
-            var newItem = new Treebeard.model(),
-                item = new Item(newItem),
-                parent = Indexes[parentID];
-            parent.add(item);
-            self.flatten(self.treeData.children, self.visibleTop);
+        this.createItem = function _createItem(item, parentID) { // A TODO: Adding programmatically. startAdd : give them context of item being added to endAdd : Actually add the subitem,  Duplicate.
+            var parent = Indexes[parentID];
+            $.when(self.options.createcheck.call(self, item, parent)).done(function _resolveCreateCheck(check) {
+                if (check) {
+                    var newItem = new Item(item);
+                    parent.add(newItem);
+                    self.flatten(self.treeData.children, self.visibleTop);
+                    if (self.options.oncreate) {
+                        self.options.oncreate.call(self, newItem, parent);
+                    }
+                } else {
+                    throw new Error("Treebeard Error: createcheck function returned false, item not created.");
+                }
+            });
+
         };
 
          // Returns the object from the tree
@@ -3249,6 +3258,7 @@ if (typeof exports == "object") {
                 i,
                 j,
                 o;
+            //moveOff();
             if (self.options.lazyLoad && item.row.kind === "folder" && item.row.children.length === 0) {
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
@@ -3284,6 +3294,7 @@ if (typeof exports == "object") {
                 _calculateHeight();
                 m.redraw(true);
             }
+            moveOn();
             if (self.options.ontogglefolder) {
                 self.options.ontogglefolder.call(self, tree, event);
             }
@@ -3523,7 +3534,7 @@ if (typeof exports == "object") {
             } else {
                 tree = new Item(data);
                 children = data.children;
-                tree.depth = parent.depth + 1;   // A TODO: Redundant.
+                tree.depth = parent.depth + 1;   // Going down the list the parent doesn't yet have depth information
                 tree.kind = data.kind;
             }
             if (children) {
@@ -3711,6 +3722,11 @@ if (typeof exports == "object") {
                                                     },
                                                         (function _toggleView() {
                                                             var itemTree = Indexes[row.id];
+                                                            if (ctrl.filterOn) {
+                                                                return m("span.tb-expand-icon-holder",
+                                                                    ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                    );
+                                                            }
                                                             if (row.children.length > 0 || row.kind === "folder") {
                                                                 if (row.children.length > 0 && row.open) {
                                                                     return [
@@ -3838,6 +3854,19 @@ if (typeof exports == "object") {
                 // filterText = the value of the filtertext input box.
                 window.console.log("on filter reset: this", this, 'filterText', filterText);
             },
+            createcheck : function (item, parent) {
+                // this = treebeard object;
+                // item = Item to be added.  raw item, not _item object
+                // parent = parent to be added to = _item object
+                window.console.log("createcheck", this, item, parent);
+                return true;
+            },
+            oncreate : function (item, parent) {  // When row is deleted successfully
+                // this = treebeard object;
+                // item = Item to be added.  = _item object
+                // parent = parent to be added to = _item object
+                window.console.log("oncreate", this, item, parent);
+            },
             deletecheck : function (item) {  // When user attempts to delete a row, allows for checking permissions etc.
                 // this = treebeard object;
                 // item = Item to be deleted.
@@ -3879,13 +3908,20 @@ if (typeof exports == "object") {
                 window.console.log("On add", this, treebeard, item, file, response);
             },
             onselectrow : function (row, event) {
-                // this = dropzone object
+                // this = treebeard object
                 // row = item selected
                 // event = mouse click event object
                 window.console.log("onselectrow", this, row, event);
+                var item = {
+                    title : "My Item",
+                    id : 123214,
+                    kind : "folder",
+                    person : "Caner Uguz"
+                };
+                this.createItem(item, 93);
             },
             ontogglefolder : function (item, event) {
-                // this = dropzone object
+                // this = treebeard object
                 // item = toggled folder item
                 // event = mouse click event object
                 window.console.log("ontogglefolder", this, item, event);

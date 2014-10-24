@@ -1526,7 +1526,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-tbody-inner{overflow:hidden}
 .tb-row-titles{background:#EEE;padding:10px 0 5px 16px;border:1px solid #CCC;border-bottom:none}
 .td-title{cursor:pointer}
-.tb-td,.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis}
+.tb-td,.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tb-th{font-weight:700}
 .tb-details{background:#ADD8E6;height:623px;border:1px solid #EEE;padding:20px}
 .tb-row-active{background:#ADD8E6}
