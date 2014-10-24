@@ -102,7 +102,15 @@
                     width : "25%",
                     data : "action",
                     sort : false,
-                    actionIcons : true
+                    custom : function (row, col){
+                        var that = this;
+                        return m("button.btn.btn-danger.btn-xs", {
+                            onclick: function _deleteClick() {
+                                that.deleteNode(row.parent, row.id);
+                            }
+                        }, " X ")
+
+                    }
                 }
             ]
 
