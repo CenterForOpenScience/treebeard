@@ -1,3 +1,3 @@
-QUnit.test( "load Treebeard", function( assert ) {
-    assert.ok( 1 == "1", "Passed!" );
+QUnit.test("load Treebeard", function(assert) {
+    assert.ok(typeof Treebeard === "object", "Treebeard is loaded as an object");
 });

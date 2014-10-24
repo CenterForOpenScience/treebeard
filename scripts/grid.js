@@ -23,17 +23,20 @@
      // Indexes by id, shortcuts to the tree objects. Use example: var item = Indexes[23];
      //
     var Indexes = {},
+        // Item constructor
         Item,
+        // Initialize and namespace Treebeard module
+        Treebeard = {},
 
      // Create unique ids
-     //
+     // TODO: Think about using own ids for unique
         idCounter = 0;
     function getUID() {
         idCounter = idCounter + 1;
         return idCounter;
     }
      // Check if variable is function
-     //
+     // TODO revixe method function names.
     function isFunction(x) {
         return Object.prototype.toString.call(x) === '[object Function]';
     }
@@ -49,9 +52,10 @@
         return x;
     }
 
+
      // Sorts ascending based on any attribute on data
      //
-    function AscByAttr(data) {
+    function ascByAttr(data) {
         return function _compare(a, b) {
             var titleA = a.data[data].toLowerCase().replace(/\s+/g, " "),
                 titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
@@ -67,7 +71,7 @@
 
      // Sorts descending based on any attribute on data
      //
-    function DescByAttr(data) {
+    function descByAttr(data) {
         return function _compare(a, b) {
             var titleA = a.data[data].toLowerCase().replace(/\s/g, ''),
                 titleB = b.data[data].toLowerCase().replace(/\s/g, '');
@@ -113,8 +117,8 @@
 
      // Adds child item into the item
      //
-    Item.prototype.add = function _item_add(component) {
-        component.parentID = this.id;
+    Item.prototype.add = function _itemAdd(component) {
+        // component.parentID = this.id;
         component.depth = this.depth + 1;
         this.children.push(component);
         this.open = true;
@@ -123,104 +127,102 @@
 
      // Move item from one place to another
      //
-    Item.prototype.move = function _item_move(to) {
-        var toItem = Indexes[to],
+    Item.prototype.move = function _itemMove(toID) {
+        var toItem = Indexes[toID],
             parentID = this.parentID,
             parent = Indexes[parentID];
         toItem.add(this);
         if (parentID > -1) {
-            parent.remove_child(parseInt(this.id, 10));
+            parent.removeChild(parseInt(this.id, 10));
         }
     };
 
      // Deletes itself
      //
-    Item.prototype.remove_self = function _item_remove_self() {
+    Item.prototype.removeSelf = function _itemRemoveSelf() {
         var parent = this.parent();
-        removeByProperty(parent.children, 'id', this.id);
+        parent.removeChild(this.id);
+        //removeByProperty(parent.children, 'id', this.id);
         return this;
     };
 
      // Deletes child, currently used for delete operations
      //
-    Item.prototype.remove_child = function _item_remove_child(childID) {
+    Item.prototype.removeChild = function _itemRemoveChild(childID) {
         removeByProperty(this.children, 'id', childID);
         return this;
     };
 
      // Returns next sibling
      //
-    Item.prototype.next = function _item_next() {
+    Item.prototype.next = function _itemNext() {
         var next, parent, i;
         parent = Indexes[this.parentID];
         for (i = 0; i < parent.children.length; i++) {
             if (parent.children[i].id === this.id) {
                 next = parent.children[i + 1];
+                return next;
             }
         }
-        return next;
+        if (!next) {
+            throw new Error("Treebeard Error: Item with ID '" + this.id + "' has no next sibling");
+        }
     };
 
      // Returns previous sibling
      //
-    Item.prototype.prev = function _item_prev() {
+    Item.prototype.prev = function _itemPrev() {
         var prev, parent, i;
         parent = Indexes[this.parentID];
         for (i = 0; i < parent.children.length; i++) {
             if (parent.children[i].id === this.id) {
                 prev = parent.children[i - 1];
+                return prev;
             }
         }
-        return prev;
+        if (!prev) {
+            throw new Error("Treebeard Error: Item with ID '" + this.id + "' has no previous sibling");
+        }
     };
 
      // Returns single child based on id
-     //
-    Item.prototype.child = function _item_child(id) {
+    Item.prototype.child = function _itemChild(childID) {
         var child, i;
         for (i = 0; i < this.children.length; i++) {
-            if (this.children[i].id === id) {
+            if (this.children[i].id === childID) {
                 child = this.children[i];
+                return child;
             }
         }
-        return child;
-    };
-
-     // Returns parent directly above
-     //
-    Item.prototype.parent = function _item_parent() {
-        return Indexes[this.parentID];
-    };
-
-    Item.prototype.sort_children = function _item_sort(type, attr) {
-        if (type === "asc") {
-            this.children.sort(AscByAttr(attr));
-        }
-        if (type === "desc") {
-            this.children.sort(DescByAttr(attr));
+        if (!child) {
+            throw new Error("Treebeard Error: Parent with ID '" + this.id + "' has no child with ID: " + childID);
         }
     };
 
-     // Initialize and namespace the module
-     //
-    var Treebeard = {};
+    // Returns parent directly above
+    Item.prototype.parent = function _itemParent() {
+        if (Indexes[this.parentID]) {
+            return Indexes[this.parentID];
+        }
+        // If there is no parent -- thanks to dumbass JSLint I have to write this comment to explain it.
+        throw new Error("Treebeard Error: The parent for Item with ID '" + this.id + "' could not be found");
+    };
 
-     // An example of the data model, used for demo.
-     //
-    Treebeard.model = function _treebeard_model() {
-        return {
-            id : Math.floor(Math.random() * (10000)),
-            load : true,
-            status : true,
-            show : true,
-            loadUrl : "small.json",
-            person  : "JohnnyB. Goode",
-            name  :  "Around the World in 80 Days",
-            date : "Date",
-            filtered : false,
-            kind : "file",
-            children : []
-        };
+     //  TODO: Non alphanumeric: check order behaviour.
+     // Sorts children of the item by direction and selected field. 
+    Item.prototype.sortChildren = function _itemSort(direction, field) {
+        if (!direction || !field) {
+            throw new Error("Treebeard Error: To sort children you need to pass both direction and field to Item.sortChildren");
+        }
+        if (this.children.length === 0) {
+            throw new Error("Treebeard Error: Item with ID '" + this.id + "' doesn't have any children");
+        }
+        if (direction === "asc") {
+            this.children.sort(ascByAttr(field));
+        }
+        if (direction === "desc") {
+            this.children.sort(descByAttr(field));
+        }
     };
 
      // Grid methods
@@ -240,12 +242,12 @@
         this.options = Treebeard.options;
         this.selected = undefined;      // The row selected on click.  
         this.rangeMargin = 0;   // Top margin, required for proper scrolling
-        this.visibleCache = 0;  // Total number of viewable items (may or may not be visible on the screen)
+        this.visibleCache = 0;  // Total number of viewable items (may or may not be visible on the screen)// TODO visibleCount
         this.visibleIndexes = [];  // List of items viewable as a result of an operation like filter. 
-        this.visibleTop = [];      // The first visible item. 
+        this.visibleTop = [];      // The first visible item.   // TODO: Why is this a list?
         this.currentPage = m.prop(1); // for pagination
         this.dropzone = null;       // Treebeard's own dropzone object
-        this.droppedItem = {};      // Cache of the dropped item 
+        this.droppedItem = {};      // Cache of the dropped item // TODO Start with null or undefined.
         this.filterOn = false;  // Filter state for use across the app
 
         // Rebuilds the tree data with an API
@@ -258,7 +260,7 @@
             } else {
                 tree = new Item(data);
                 children = data.children;
-                tree.depth = parent.depth + 1;
+                tree.depth = parent.depth + 1;   // TODO: Redundant.
                 tree.kind = data.kind;
             }
             if (children) {
@@ -325,7 +327,7 @@
         this.init = function _init(el, isInit) {
             if (isInit) { return; }
             var containerHeight = $('#tb-tbody').height();
-            self.options.showTotal = Math.floor(containerHeight/self.options.rowHeight);
+            self.options.showTotal = Math.floor(containerHeight/self.options.rowHeight); // TODO: option of row.
             $('#tb-tbody').scroll(function _scroll_hook() {
                 var scrollTop = $(this).scrollTop();                    // get current scroll top
                 var diff = scrollTop - _lastLocation;                    //Compare to last scroll location
@@ -366,7 +368,7 @@
                     var toItem = Indexes[to];
                     var item = Indexes[from];
                     if (to !== from && self.options.movecheck(toItem, item)) {
-                        $(this).addClass('tb-h-success');
+                        $(this).addClass('tb-h-success');  // TODO: style dictionary so people can override.
                     } else {
                         $(this).addClass('tb-h-error');
                     }
@@ -384,7 +386,7 @@
                                 self.options.onmove(toItem, item);
                             }
                         } else {
-                            alert("You can't move your item here.");
+                            alert("You can't move your item here."); // TODO: Customize as function, put a proper default.
                         }
                     }
 
@@ -403,7 +405,7 @@
             $.when(self.options.deletecheck(item)).done(function _resolve_delete_check(check) {
                 if (check) {
                     var parent = Indexes[parentID];
-                    parent.remove_child(itemID);
+                    parent.removeChild(itemID);
                     self.flatten(self.treeData.children, self.visibleTop);
                     if (self.options.ondelete) {
                         self.options.ondelete.call(self, itemcopy);
@@ -413,9 +415,11 @@
 
         };
 
+        // On resize of the main container rerun showtotal; .
+
          // Adds a new node;
          //
-        this.add_node = function _add_node(parentID) {
+        this.add_node = function _add_node(parentID) { // TODO: Adding programmatically. startAdd : give them context of item being added to endAdd : Actually add the subitem,  Duplicate.
             var newItem = new Treebeard.model();
             var item = new Item(newItem);
             var parent = Indexes[parentID];
@@ -445,7 +449,7 @@
          //
         function _row_filter_result(row) {
             var filter = self.filterText().toLowerCase();
-            var titleResult = row.title.toLowerCase().indexOf(filter);
+            var titleResult = row.title.toLowerCase().indexOf(filter); // TODO: filter options; filterable option for columns, then row_filter checks for wht is filterable. Title sholdn't be hardcoded.
             if (titleResult > -1) {
                 return true;
             } else {
@@ -548,12 +552,12 @@
                var counter = 0;
                var recursive = function redo(data) {
                     data.map( function _map_toggle(item) {
-                        item.sort_children(type, field);
+                        item.sortChildren(type, field);
                         if (item.children.length > 0 ) { redo(item.children); }
                         counter++;
                     });
                 };
-                self.treeData.sort_children(type, field);           // Then start recursive loop
+                self.treeData.sortChildren(type, field);           // Then start recursive loop
                 recursive(self.treeData.children);
                 parent.children('.'+type+'-btn').removeClass('tb-sort-inactive');
                 _sort[type] = true;
@@ -632,7 +636,7 @@
 
          // Changes view to paginate
          //
-        this.toggle_paginate = function _toggle_pagination() {
+        this.toggle_paginate = function _toggle_pagination() {  // TODO Check view reg pagination vs scroll, default behavior
             self.options.paginate = true;
             $('.tb-scroll').removeClass('active');
             $('.tb-paginate').addClass('active');
@@ -734,7 +738,7 @@
         }
 
         function _load_data(data) {
-            if (data instanceof Array) {
+            if (data instanceof Array) { // TODO:  Look into check for array. shortcut jquery
                 $.when(self.build_tree(data)).then(function _buildtree_then(value) {
                     self.treeData = value;
                     Indexes[0] = value;
@@ -744,7 +748,7 @@
                     _calculate_visible();
                     _calculate_height();
                 });
-            } else {
+            } else { // TODO: check if proper url:
                 m.request({method: "GET", url: data})
                     .then(function _request_buildtree(value) {
                         self.treeData = self.build_tree(value);
@@ -763,7 +767,7 @@
         _load_data(Treebeard.options.filesData);
     };
 
-    Treebeard.view = function treebeard_view(ctrl) {
+    Treebeard.view = function treebeard_view(ctrl) { // TODO Column resizing and order chane.
         console.log(ctrl.showRange);
         return [
             m('.gridWrapper', {config : ctrl.init},  [
@@ -886,7 +890,7 @@
                                                     m("span.title-text", row[col.data]+" ")
                                                ]);
                                             }
-                                            if (col.actionIcons === true) {
+                                            if (col.actionIcons === true) { // TODO : Remvoe hard coded version
                                                 cell = m(".tb-td", { style : "width:"+col.width }, [
                                                     m("button.btn.btn-danger.btn-xs", {
                                                         "data-id" : id,
@@ -976,13 +980,13 @@
         Treebeard.options = $.extend({
             divID : "myGrid",
             filesData : "small.json",
-            rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights
+            rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights // TODO: get height from css
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
-            lazyLoad : false,       // If true should not load the sub contents of unopen files.
+            lazyLoad : false,       // If true should not load the sub contents of unopen files.  //TODO: if you have a function just run it.
             uploads : true,         // Turns dropzone on/off.
-            columns : [],           // Defines columns based on data
+            columns : [],           // Defines columns based on data // TODO Default define based on data
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
@@ -990,6 +994,7 @@
                 // this = treebeard object;
                 // filterText = the value of the filtertext input box.
                 console.log("on filter: this", this, 'filterText', filterText);
+
             },
             onfilterreset : function(filterText) {   // Fires when filter text is cleared.
                 // this = treebeard object;
@@ -1010,6 +1015,7 @@
                 // from = item that is being moved
                 // to = the target location
                 console.log("movecheck: to", to, "from", from);
+                // TODO: Default looking at kind, only move into folder; + You can't move parent into subfolders.
                 return true;
             },
             onmove : function(to, from) {  // After move happens
@@ -1038,6 +1044,7 @@
                 // row = item selected
                 // event = mouse click event object
                 console.log("onselectrow", this, row, event);
+                row.child(23);
             },
             ontogglefolder : function(item, event) {
                 // this = dropzone object
@@ -1060,7 +1067,7 @@
                     return m("i.fa.fa-folder-o", " ");
                 }else {
                     if (item.data.icon) {
-                        return m("i.fa."+item.icon, " ");
+                        return m("i.fa."+item.data.icon, " ");
                     } else {
                         return m("i.fa.fa-file ");
                     }
@@ -1068,7 +1075,7 @@
             },
             resolve_upload_url : function(item) {  // Allows the user to calculate the url of each individual row
                 // this = treebeard object;
-                // Item = item acted on
+                // Item = item acted on return item.data.ursl.upload
                 return "/upload";
             },
             resolve_lazyload_url : function(item) {
@@ -1083,3 +1090,5 @@
 
     return Treebeard;
 }));
+
+ // TODO : variable names, descriptive, mean what they are.
