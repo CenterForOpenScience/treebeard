@@ -101,14 +101,15 @@
     Item = function _item(data) {
         if (data === undefined) {
             this.data = {};
+            this.kind = "folder";
         } else {
             this.data = data;
+            this.kind = data.kind || "item";
         }
         this.id = getUID();
         this.depth = 0;
         this.children =  [];
         this.parentID = null;
-        this.kind = null;
     };
 
      // Adds child item into the item
@@ -350,9 +351,23 @@
                 }
             }
         }
+        /*
+        var firstIndex = self.showRange[0],
+                first = self.visibleIndexes.indexOf(firstIndex),
+                pagesBehind = Math.floor(first / self.options.showTotal),
+                firstItem = (pagesBehind * self.options.showTotal);
+            self.options.paginate = true;
+            $('.tb-scroll').removeClass('active');
+            $('.tb-paginate').addClass('active');
+            self.currentPage(pagesBehind + 1);
+            self.refreshRange(firstItem);
+        */
 
          // Returns whether a single row contains the filtered items
         function _rowFilterResult(row) {
+            $('#tb-tbody').scrollTop(0);
+            self.currentPage(1);
+            console.log(self.showRange[0]);
             var filter = self.filterText().toLowerCase(),
                 titleResult = row.title.toLowerCase().indexOf(filter); // A TODO: filter options; filterable option for columns, then row_filter checks for wht is filterable. Title sholdn't be hardcoded.
             if (titleResult > -1) {
@@ -426,9 +441,9 @@
                     if (skip && o.depth > skipLevel) {continue; }
                     if (o.depth === skipLevel) { skip = false; }
                     if (item.row.open) {                    // closing
-                        o.row.show = false;
+                        o.show = false;
                     } else {                                 // opening
-                        o.row.show = true;
+                        o.show = true;
                         if (!o.row.open) {
                             skipLevel = o.depth;
                             skip = true;
@@ -539,8 +554,30 @@
             self.options.paginate = false;
             $('.tb-paginate').removeClass('active');
             $('.tb-scroll').addClass('active');
-            self.refreshRange(0);
+            //console.log(_lastLocation);
+            $("#tb-tbody").scrollTop((self.currentPage()-1) * self.options.showTotal * self.options.rowHeight);
         };
+
+        /*
+        var scrollTop, diff, itemsHeight, innerHeight, location, index;
+                scrollTop = $(this).scrollTop();                    // get current scroll top
+                diff = scrollTop - _lastLocation;                    //Compare to last scroll location
+                if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
+                    $(this).scrollTop(_lastLocation + self.options.rowHeight);
+                }
+                if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
+                    $(this).scrollTop(_lastLocation - self.options.rowHeight);
+                }
+                itemsHeight = _calculateHeight();
+                innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
+                scrollTop = $(this).scrollTop();
+                location = scrollTop / innerHeight * 100;
+                index = Math.round(location / 100 * self.visibleCount);
+                self.rangeMargin = Math.round(itemsHeight * (scrollTop / innerHeight));
+                self.refreshRange(index);
+                m.redraw(true);
+                _lastLocation = scrollTop;
+        */
 
          // Changes view to paginate
         this.togglePaginate = function _togglePaginate() {  // A TODO Check view reg pagination vs scroll, default behavior
@@ -658,16 +695,18 @@
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
                         self.treeData = self.buildTree(value);
+                        console.log(self.treeData);
                     })
                     .then(function _requestFlatten() {
                         Indexes[0] = self.treeData;
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
+                        window.console.log("FlatData", self.flatData);
+                        window.console.log("treeData", self.treeData);
                         _calculateVisible();
                         _calculateHeight();
-                        window.window.console.log("FlatData", self.flatData);
-                        window.window.console.log("treeData", self.treeData);
+
                     });
             }
         }
@@ -681,7 +720,6 @@
                 tree = new Item(data);
                 children = data.children;
                 tree.depth = parent.depth + 1;   // Going down the list the parent doesn't yet have depth information
-                tree.kind = data.kind;
             }
             if (children) {
                 len = children.length;
@@ -710,11 +748,7 @@
                             depth : data[i].depth,
                             row: data[i].data
                         };
-                        for (j = 0; j < data[i].children.length; j++) {
-                            childIDs.push(data[i].children[j].id);
-                        }
-                        flat.row.children = childIDs;
-                        flat.row.show = show;
+                        flat.show = show;
                         if (data[i].children.length > 0 && !data[i].data.open) {
                             show = false;
                             if (openLevel > data[i].depth) { openLevel = data[i].depth; }
@@ -825,6 +859,7 @@
                                     var oddEvenClass = "tb-odd",
                                         indent = ctrl.flatData[item].depth,
                                         id = ctrl.flatData[item].id,
+                                        tree = Indexes[id],
                                         row = ctrl.flatData[item].row,
                                         padding,
                                         css;
@@ -847,7 +882,7 @@
                                         onclick : function _rowClick(event) {
                                             ctrl.selected = id;
                                             if (ctrl.options.onselectrow) {
-                                                ctrl.options.onselectrow.call(ctrl, Indexes[row.id], event);
+                                                ctrl.options.onselectrow.call(ctrl, tree, event);
                                             }
                                         }
                                     }, [
@@ -867,10 +902,9 @@
                                                         }
                                                     },
                                                         (function _toggleView() {
-                                                            var itemTree = Indexes[row.id];
                                                             if (ctrl.filterOn) {
                                                                 return m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
                                                                     );
                                                             }
                                                             if (row.children.length > 0 || row.kind === "folder") {
@@ -880,7 +914,7 @@
                                                                             m("i.fa.fa-minus-square-o", " ")
                                                                             ),
                                                                         m("span.tb-expand-icon-holder",
-                                                                            ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                            ctrl.options.resolve_icon.call(ctrl, tree)
                                                                             )
                                                                     ];
                                                                 }
@@ -889,14 +923,14 @@
                                                                         m("i.fa.fa-plus-square-o", " ")
                                                                         ),
                                                                     m("span.tb-expand-icon-holder",
-                                                                        ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                        ctrl.options.resolve_icon.call(ctrl, tree)
                                                                         )
                                                                 ];
                                                             }
                                                             return [
                                                                 m("span.tb-expand-icon-holder"),
                                                                 m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
                                                                     )
                                                             ];
                                                         }())
@@ -906,7 +940,7 @@
                                             }
                                             if (col.custom) {
                                                 cell = m(".tb-td", { style : "width:" + col.width }, [
-                                                    col.custom.call(ctrl, Indexes[row.id], col)
+                                                    col.custom.call(ctrl, tree, col)
                                                 ]);
                                             }
                                             return cell;
