@@ -1,8 +1,5 @@
 [
     {
-        "id": 1,
-        "parent": 0,
-        "indent": 0,
         "person": "Melissa Fuller",
         "desc": "Bibendum    pharetra  dignissim  velit  dictum  mattis  sed  nisi  rutrum  mollis    vestibulum  tortor .",
         "title": "    Dolor  Tortor  Id  ",
@@ -13,11 +10,9 @@
         "show": true,
         "date": "2014-10-13T18:50:47.865Z",
         "icon": "fa-file-audio-o",
+        "kind" : "folder",
         "children": [
             {
-                "id": 2,
-                "parent": 1,
-                "indent": 1,
                 "person": "Zofia Pawlak",
                 "desc": "Integer  adipiscing  sed  laoreet  nisi  pretium  justo  massa  eu  velit  ut  rutrum  mauris  et .",
                 "title": "Tortor  Nunc  Suscipit  Mauris    ",
@@ -31,9 +26,6 @@
                 "icon": "fa-file-word-o",
                 "children": [
                     {
-                        "id": 3,
-                        "parent": 2,
-                        "indent": 2,
                         "person": "der",
                         "desc": "Massa  sollicitudin  eu  luctus  pretium  lobortis  proin    vestibulum  sed  neque    lobortis   .",
                         "title": "Odio  Nibh  Non    Orci  ",
@@ -47,9 +39,6 @@
                         "icon": "fa-file-zip-o",
                         "children": [
                             {
-                                "id": 4,
-                                "parent": 3,
-                                "indent": 3,
                                 "person": "Chung Hsü",
                                 "desc": "In  non  nisl    urna  sem  id  id  accumsan    pharetra  risus  laoreet  vel .",
                                 "title": "Amet    Sollicitudin  Odio    ",
@@ -64,9 +53,6 @@
                                 "children": []
                             },
                             {
-                                "id": 5,
-                                "parent": 3,
-                                "indent": 3,
                                 "person": "Wiert Houkes",
                                 "desc": "Vel  at    sollicitudin  semper  ullamcorper  fringilla  sem  ac  ut  suscipit  sem  odio  amet .",
                                 "title": "Sodales  Et  Placerat  Mauris  At  ",

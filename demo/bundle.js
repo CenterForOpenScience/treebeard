@@ -2888,8 +2888,7 @@ if (typeof exports == "object") {
     }
 
      // Check if variable is function
-     // A TODO revixe method function names.
-    function isfunction (x) {
+    function isfunction(x) {
         return Object.prototype.toString.call(x) === '[object Function]';
     }
 
@@ -2898,7 +2897,7 @@ if (typeof exports == "object") {
         if (!x) {
             return "";
         }
-        if (isfunction (x)) {
+        if (isfunction(x)) {
             return x();
         }
         return x;
@@ -2954,15 +2953,15 @@ if (typeof exports == "object") {
     Item = function _item(data) {
         if (data === undefined) {
             this.data = {};
-            this.id = getUID();
+            this.kind = "folder";
         } else {
             this.data = data;
-            this.id = data.id || getUID();
+            this.kind = data.kind || "item";
         }
+        this.id = getUID();
         this.depth = 0;
         this.children =  [];
         this.parentID = null;
-        this.kind = null;
     };
 
      // Adds child item into the item
@@ -3280,9 +3279,9 @@ if (typeof exports == "object") {
                     if (skip && o.depth > skipLevel) {continue; }
                     if (o.depth === skipLevel) { skip = false; }
                     if (item.row.open) {                    // closing
-                        o.row.show = false;
+                        o.show = false;
                     } else {                                 // opening
-                        o.row.show = true;
+                        o.show = true;
                         if (!o.row.open) {
                             skipLevel = o.depth;
                             skip = true;
@@ -3512,16 +3511,18 @@ if (typeof exports == "object") {
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
                         self.treeData = self.buildTree(value);
+                        console.log(self.treeData);
                     })
                     .then(function _requestFlatten() {
                         Indexes[0] = self.treeData;
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
+                        window.console.log("FlatData", self.flatData);
+                        window.console.log("treeData", self.treeData);
                         _calculateVisible();
                         _calculateHeight();
-                        window.window.console.log("FlatData", self.flatData);
-                        window.window.console.log("treeData", self.treeData);
+
                     });
             }
         }
@@ -3535,7 +3536,6 @@ if (typeof exports == "object") {
                 tree = new Item(data);
                 children = data.children;
                 tree.depth = parent.depth + 1;   // Going down the list the parent doesn't yet have depth information
-                tree.kind = data.kind;
             }
             if (children) {
                 len = children.length;
@@ -3564,11 +3564,7 @@ if (typeof exports == "object") {
                             depth : data[i].depth,
                             row: data[i].data
                         };
-                        for (j = 0; j < data[i].children.length; j++) {
-                            childIDs.push(data[i].children[j].id);
-                        }
-                        flat.row.children = childIDs;
-                        flat.row.show = show;
+                        flat.show = show;
                         if (data[i].children.length > 0 && !data[i].data.open) {
                             show = false;
                             if (openLevel > data[i].depth) { openLevel = data[i].depth; }
@@ -3679,6 +3675,7 @@ if (typeof exports == "object") {
                                     var oddEvenClass = "tb-odd",
                                         indent = ctrl.flatData[item].depth,
                                         id = ctrl.flatData[item].id,
+                                        tree = Indexes[id],
                                         row = ctrl.flatData[item].row,
                                         padding,
                                         css;
@@ -3701,7 +3698,7 @@ if (typeof exports == "object") {
                                         onclick : function _rowClick(event) {
                                             ctrl.selected = id;
                                             if (ctrl.options.onselectrow) {
-                                                ctrl.options.onselectrow.call(ctrl, Indexes[row.id], event);
+                                                ctrl.options.onselectrow.call(ctrl, tree, event);
                                             }
                                         }
                                     }, [
@@ -3721,10 +3718,9 @@ if (typeof exports == "object") {
                                                         }
                                                     },
                                                         (function _toggleView() {
-                                                            var itemTree = Indexes[row.id];
                                                             if (ctrl.filterOn) {
                                                                 return m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
                                                                     );
                                                             }
                                                             if (row.children.length > 0 || row.kind === "folder") {
@@ -3734,7 +3730,7 @@ if (typeof exports == "object") {
                                                                             m("i.fa.fa-minus-square-o", " ")
                                                                             ),
                                                                         m("span.tb-expand-icon-holder",
-                                                                            ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                            ctrl.options.resolve_icon.call(ctrl, tree)
                                                                             )
                                                                     ];
                                                                 }
@@ -3743,14 +3739,14 @@ if (typeof exports == "object") {
                                                                         m("i.fa.fa-plus-square-o", " ")
                                                                         ),
                                                                     m("span.tb-expand-icon-holder",
-                                                                        ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                        ctrl.options.resolve_icon.call(ctrl, tree)
                                                                         )
                                                                 ];
                                                             }
                                                             return [
                                                                 m("span.tb-expand-icon-holder"),
                                                                 m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
                                                                     )
                                                             ];
                                                         }())
@@ -3760,7 +3756,7 @@ if (typeof exports == "object") {
                                             }
                                             if (col.custom) {
                                                 cell = m(".tb-td", { style : "width:" + col.width }, [
-                                                    col.custom.call(ctrl, Indexes[row.id], col)
+                                                    col.custom.call(ctrl, tree, col)
                                                 ]);
                                             }
                                             return cell;
@@ -3938,9 +3934,14 @@ if (typeof exports == "object") {
             resolve_icon : function (item) {     //Here the user can interject and add their own icons, uses m()
                 // this = treebeard object;
                 // Item = item acted on
-                if (item.kind === "folder") {
-                    return m("i.fa.fa-folder-o", " ");
+                try {
+                    if (item.kind === "folder") {
+                        return m("i.fa.fa-folder-o", " ");
+                    }
+                } catch (e) {
+                    window.console.log("Item", item, "e", e);
                 }
+
                 if (item.data.icon) {
                     return m("i.fa." + item.data.icon, " ");
                 }

@@ -36,8 +36,7 @@
     }
 
      // Check if variable is function
-     // A TODO revixe method function names.
-    function isfunction (x) {
+    function isfunction(x) {
         return Object.prototype.toString.call(x) === '[object Function]';
     }
 
@@ -46,7 +45,7 @@
         if (!x) {
             return "";
         }
-        if (isfunction (x)) {
+        if (isfunction(x)) {
             return x();
         }
         return x;
@@ -102,11 +101,10 @@
     Item = function _item(data) {
         if (data === undefined) {
             this.data = {};
-            this.id = getUID();
         } else {
             this.data = data;
-            this.id = data.id || getUID();
         }
+        this.id = getUID();
         this.depth = 0;
         this.children =  [];
         this.parentID = null;
@@ -406,7 +404,7 @@
                 i,
                 j,
                 o;
-            moveOff();
+            //moveOff();
             if (self.options.lazyLoad && item.row.kind === "folder" && item.row.children.length === 0) {
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
@@ -1086,9 +1084,14 @@
             resolve_icon : function (item) {     //Here the user can interject and add their own icons, uses m()
                 // this = treebeard object;
                 // Item = item acted on
-                if (item.kind === "folder") {
-                    return m("i.fa.fa-folder-o", " ");
+                try {
+                    if (item.kind === "folder") {
+                        return m("i.fa.fa-folder-o", " ");
+                    }
+                } catch (e) {
+                    window.console.log("Item", item, "e", e);
                 }
+
                 if (item.data.icon) {
                     return m("i.fa." + item.data.icon, " ");
                 }
