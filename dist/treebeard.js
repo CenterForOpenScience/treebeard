@@ -27,8 +27,7 @@
         // Initialize and namespace Treebeard module
         Treebeard = {},
 
-     // Create unique ids
-     // A TODO: Think about using own ids for unique
+    // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
         idCounter = -1;
     function getUID() {
         idCounter = idCounter + 1;
@@ -52,7 +51,13 @@
     }
 
      // Sorts ascending based on any attribute on data
-    function ascByAttr(data) {
+    function ascByAttr(data, sortType) {
+        console.log(sortType);
+        if (sortType === "number") {
+            return function _numcompare(a, b) {
+                return a - b;
+            };
+        }
         return function _compare(a, b) {
             var titleA = a.data[data].toLowerCase().replace(/\s+/g, " "),
                 titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
@@ -68,7 +73,12 @@
 
      // Sorts descending based on any attribute on data
      //
-    function descByAttr(data) {
+    function descByAttr(data, sortType) {
+        if (sortType === "number") {
+            return function _numcompare(a, b) {
+                return b - a;
+            };
+        }
         return function _compare(a, b) {
             var titleA = a.data[data].toLowerCase().replace(/\s/g, ''),
                 titleB = b.data[data].toLowerCase().replace(/\s/g, '');
@@ -200,32 +210,61 @@
         if (Indexes[this.parentID]) {
             return Indexes[this.parentID];
         }
-        // If there is no parent -- thanks to dumbass JSLint I have to write this comment to explain it.
-        throw new Error("Treebeard Error: The parent for Item with ID '" + this.id + "' could not be found");
+        return undefined;
+//        throw new Error("Treebeard Error: The parent for Item with ID '" + this.id + "' could not be found");
     };
 
-     // A TODO Non alphanumeric: check order behaviour.
-     // Sorts children of the item by direction and selected field. 
-    Item.prototype.sortChildren = function _itemSort(direction, field) {
+     // Sorts children of the item by direction and selected field.
+    Item.prototype.sortChildren = function _itemSort(direction, field, sortType) {
         if (!direction || !field) {
             throw new Error("Treebeard Error: To sort children you need to pass both direction and field to Item.sortChildren");
         }
-        if (this.children.length === 0) {
-            throw new Error("Treebeard Error: Item with ID '" + this.id + "' doesn't have any children");
+        if (this.children.length > 0) {
+            if (direction === "asc") {
+                this.children.sort(ascByAttr(field, sortType));
+            }
+            if (direction === "desc") {
+                this.children.sort(descByAttr(field, sortType));
+            }
         }
-        if (direction === "asc") {
-            this.children.sort(ascByAttr(field));
+    };
+
+    Item.prototype.isAncestor = function _isAncestor(item) {  // Is this item an ancestor of the passed in item?
+        function _checkAncestor(a, b) {
+            if (a.id === b.id) {
+                return true;
+            }
+            if (a.parent()) {
+                return _checkAncestor(a.parent(), b);
+            }
+            return false;
         }
-        if (direction === "desc") {
-            this.children.sort(descByAttr(field));
+        return _checkAncestor(item.parent(), this);
+    };
+
+    Item.prototype.isDescendant = function (item) {    // Is this item a descendant of the passed in item?
+        var i,
+            result = false;
+        function _checkDescendant(children, b) {
+            for (i = 0; i < children.length; i++) {
+                if (children[i].id === b.id) {
+                    result = true;
+                    break;
+                }
+                if (children[i].children.length > 0) {
+                    return _checkDescendant(children[i].children, b);
+                }
+            }
+            return result;
         }
+        return _checkDescendant(item.children, this);
     };
 
      // Treebeard methods 
     Treebeard.controller = function _treebeardController() {
         // private variables 
         var self = this,                                        // Treebard.controller
-            _sort = { asc : false, desc : false, column : "" },  // Temporary variables for sorting
+            _isSorted = { asc : false, desc : false, column : "" },  // Temporary variables for sorting
             _lastLocation = 0,                                  // The last scrollTop location, updates on every scroll.
             _lastNonFilterLocation = 0;                         // The last scrolltop location before filter was used.
 
@@ -265,7 +304,7 @@
                     from = ui.draggable.attr("data-id");
                     toItem = Indexes[to];
                     item = Indexes[from];
-                    if (to !== from && self.options.movecheck(toItem, item)) {
+                    if (to !== from && self.options.movecheck(toItem, item) && self.canMove(toItem, item)) {
                         $(this).addClass('tb-h-success');  // A TODO: style dictionary so people can override.
                     } else {
                         $(this).addClass('tb-h-error');
@@ -285,7 +324,11 @@
                                 self.options.onmove(toItem, item);
                             }
                         } else {
-                            window.alert("You can't move your item here."); // A TODO: Customize as function, put a proper default.
+                            if (self.options.movefail) {
+                                self.options.movefail.call(self, toItem, item);
+                            } else {
+                                window.alert("You can't move your item here.");
+                            }
                         }
                     }
 
@@ -314,6 +357,17 @@
 
         };
 
+        this.canMove = function _canMove(toItem, fromItem) {
+            // is toItem a folder?
+            if (toItem.kind !== "folder") {
+                return false;
+            }
+            // is toItem a descendant of fromItem?
+            if (toItem.isDescendant(fromItem)) {
+                return false;
+            }
+            return true;
+        };
         // A TODO On resize of the main container rerun showtotal; .
 
         // Adds a new node;
@@ -367,7 +421,6 @@
         function _rowFilterResult(row) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
-            console.log(self.showRange[0]);
             var filter = self.filterText().toLowerCase(),
                 titleResult = row.title.toLowerCase().indexOf(filter); // A TODO: filter options; filterable option for columns, then row_filter checks for wht is filterable. Title sholdn't be hardcoded.
             if (titleResult > -1) {
@@ -387,6 +440,7 @@
                 _calculateHeight();
                 m.redraw(true);
                 $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
+                //console.log(_lastNonFilterLocation);
                 if (self.options.onfilterreset) {
                     self.options.onfilterreset.call(self, filter);
                 }
@@ -463,27 +517,28 @@
 
          // Sorting toggles, incomplete (why incomplete?) 
          //
-        this.ascToggle = function _ascToggle() {
+        this.sortToggle = function _isSortedToggle() {
             var type = $(this).attr('data-direction'),
                 field = $(this).attr('data-field'),
+                sortType = $(this).attr('data-sortType'),
                 parent = $(this).parent(),
                 counter = 0,
                 redo;
             $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');  // turn all styles off
-            _sort.asc = false;
-            _sort.desc = false;
-            if (!_sort[type]) {
+            _isSorted.asc = false;
+            _isSorted.desc = false;
+            if (!_isSorted[type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(type, field);
+                        item.sortChildren(type, field, sortType);
                         if (item.children.length > 0) { redo(item.children); }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(type, field);           // Then start recursive loop
+                self.treeData.sortChildren(type, field, sortType);           // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
-                _sort[type] = true;
+                _isSorted[type] = true;
                 self.flatten(self.treeData.children, 0);
             }
         };
@@ -493,8 +548,7 @@
             var itemsHeight,
                 visible;
             if (!self.paginate) {
-                visible = self.visibleCount;
-                itemsHeight = visible * self.options.rowHeight;
+                itemsHeight = self.visibleIndexes.length * self.options.rowHeight;
             } else {
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
@@ -558,27 +612,6 @@
             $("#tb-tbody").scrollTop((self.currentPage()-1) * self.options.showTotal * self.options.rowHeight);
         };
 
-        /*
-        var scrollTop, diff, itemsHeight, innerHeight, location, index;
-                scrollTop = $(this).scrollTop();                    // get current scroll top
-                diff = scrollTop - _lastLocation;                    //Compare to last scroll location
-                if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
-                    $(this).scrollTop(_lastLocation + self.options.rowHeight);
-                }
-                if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
-                    $(this).scrollTop(_lastLocation - self.options.rowHeight);
-                }
-                itemsHeight = _calculateHeight();
-                innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
-                scrollTop = $(this).scrollTop();
-                location = scrollTop / innerHeight * 100;
-                index = Math.round(location / 100 * self.visibleCount);
-                self.rangeMargin = Math.round(itemsHeight * (scrollTop / innerHeight));
-                self.refreshRange(index);
-                m.redraw(true);
-                _lastLocation = scrollTop;
-        */
-
          // Changes view to paginate
         this.togglePaginate = function _togglePaginate() {  // A TODO Check view reg pagination vs scroll, default behavior
             var firstIndex = self.showRange[0],
@@ -589,7 +622,9 @@
             $('.tb-scroll').removeClass('active');
             $('.tb-paginate').addClass('active');
             self.currentPage(pagesBehind + 1);
+            _calculateHeight(); 
             self.refreshRange(firstItem);
+
         };
 
          // During pagination goes up one page
@@ -775,6 +810,7 @@
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight); // A TODO: option of row.
             $('#tb-tbody').scroll(function _scrollHook() {
+                if(!self.paginate){
                 var scrollTop, diff, itemsHeight, innerHeight, location, index;
                 scrollTop = $(this).scrollTop();                    // get current scroll top
                 diff = scrollTop - _lastLocation;                    //Compare to last scroll location
@@ -793,6 +829,8 @@
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
+                }
+                
             });
             if (self.options.allowMove) {
                 moveOn();
@@ -835,14 +873,16 @@
                             if (col.sort) {
                                 sortView =  [
                                     m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
-                                        onclick: ctrl.ascToggle,
+                                        onclick: ctrl.sortToggle,
                                         "data-direction": "asc",
-                                        "data-field" : col.data
+                                        "data-field" : col.data,
+                                        "data-sortType" : col.sortType
                                     }),
                                     m('i.fa.fa-sort-desc.tb-sort-inactive.desc-btn', {
-                                        onclick: ctrl.ascToggle,
+                                        onclick: ctrl.sortToggle,
                                         "data-direction": "desc",
-                                        "data-field" : col.data
+                                        "data-field" : col.data,
+                                        "data-sortType" : col.sortType
                                     })
                                 ];
                             }
@@ -1072,6 +1112,13 @@
                 // from = actual tree object we are moving
                 window.console.log("onmove: to", to, "from", from);
             },
+            movefail : function (to, from) { //This method gives the users an option to do checks and define their return
+                // this = treebeard object;
+                // from = item that is being moved
+                // to = the target location
+                window.console.log("moovefail: to", to, "from", from);
+                return true;
+            },
             addcheck : function (treebeard, item, file) {
                 // this = dropzone object
                 // treebeard = treebeard object
@@ -1092,13 +1139,7 @@
                 // row = item selected
                 // event = mouse click event object
                 window.console.log("onselectrow", this, row, event);
-                var item = {
-                    title : "My Item",
-                    id : 123214,
-                    kind : "folder",
-                    person : "Caner Uguz"
-                };
-                this.createItem(item, 93);
+               console.log("isDescendant", row.isDescendant(Indexes[2]));
             },
             ontogglefolder : function (item, event) {
                 // this = treebeard object
@@ -1115,7 +1156,7 @@
                     window.console.log("dragstart", this, treebeard, event);
                 }
             },
-            resolve_icon : function (item) {     //Here the user can interject and add their own icons, uses m()
+            resolve_icon : function (item) {     // Here the user can interject and add their own icons, uses m()
                 // this = treebeard object;
                 // Item = item acted on
                 try {

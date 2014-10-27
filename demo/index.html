@@ -90,17 +90,26 @@
                     width : "50%", // TODO Resize
                     data : "title",  // Data field name
                     sort : true,
+                    sortType : "text",
                     folderIcons : true // TODO: Is primary, only one. it's the first column.
                 },
                 {
                     title: "Author",
                     width : "25%",
                     data : "person",
-                    sort : true
+                    sort : true,
+                    sortType : "text"
+                },
+                {
+                    title: "Age",
+                    width : "10%",
+                    data : "age",
+                    sort : true,
+                    sortType : "number"
                 },
                 {
                     title: "Actions",
-                    width : "25%",
+                    width : "15%",
                     data : "action",
                     sort : false,
                     custom : function (row, col){
