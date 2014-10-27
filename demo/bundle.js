@@ -2947,13 +2947,12 @@ if (typeof exports == "object") {
      // Helper function that removes an item from an array of items based on the value of an attribute of that item
      //
     function removeByProperty(arr, attr, value) {
-        var i = arr.length;
-        while (i) {
+        var i;
+        for (i = 0; i < arr.length; i++) {
             if (arr[i] && arr[i].hasOwnProperty(attr) && (arguments.length > 2 && arr[i][attr] === value)) {
                 arr.splice(i, 1);
                 return true;
             }
-            i = i - 1;
         }
         return false;
     }
@@ -2991,13 +2990,25 @@ if (typeof exports == "object") {
             parentID = this.parentID,
             parent = Indexes[parentID];
         toItem.add(this);
+        toItem.redoDepth();
         if (parentID > -1) {
             parent.removeChild(parseInt(this.id, 10));
         }
     };
 
+    Item.prototype.redoDepth = function () {
+        var i;
+        function recursive(items, depth) {
+            for (i = 0; i < items.length; i++) {
+                items[i].depth = depth;
+                if (items[i].children.length > 0) {
+                    recursive(items[i].children, depth + 1);
+                }
+            }
+        }
+        recursive(this.children, this.depth + 1);
+    }
      // Deletes itself
-     //
     Item.prototype.removeSelf = function _itemRemoveSelf() {
         var parent = this.parent();
         parent.removeChild(this.id);
@@ -3140,9 +3151,14 @@ if (typeof exports == "object") {
         };
 
         function moveOn() {
-            $(".td-title").draggable({ helper: "clone" });
+            $(".td-title").draggable({
+                helper: "clone",
+                drag : function (event, ui) {
+                    $(ui.helper).css({ 'background' : 'white', 'padding' : '10px', 'box-shadow' : '0 0 4px #ccc'});
+                }
+            });
             $(".tb-row").droppable({
-                tolerance : "touch",
+                tolerance : "intersect",
                 cursor : "move",
                 out: function uiOut() {
                     $('.tb-row.tb-h-success').removeClass('tb-h-success');
@@ -3181,7 +3197,8 @@ if (typeof exports == "object") {
                             }
                         }
                     }
-
+                    $('.tb-row.tb-h-success').removeClass('tb-h-success');
+                    $('.tb-row.tb-h-error').removeClass('tb-h-error');
                 }
             });
         }
@@ -3423,9 +3440,9 @@ if (typeof exports == "object") {
                         self.visibleIndexes.push(i);
                     }
                 } else {
-                    if (o.show) {
+                    if (self.flatData[i].show) {
                         self.visibleIndexes.push(i);
-                        total = total +1;
+                        total = total + 1;
                     }
                 }
 
@@ -3643,6 +3660,7 @@ if (typeof exports == "object") {
                         }
                         Indexes[data[i].id] = data[i];
                         if (topLevel && i === length - 1) {
+                            console.log("Ran");
                             _calculateVisible(visibleTop);
                             _calculateHeight();
                             m.redraw();
@@ -3791,37 +3809,27 @@ if (typeof exports == "object") {
                                                         }
                                                     },
                                                         (function _toggleView() {
-                                                            if (ctrl.filterOn) {
-                                                                return m("span.tb-expand-icon-holder",
+                                                            var toggleMinus = m("span.tb-expand-icon-holder",
+                                                                    m("i.fa.fa-minus-square-o", " ")
+                                                                    ),
+                                                                togglePlus = m("span.tb-expand-icon-holder",
+                                                                    m("i.fa.fa-plus-square-o", " ")
+                                                                    ),
+                                                                resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolve_icon.call(ctrl, tree)
                                                                     );
+                                                            if (ctrl.filterOn) {
+                                                                return resolveIcon;
                                                             }
-                                                            if (row.children.length > 0 || row.kind === "folder") {
-                                                                if (row.children.length > 0 && row.open) {
-                                                                    return [
-                                                                        m("span.tb-expand-icon-holder",
-                                                                            m("i.fa.fa-minus-square-o", " ")
-                                                                            ),
-                                                                        m("span.tb-expand-icon-holder",
-                                                                            ctrl.options.resolve_icon.call(ctrl, tree)
-                                                                            )
-                                                                    ];
+                                                            if (row.kind === "folder") {
+                                                                if (row.children.length > 0) {
+                                                                    if (row.open) {
+                                                                        return [toggleMinus, resolveIcon];
+                                                                    }
+                                                                    return [togglePlus, resolveIcon];
                                                                 }
-                                                                return [
-                                                                    m("span.tb-expand-icon-holder",
-                                                                        m("i.fa.fa-plus-square-o", " ")
-                                                                        ),
-                                                                    m("span.tb-expand-icon-holder",
-                                                                        ctrl.options.resolve_icon.call(ctrl, tree)
-                                                                        )
-                                                                ];
                                                             }
-                                                            return [
-                                                                m("span.tb-expand-icon-holder"),
-                                                                m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
-                                                                    )
-                                                            ];
+                                                            return [m("span.tb-expand-icon-holder"), resolveIcon];
                                                         }())
                                                         ),
                                                     m("span.title-text", row[col.data] + " ")
@@ -3986,7 +3994,6 @@ if (typeof exports == "object") {
                 // row = item selected
                 // event = mouse click event object
                 window.console.log("onselectrow", this, row, event);
-               console.log("isDescendant", row.isDescendant(Indexes[2]));
             },
             ontogglefolder : function (item, event) {
                 // this = treebeard object
@@ -3994,7 +4001,7 @@ if (typeof exports == "object") {
                 // event = mouse click event object
                 window.console.log("ontogglefolder", this, item, event);
             },
-            dropzone : {            // All dropzone options.
+            dropzone : {                                           // All dropzone options.
                 url: "http://www.torrentplease.com/dropzone.php",  // When users provide single URL for all uploads
                 dragstart : function (treebeard, event) {     // An example dropzone event to override.
                     // this = dropzone object
