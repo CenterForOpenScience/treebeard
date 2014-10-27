@@ -144,7 +144,7 @@
         }
     };
 
-    Item.prototype.redoDepth = function () {
+    Item.prototype.redoDepth = function _itemRedoDepth() {
         var i;
         function recursive(items, depth) {
             for (i = 0; i < items.length; i++) {
@@ -155,7 +155,7 @@
             }
         }
         recursive(this.children, this.depth + 1);
-    }
+    };
      // Deletes itself
     Item.prototype.removeSelf = function _itemRemoveSelf() {
         var parent = this.parent();
@@ -285,8 +285,7 @@
         this.options = Treebeard.options;                       // User defined options
         this.selected = undefined;                              // The row selected on click.  
         this.rangeMargin = 0;                                   // Top margin, required for proper scrolling
-        this.visibleCount = 0;                                  // Total number of viewable items
-        this.visibleIndexes = [];                               // List of items viewable as a result of an operation like filter. 
+        this.visibleIndexes = [];                               // List of items viewable as a result of an operation like filter.
         this.visibleTop = undefined;                            // The first visible item. 
         this.currentPage = m.prop(1);                           // for pagination
         this.dropzone = null;                                   // Treebeard's own dropzone object
@@ -302,11 +301,11 @@
             $(".td-title").draggable({
                 helper: "clone",
                 drag : function (event, ui) {
-                    $(ui.helper).css({ 'background' : 'white', 'padding' : '10px', 'box-shadow' : '0 0 4px #ccc'});
+                    $(ui.helper).css({ 'background' : 'white', 'padding' : '5px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 }
             });
             $(".tb-row").droppable({
-                tolerance : "intersect",
+                tolerance : "fit",
                 cursor : "move",
                 out: function uiOut() {
                     $('.tb-row.tb-h-success').removeClass('tb-h-success');
@@ -560,9 +559,8 @@
 
          // Calculate how tall the wrapping div should be so that scrollbars appear properly
         function _calculateHeight() {
-            var itemsHeight,
-                visible;
-            if (!self.paginate) {
+            var itemsHeight;
+            if (!self.options.paginate) {
                 itemsHeight = self.visibleIndexes.length * self.options.rowHeight;
             } else {
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
@@ -595,14 +593,13 @@
                 }
 
             }
-            self.visibleCount = total;
             self.refreshRange(rangeIndex);
             return total;
         }
 
          // Refreshes the view to start the the location where begin is the starting index
         this.refreshRange = function _refreshRange(begin) {
-            var len = self.visibleCount,
+            var len = self.visibleIndexes.length,
                 range = [],
                 counter = 0,
                 i,
@@ -615,6 +612,7 @@
                 counter = counter + 1;
             }
             self.showRange = range;
+            m.redraw.strategy('none');
             m.redraw(true);
         };
 
@@ -624,7 +622,8 @@
             $('.tb-paginate').removeClass('active');
             $('.tb-scroll').addClass('active');
             //console.log(_lastLocation);
-            $("#tb-tbody").scrollTop((self.currentPage()-1) * self.options.showTotal * self.options.rowHeight);
+            $("#tb-tbody").scrollTop((self.currentPage() - 1) * self.options.showTotal * self.options.rowHeight);
+            _calculateHeight();
         };
 
          // Changes view to paginate
@@ -637,9 +636,8 @@
             $('.tb-scroll').removeClass('active');
             $('.tb-paginate').addClass('active');
             self.currentPage(pagesBehind + 1);
-            _calculateHeight(); 
+            _calculateHeight();
             self.refreshRange(firstItem);
-
         };
 
          // During pagination goes up one page
@@ -647,7 +645,7 @@
             // get last shown item index and refresh view from that item onwards
             var lastIndex = self.showRange[self.options.showTotal - 1],
                 last = self.visibleIndexes.indexOf(lastIndex);
-            if (last > -1 && last + 1 < self.visibleCount) {
+            if (last > -1 && last + 1 < self.visibleIndexes.length) {
                 self.refreshRange(last + 1);
                 self.currentPage(self.currentPage() + 1);
             }
@@ -696,6 +694,7 @@
                             }
                         }
                     },
+                    clickable : false,
                     accept : function _dropzoneAccept(file, done) {
                         if (self.options.addcheck.call(this, self, self.droppedItemCache, file)) {
                             $.when(self.options.resolveUploadUrl.call(self, self.droppedItemCache))
@@ -808,7 +807,6 @@
                         }
                         Indexes[data[i].id] = data[i];
                         if (topLevel && i === length - 1) {
-                            console.log("Ran");
                             _calculateVisible(visibleTop);
                             _calculateHeight();
                             m.redraw();
@@ -825,27 +823,26 @@
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight); // A TODO: option of row.
             $('#tb-tbody').scroll(function _scrollHook() {
-                if(!self.paginate){
-                var scrollTop, diff, itemsHeight, innerHeight, location, index;
-                scrollTop = $(this).scrollTop();                    // get current scroll top
-                diff = scrollTop - _lastLocation;                    //Compare to last scroll location
-                if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
-                    $(this).scrollTop(_lastLocation + self.options.rowHeight);
+                if (!self.paginate) {
+                    var scrollTop, diff, itemsHeight, innerHeight, location, index;
+                    scrollTop = $(this).scrollTop();                    // get current scroll top
+                    diff = scrollTop - _lastLocation;                    //Compare to last scroll location
+                    if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
+                        $(this).scrollTop(_lastLocation + self.options.rowHeight);
+                    }
+                    if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
+                        $(this).scrollTop(_lastLocation - self.options.rowHeight);
+                    }
+                    itemsHeight = _calculateHeight();
+                    innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
+                    scrollTop = $(this).scrollTop();
+                    location = scrollTop / innerHeight * 100;
+                    index = Math.round(location / 100 * self.visibleIndexes.length);
+                    self.rangeMargin = Math.round(itemsHeight * (scrollTop / innerHeight));
+                    self.refreshRange(index);
+                    m.redraw(true);
+                    _lastLocation = scrollTop;
                 }
-                if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
-                    $(this).scrollTop(_lastLocation - self.options.rowHeight);
-                }
-                itemsHeight = _calculateHeight();
-                innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
-                scrollTop = $(this).scrollTop();
-                location = scrollTop / innerHeight * 100;
-                index = Math.round(location / 100 * self.visibleCount);
-                self.rangeMargin = Math.round(itemsHeight * (scrollTop / innerHeight));
-                self.refreshRange(index);
-                m.redraw(true);
-                _lastLocation = scrollTop;
-                }
-                
             });
             if (self.options.allowMove) {
                 moveOn();
@@ -909,7 +906,7 @@
                     ]),
                     m("#tb-tbody", [
                         m('.tb-tbody-inner', [
-                            m('', { style : "padding-left: 15px;margin-top:" + ctrl.rangeMargin + "px" }, [
+                            m('', { style : "margin-top:" + ctrl.rangeMargin + "px" }, [
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
                                     var oddEvenClass = "tb-odd",
                                         indent = ctrl.flatData[item].depth,

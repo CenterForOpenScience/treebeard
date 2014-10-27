@@ -588,6 +588,9 @@
 .tb-row-active {
   background: #ADD8E6;
 }
+.tb-row {
+  line-height: 37px;
+}
 .tb-footer {
   background: rgba(239, 239, 239, 0.51);
   border: 1px solid #CCC;
