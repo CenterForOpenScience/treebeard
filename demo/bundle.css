@@ -1532,8 +1532,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-row-active{background:#ADD8E6}
 .tb-footer{background:rgba(239,239,239,.51);border:1px solid #CCC;border-top:none}
 .tb-head{padding:10px}
-.tb-head-filter{width:50%;float:right;margin-top:20px}
-.tb-head-title{width:50%;float:left}
+.tb-head-filter,.tb-head-title{width:50%;display:inline-block}
 .tb-sort-inactive{color:#999}
 .tb-sort-active{color:#222}
 .form-comp{margin:0 16px}

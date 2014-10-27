@@ -598,12 +598,11 @@
 }
 .tb-head-filter {
   width: 50%;
-  float: right;
-  margin-top: 20px;
+  display: inline-block;
 }
 .tb-head-title {
   width: 50%;
-  float: left;
+  display: inline-block;
 }
 .tb-sort-inactive {
   color: #999;

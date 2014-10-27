@@ -27,8 +27,7 @@
         // Initialize and namespace Treebeard module
         Treebeard = {},
 
-     // Create unique ids
-     // A TODO: Think about using own ids for unique
+    // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
         idCounter = -1;
     function getUID() {
         idCounter = idCounter + 1;
@@ -52,7 +51,13 @@
     }
 
      // Sorts ascending based on any attribute on data
-    function ascByAttr(data) {
+    function ascByAttr(data, sortType) {
+        console.log(sortType);
+        if (sortType === "number") {
+            return function _numcompare(a, b) {
+                return a - b;
+            };
+        }
         return function _compare(a, b) {
             var titleA = a.data[data].toLowerCase().replace(/\s+/g, " "),
                 titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
@@ -68,7 +73,12 @@
 
      // Sorts descending based on any attribute on data
      //
-    function descByAttr(data) {
+    function descByAttr(data, sortType) {
+        if (sortType === "number") {
+            return function _numcompare(a, b) {
+                return b - a;
+            };
+        }
         return function _compare(a, b) {
             var titleA = a.data[data].toLowerCase().replace(/\s/g, ''),
                 titleB = b.data[data].toLowerCase().replace(/\s/g, '');
@@ -101,14 +111,15 @@
     Item = function _item(data) {
         if (data === undefined) {
             this.data = {};
+            this.kind = "folder";
         } else {
             this.data = data;
+            this.kind = data.kind || "item";
         }
         this.id = getUID();
         this.depth = 0;
         this.children =  [];
         this.parentID = null;
-        this.kind = null;
     };
 
      // Adds child item into the item
@@ -203,28 +214,43 @@
         throw new Error("Treebeard Error: The parent for Item with ID '" + this.id + "' could not be found");
     };
 
-     // A TODO Non alphanumeric: check order behaviour.
-     // Sorts children of the item by direction and selected field. 
-    Item.prototype.sortChildren = function _itemSort(direction, field) {
+     // Sorts children of the item by direction and selected field.
+    Item.prototype.sortChildren = function _itemSort(direction, field, sortType) {
         if (!direction || !field) {
             throw new Error("Treebeard Error: To sort children you need to pass both direction and field to Item.sortChildren");
         }
-        if (this.children.length === 0) {
-            throw new Error("Treebeard Error: Item with ID '" + this.id + "' doesn't have any children");
+        if (this.children.length > 0) {
+            if (direction === "asc") {
+                this.children.sort(ascByAttr(field, sortType));
+            }
+            if (direction === "desc") {
+                this.children.sort(descByAttr(field, sortType));
+            }
         }
-        if (direction === "asc") {
-            this.children.sort(ascByAttr(field));
+    };
+
+    Item.prototype.isAncestor = function(item) {  // Is this item an ancestor of the passed in item?
+        function _check(a, b) {
+            if (a.id === b.id) {
+                return true;
+            }
+            if (a.parent()) {
+                return _check(a.parent(), b);
+            }
+            return false;
         }
-        if (direction === "desc") {
-            this.children.sort(descByAttr(field));
-        }
+        return _check(item, this.parent());
+    };
+
+    Item.prototype.isDescendant = function(item) {
+        return false;
     };
 
      // Treebeard methods 
     Treebeard.controller = function _treebeardController() {
         // private variables 
         var self = this,                                        // Treebard.controller
-            _sort = { asc : false, desc : false, column : "" },  // Temporary variables for sorting
+            _isSorted = { asc : false, desc : false, column : "" },  // Temporary variables for sorting
             _lastLocation = 0,                                  // The last scrollTop location, updates on every scroll.
             _lastNonFilterLocation = 0;                         // The last scrolltop location before filter was used.
 
@@ -264,7 +290,7 @@
                     from = ui.draggable.attr("data-id");
                     toItem = Indexes[to];
                     item = Indexes[from];
-                    if (to !== from && self.options.movecheck(toItem, item)) {
+                    if (to !== from && self.options.movecheck(toItem, item) && self.canMove(toItem, item)) {
                         $(this).addClass('tb-h-success');  // A TODO: style dictionary so people can override.
                     } else {
                         $(this).addClass('tb-h-error');
@@ -284,7 +310,11 @@
                                 self.options.onmove(toItem, item);
                             }
                         } else {
-                            window.alert("You can't move your item here."); // A TODO: Customize as function, put a proper default.
+                            if (self.options.movefail) {
+                                self.options.movefail.call(self, toItem, item);
+                            } else {
+                                window.alert("You can't move your item here.");
+                            }
                         }
                     }
 
@@ -313,6 +343,13 @@
 
         };
 
+        this.canMove = function _canMove(toItem, fromItem) {
+            // is to a folder?
+            if (toItem.kind !== "folder") {
+                return false;
+            }
+            return true;
+        }
         // A TODO On resize of the main container rerun showtotal; .
 
         // Adds a new node;
@@ -426,9 +463,9 @@
                     if (skip && o.depth > skipLevel) {continue; }
                     if (o.depth === skipLevel) { skip = false; }
                     if (item.row.open) {                    // closing
-                        o.row.show = false;
+                        o.show = false;
                     } else {                                 // opening
-                        o.row.show = true;
+                        o.show = true;
                         if (!o.row.open) {
                             skipLevel = o.depth;
                             skip = true;
@@ -448,27 +485,28 @@
 
          // Sorting toggles, incomplete (why incomplete?) 
          //
-        this.ascToggle = function _ascToggle() {
+        this.sortToggle = function _isSortedToggle() {
             var type = $(this).attr('data-direction'),
                 field = $(this).attr('data-field'),
+                sortType = $(this).attr('data-sortType'),
                 parent = $(this).parent(),
                 counter = 0,
                 redo;
             $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');  // turn all styles off
-            _sort.asc = false;
-            _sort.desc = false;
-            if (!_sort[type]) {
+            _isSorted.asc = false;
+            _isSorted.desc = false;
+            if (!_isSorted[type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(type, field);
+                        item.sortChildren(type, field, sortType);
                         if (item.children.length > 0) { redo(item.children); }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(type, field);           // Then start recursive loop
+                self.treeData.sortChildren(type, field, sortType);           // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
-                _sort[type] = true;
+                _isSorted[type] = true;
                 self.flatten(self.treeData.children, 0);
             }
         };
@@ -658,16 +696,18 @@
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
                         self.treeData = self.buildTree(value);
+                        console.log(self.treeData);
                     })
                     .then(function _requestFlatten() {
                         Indexes[0] = self.treeData;
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
+                        window.console.log("FlatData", self.flatData);
+                        window.console.log("treeData", self.treeData);
                         _calculateVisible();
                         _calculateHeight();
-                        window.window.console.log("FlatData", self.flatData);
-                        window.window.console.log("treeData", self.treeData);
+
                     });
             }
         }
@@ -681,7 +721,6 @@
                 tree = new Item(data);
                 children = data.children;
                 tree.depth = parent.depth + 1;   // Going down the list the parent doesn't yet have depth information
-                tree.kind = data.kind;
             }
             if (children) {
                 len = children.length;
@@ -710,11 +749,7 @@
                             depth : data[i].depth,
                             row: data[i].data
                         };
-                        for (j = 0; j < data[i].children.length; j++) {
-                            childIDs.push(data[i].children[j].id);
-                        }
-                        flat.row.children = childIDs;
-                        flat.row.show = show;
+                        flat.show = show;
                         if (data[i].children.length > 0 && !data[i].data.open) {
                             show = false;
                             if (openLevel > data[i].depth) { openLevel = data[i].depth; }
@@ -801,14 +836,16 @@
                             if (col.sort) {
                                 sortView =  [
                                     m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
-                                        onclick: ctrl.ascToggle,
+                                        onclick: ctrl.sortToggle,
                                         "data-direction": "asc",
-                                        "data-field" : col.data
+                                        "data-field" : col.data,
+                                        "data-sortType" : col.sortType
                                     }),
                                     m('i.fa.fa-sort-desc.tb-sort-inactive.desc-btn', {
-                                        onclick: ctrl.ascToggle,
+                                        onclick: ctrl.sortToggle,
                                         "data-direction": "desc",
-                                        "data-field" : col.data
+                                        "data-field" : col.data,
+                                        "data-sortType" : col.sortType
                                     })
                                 ];
                             }
@@ -825,6 +862,7 @@
                                     var oddEvenClass = "tb-odd",
                                         indent = ctrl.flatData[item].depth,
                                         id = ctrl.flatData[item].id,
+                                        tree = Indexes[id],
                                         row = ctrl.flatData[item].row,
                                         padding,
                                         css;
@@ -847,7 +885,7 @@
                                         onclick : function _rowClick(event) {
                                             ctrl.selected = id;
                                             if (ctrl.options.onselectrow) {
-                                                ctrl.options.onselectrow.call(ctrl, Indexes[row.id], event);
+                                                ctrl.options.onselectrow.call(ctrl, tree, event);
                                             }
                                         }
                                     }, [
@@ -867,10 +905,9 @@
                                                         }
                                                     },
                                                         (function _toggleView() {
-                                                            var itemTree = Indexes[row.id];
                                                             if (ctrl.filterOn) {
                                                                 return m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
                                                                     );
                                                             }
                                                             if (row.children.length > 0 || row.kind === "folder") {
@@ -880,7 +917,7 @@
                                                                             m("i.fa.fa-minus-square-o", " ")
                                                                             ),
                                                                         m("span.tb-expand-icon-holder",
-                                                                            ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                            ctrl.options.resolve_icon.call(ctrl, tree)
                                                                             )
                                                                     ];
                                                                 }
@@ -889,14 +926,14 @@
                                                                         m("i.fa.fa-plus-square-o", " ")
                                                                         ),
                                                                     m("span.tb-expand-icon-holder",
-                                                                        ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                        ctrl.options.resolve_icon.call(ctrl, tree)
                                                                         )
                                                                 ];
                                                             }
                                                             return [
                                                                 m("span.tb-expand-icon-holder"),
                                                                 m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, itemTree)
+                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
                                                                     )
                                                             ];
                                                         }())
@@ -906,7 +943,7 @@
                                             }
                                             if (col.custom) {
                                                 cell = m(".tb-td", { style : "width:" + col.width }, [
-                                                    col.custom.call(ctrl, Indexes[row.id], col)
+                                                    col.custom.call(ctrl, tree, col)
                                                 ]);
                                             }
                                             return cell;
@@ -1038,6 +1075,13 @@
                 // from = actual tree object we are moving
                 window.console.log("onmove: to", to, "from", from);
             },
+            movefail : function (to, from) { //This method gives the users an option to do checks and define their return
+                // this = treebeard object;
+                // from = item that is being moved
+                // to = the target location
+                window.console.log("moovefail: to", to, "from", from);
+                return true;
+            },
             addcheck : function (treebeard, item, file) {
                 // this = dropzone object
                 // treebeard = treebeard object
@@ -1058,13 +1102,7 @@
                 // row = item selected
                 // event = mouse click event object
                 window.console.log("onselectrow", this, row, event);
-                var item = {
-                    title : "My Item",
-                    id : 123214,
-                    kind : "folder",
-                    person : "Caner Uguz"
-                };
-                this.createItem(item, 93);
+               console.log("isAncestor", row.isAncestor(Indexes[2]));
             },
             ontogglefolder : function (item, event) {
                 // this = treebeard object
@@ -1081,7 +1119,7 @@
                     window.console.log("dragstart", this, treebeard, event);
                 }
             },
-            resolve_icon : function (item) {     //Here the user can interject and add their own icons, uses m()
+            resolve_icon : function (item) {     // Here the user can interject and add their own icons, uses m()
                 // this = treebeard object;
                 // Item = item acted on
                 try {
