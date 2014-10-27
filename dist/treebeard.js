@@ -176,7 +176,6 @@
     };
 
      // Returns previous sibling
-     //
     Item.prototype.prev = function _itemPrev() {
         var prev, parent, i;
         parent = Indexes[this.parentID];
@@ -210,8 +209,7 @@
         if (Indexes[this.parentID]) {
             return Indexes[this.parentID];
         }
-        // If there is no parent -- thanks to dumbass JSLint I have to write this comment to explain it.
-        throw new Error("Treebeard Error: The parent for Item with ID '" + this.id + "' could not be found");
+        return undefined;
     };
 
      // Sorts children of the item by direction and selected field.
@@ -229,21 +227,35 @@
         }
     };
 
-    Item.prototype.isAncestor = function(item) {  // Is this item an ancestor of the passed in item?
-        function _check(a, b) {
+    Item.prototype.isAncestor = function _isAncestor(item) {  // Is this item an ancestor of the passed in item?
+        function _checkAncestor(a, b) {
             if (a.id === b.id) {
                 return true;
             }
             if (a.parent()) {
-                return _check(a.parent(), b);
+                return _checkAncestor(a.parent(), b);
             }
             return false;
         }
-        return _check(item, this.parent());
+        return _checkAncestor(item.parent(), this);
     };
 
-    Item.prototype.isDescendant = function(item) {
-        return false;
+    Item.prototype.isDescendant = function (item) {    // Is this item a descendant of the passed in item?
+        var i,
+            result = false;
+        function _checkDescendant(children, b) {
+            for (i = 0; i < children.length; i++) {
+                if (children[i].id === b.id) {
+                    result = true;
+                    break;
+                }
+                if (children[i].children.length > 0) {
+                    return _checkDescendant(children[i].children, b);
+                }
+            }
+            return result;
+        }
+        return _checkDescendant(item.children, this);
     };
 
      // Treebeard methods 
@@ -303,7 +315,7 @@
                     toItem = Indexes[to];
                     item = Indexes[from];
                     if (to !== from) {
-                        if (self.options.movecheck.call(self, toItem, item)) {
+                        if (self.options.movecheck.call(self, toItem, item) && self.canMove(toItem, item)) {
                             item.move(to);
                             self.flatten(self.treeData.children, self.visibleTop);
                             if (self.options.onmove) {
@@ -344,16 +356,20 @@
         };
 
         this.canMove = function _canMove(toItem, fromItem) {
-            // is to a folder?
+            // is toItem a folder?
             if (toItem.kind !== "folder") {
                 return false;
             }
+            // is toItem a descendant of fromItem?
+            if (toItem.isDescendant(fromItem)) {
+                return false;
+            }
             return true;
-        }
+        };
         // A TODO On resize of the main container rerun showtotal; .
 
         // Adds a new node;
-        this.createItem = function _createItem(item, parentID) { // A TODO: Adding programmatically. startAdd : give them context of item being added to endAdd : Actually add the subitem,  Duplicate.
+        this.createItem = function _createItem(item, parentID) {
             var parent = Indexes[parentID];
             $.when(self.options.createcheck.call(self, item, parent)).done(function _resolveCreateCheck(check) {
                 if (check) {
@@ -387,9 +403,22 @@
                 }
             }
         }
+        /*
+        var firstIndex = self.showRange[0],
+                first = self.visibleIndexes.indexOf(firstIndex),
+                pagesBehind = Math.floor(first / self.options.showTotal),
+                firstItem = (pagesBehind * self.options.showTotal);
+            self.options.paginate = true;
+            $('.tb-scroll').removeClass('active');
+            $('.tb-paginate').addClass('active');
+            self.currentPage(pagesBehind + 1);
+            self.refreshRange(firstItem);
+        */
 
          // Returns whether a single row contains the filtered items
         function _rowFilterResult(row) {
+            $('#tb-tbody').scrollTop(0);
+            self.currentPage(1);
             var filter = self.filterText().toLowerCase(),
                 titleResult = row.title.toLowerCase().indexOf(filter); // A TODO: filter options; filterable option for columns, then row_filter checks for wht is filterable. Title sholdn't be hardcoded.
             if (titleResult > -1) {
@@ -409,6 +438,7 @@
                 _calculateHeight();
                 m.redraw(true);
                 $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
+                //console.log(_lastNonFilterLocation);
                 if (self.options.onfilterreset) {
                     self.options.onfilterreset.call(self, filter);
                 }
@@ -442,7 +472,7 @@
                 j,
                 o;
             //moveOff();
-            if (self.options.lazyLoad && item.row.kind === "folder" && item.row.children.length === 0) {
+            if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && item.row.children.length === 0) {
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
                         .then(function _getUrlBuildtree(value) {
@@ -516,8 +546,7 @@
             var itemsHeight,
                 visible;
             if (!self.paginate) {
-                visible = self.visibleCount;
-                itemsHeight = visible * self.options.rowHeight;
+                itemsHeight = self.visibleIndexes.length * self.options.rowHeight;
             } else {
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
@@ -577,7 +606,8 @@
             self.options.paginate = false;
             $('.tb-paginate').removeClass('active');
             $('.tb-scroll').addClass('active');
-            self.refreshRange(0);
+            //console.log(_lastLocation);
+            $("#tb-tbody").scrollTop((self.currentPage()-1) * self.options.showTotal * self.options.rowHeight);
         };
 
          // Changes view to paginate
@@ -590,7 +620,9 @@
             $('.tb-scroll').removeClass('active');
             $('.tb-paginate').addClass('active');
             self.currentPage(pagesBehind + 1);
+            _calculateHeight(); 
             self.refreshRange(firstItem);
+
         };
 
          // During pagination goes up one page
@@ -669,8 +701,7 @@
                         self.droppedItemCache = item;
                     },
                     success : function _dropzoneSuccess(file, response) {
-                        var mockResponse = new Treebeard.model(),
-                            mockTree = new Item(mockResponse);
+                        var mockTree = new Item();
                         self.droppedItemCache.add(mockTree);
                         self.flatten(self.treeData.children, self.visibleTop);
                         if (self.options.onadd) {
@@ -682,7 +713,7 @@
         }
 
         function _loadData(data) {
-            if (data instanceof Array) { // A TODO:  Look into check for array. shortcut jquery
+            if ($.isArray(data)) { // A TODO:  Look into check for array. shortcut jquery
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
                     Indexes[0] = value;
@@ -776,6 +807,7 @@
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight); // A TODO: option of row.
             $('#tb-tbody').scroll(function _scrollHook() {
+                if(!self.paginate){
                 var scrollTop, diff, itemsHeight, innerHeight, location, index;
                 scrollTop = $(this).scrollTop();                    // get current scroll top
                 diff = scrollTop - _lastLocation;                    //Compare to last scroll location
@@ -794,6 +826,8 @@
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
+                }
+                
             });
             if (self.options.allowMove) {
                 moveOn();
@@ -835,7 +869,7 @@
                             var sortView = "";
                             if (col.sort) {
                                 sortView =  [
-                                    m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
+                                    m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn.m-r-xs', {
                                         onclick: ctrl.sortToggle,
                                         "data-direction": "asc",
                                         "data-field" : col.data,
@@ -850,7 +884,7 @@
                                 ];
                             }
                             return m('.tb-th', { style : "width: " + col.width }, [
-                                m('span.padder-10', col.title),
+                                m('span.padder-10.m-r-sm', col.title),
                                 sortView
                             ]);
                         })
@@ -1021,7 +1055,6 @@
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
-            lazyLoad : false,       // If true should not load the sub contents of unopen files.  //TODO: if you have a function just run it.
             uploads : true,         // Turns dropzone on/off.
             columns : [],           // Defines columns based on data // A TODO Default define based on data
             showFilter : true,     // Gives the option to filter by showing the filter box.
@@ -1066,7 +1099,6 @@
                 // from = item that is being moved
                 // to = the target location
                 window.console.log("movecheck: to", to, "from", from);
-                // A TODO: Default looking at kind, only move into folder; + You can't move parent into subfolders.
                 return true;
             },
             onmove : function (to, from) {  // After move happens
@@ -1102,7 +1134,7 @@
                 // row = item selected
                 // event = mouse click event object
                 window.console.log("onselectrow", this, row, event);
-               console.log("isAncestor", row.isAncestor(Indexes[2]));
+               console.log("isDescendant", row.isDescendant(Indexes[2]));
             },
             ontogglefolder : function (item, event) {
                 // this = treebeard object
@@ -1154,5 +1186,3 @@
 
     return Treebeard;
 }));
-
- // A TODO : variable names, descriptive, mean what they are.

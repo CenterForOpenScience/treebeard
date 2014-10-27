@@ -403,9 +403,22 @@
                 }
             }
         }
+        /*
+        var firstIndex = self.showRange[0],
+                first = self.visibleIndexes.indexOf(firstIndex),
+                pagesBehind = Math.floor(first / self.options.showTotal),
+                firstItem = (pagesBehind * self.options.showTotal);
+            self.options.paginate = true;
+            $('.tb-scroll').removeClass('active');
+            $('.tb-paginate').addClass('active');
+            self.currentPage(pagesBehind + 1);
+            self.refreshRange(firstItem);
+        */
 
          // Returns whether a single row contains the filtered items
         function _rowFilterResult(row) {
+            $('#tb-tbody').scrollTop(0);
+            self.currentPage(1);
             var filter = self.filterText().toLowerCase(),
                 titleResult = row.title.toLowerCase().indexOf(filter); // A TODO: filter options; filterable option for columns, then row_filter checks for wht is filterable. Title sholdn't be hardcoded.
             if (titleResult > -1) {
@@ -425,6 +438,7 @@
                 _calculateHeight();
                 m.redraw(true);
                 $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
+                //console.log(_lastNonFilterLocation);
                 if (self.options.onfilterreset) {
                     self.options.onfilterreset.call(self, filter);
                 }
@@ -532,8 +546,7 @@
             var itemsHeight,
                 visible;
             if (!self.paginate) {
-                visible = self.visibleCount;
-                itemsHeight = visible * self.options.rowHeight;
+                itemsHeight = self.visibleIndexes.length * self.options.rowHeight;
             } else {
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
@@ -593,7 +606,8 @@
             self.options.paginate = false;
             $('.tb-paginate').removeClass('active');
             $('.tb-scroll').addClass('active');
-            self.refreshRange(0);
+            //console.log(_lastLocation);
+            $("#tb-tbody").scrollTop((self.currentPage()-1) * self.options.showTotal * self.options.rowHeight);
         };
 
          // Changes view to paginate
@@ -606,7 +620,9 @@
             $('.tb-scroll').removeClass('active');
             $('.tb-paginate').addClass('active');
             self.currentPage(pagesBehind + 1);
+            _calculateHeight(); 
             self.refreshRange(firstItem);
+
         };
 
          // During pagination goes up one page
@@ -791,6 +807,7 @@
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight); // A TODO: option of row.
             $('#tb-tbody').scroll(function _scrollHook() {
+                if(!self.paginate){
                 var scrollTop, diff, itemsHeight, innerHeight, location, index;
                 scrollTop = $(this).scrollTop();                    // get current scroll top
                 diff = scrollTop - _lastLocation;                    //Compare to last scroll location
@@ -809,6 +826,8 @@
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
+                }
+                
             });
             if (self.options.allowMove) {
                 moveOn();
