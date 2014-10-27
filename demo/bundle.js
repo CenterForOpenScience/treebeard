@@ -3028,7 +3028,6 @@ if (typeof exports == "object") {
     };
 
      // Returns previous sibling
-     //
     Item.prototype.prev = function _itemPrev() {
         var prev, parent, i;
         parent = Indexes[this.parentID];
@@ -3063,7 +3062,6 @@ if (typeof exports == "object") {
             return Indexes[this.parentID];
         }
         return undefined;
-//        throw new Error("Treebeard Error: The parent for Item with ID '" + this.id + "' could not be found");
     };
 
      // Sorts children of the item by direction and selected field.
@@ -3169,7 +3167,7 @@ if (typeof exports == "object") {
                     toItem = Indexes[to];
                     item = Indexes[from];
                     if (to !== from) {
-                        if (self.options.movecheck.call(self, toItem, item)) {
+                        if (self.options.movecheck.call(self, toItem, item) && self.canMove(toItem, item)) {
                             item.move(to);
                             self.flatten(self.treeData.children, self.visibleTop);
                             if (self.options.onmove) {
@@ -3223,7 +3221,7 @@ if (typeof exports == "object") {
         // A TODO On resize of the main container rerun showtotal; .
 
         // Adds a new node;
-        this.createItem = function _createItem(item, parentID) { // A TODO: Adding programmatically. startAdd : give them context of item being added to endAdd : Actually add the subitem,  Duplicate.
+        this.createItem = function _createItem(item, parentID) {
             var parent = Indexes[parentID];
             $.when(self.options.createcheck.call(self, item, parent)).done(function _resolveCreateCheck(check) {
                 if (check) {
@@ -3312,7 +3310,7 @@ if (typeof exports == "object") {
                 j,
                 o;
             //moveOff();
-            if (self.options.lazyLoad && item.row.kind === "folder" && item.row.children.length === 0) {
+            if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && item.row.children.length === 0) {
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
                         .then(function _getUrlBuildtree(value) {
@@ -3539,8 +3537,7 @@ if (typeof exports == "object") {
                         self.droppedItemCache = item;
                     },
                     success : function _dropzoneSuccess(file, response) {
-                        var mockResponse = new Treebeard.model(),
-                            mockTree = new Item(mockResponse);
+                        var mockTree = new Item();
                         self.droppedItemCache.add(mockTree);
                         self.flatten(self.treeData.children, self.visibleTop);
                         if (self.options.onadd) {
@@ -3552,7 +3549,7 @@ if (typeof exports == "object") {
         }
 
         function _loadData(data) {
-            if (data instanceof Array) { // A TODO:  Look into check for array. shortcut jquery
+            if ($.isArray(data)) { // A TODO:  Look into check for array. shortcut jquery
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
                     Indexes[0] = value;
@@ -3705,7 +3702,7 @@ if (typeof exports == "object") {
                             var sortView = "";
                             if (col.sort) {
                                 sortView =  [
-                                    m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn', {
+                                    m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn.m-r-xs', {
                                         onclick: ctrl.sortToggle,
                                         "data-direction": "asc",
                                         "data-field" : col.data,
@@ -3720,7 +3717,7 @@ if (typeof exports == "object") {
                                 ];
                             }
                             return m('.tb-th', { style : "width: " + col.width }, [
-                                m('span.padder-10', col.title),
+                                m('span.padder-10.m-r-sm', col.title),
                                 sortView
                             ]);
                         })
@@ -3891,7 +3888,6 @@ if (typeof exports == "object") {
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
-            lazyLoad : false,       // If true should not load the sub contents of unopen files.  //TODO: if you have a function just run it.
             uploads : true,         // Turns dropzone on/off.
             columns : [],           // Defines columns based on data // A TODO Default define based on data
             showFilter : true,     // Gives the option to filter by showing the filter box.
@@ -3936,7 +3932,6 @@ if (typeof exports == "object") {
                 // from = item that is being moved
                 // to = the target location
                 window.console.log("movecheck: to", to, "from", from);
-                // A TODO: Default looking at kind, only move into folder; + You can't move parent into subfolders.
                 return true;
             },
             onmove : function (to, from) {  // After move happens
@@ -4024,5 +4019,3 @@ if (typeof exports == "object") {
 
     return Treebeard;
 }));
-
- // A TODO : variable names, descriptive, mean what they are.

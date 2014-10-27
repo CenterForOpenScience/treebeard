@@ -115,7 +115,8 @@
                     custom : function (row, col){
                         var that = this;
                         return m("button.btn.btn-danger.btn-xs", {
-                            onclick: function _deleteClick() {
+                            onclick: function _deleteClick(e) {
+                                e.stopPropagation();
                                 that.deleteNode(row.parentID, row.id);
                             }
                         }, " X ")
