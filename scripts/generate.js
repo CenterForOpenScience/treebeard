@@ -155,6 +155,7 @@ module.exports =  function outputJSON (totalItems, depth){
                 var childarray = [];
                 var totalIteration;
                 if(totalItems < 50){ totalIteration = 5; } else { totalIteration = 20; }
+                if(totalItems < 50){ totalIteration = 5; } else { totalIteration = 20; }
                 var iteration = randomNumber(totalIteration);
                 var remainingItems = totalItems-counter;
                 if(remainingItems<5){ iteration = remainingItems}

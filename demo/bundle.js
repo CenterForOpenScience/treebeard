@@ -2959,9 +2959,11 @@ if (typeof exports == "object") {
         if (data === undefined) {
             this.data = {};
             this.kind = "folder";
+            this.open = true;
         } else {
             this.data = data;
             this.kind = data.kind || "item";
+            this.open = data.open;
         }
         this.id = getUID();
         this.depth = 0;
@@ -2974,7 +2976,6 @@ if (typeof exports == "object") {
         component.parentID = this.id;
         component.depth = this.depth + 1;
         this.children.push(component);
-        this.open = true;
         return this;
     };
 
@@ -3147,7 +3148,7 @@ if (typeof exports == "object") {
             $(".td-title").draggable({
                 helper: "clone",
                 drag : function (event, ui) {
-                    $(ui.helper).css({ 'background' : 'white', 'padding' : '5px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                    $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 }
             });
             $(".tb-row").droppable({
@@ -3158,6 +3159,7 @@ if (typeof exports == "object") {
                     $('.tb-row.tb-h-error').removeClass('tb-h-error');
                 },
                 over: function _uiOver(event, ui) {
+
                     var to, from, toItem, item;
                     to = $(this).attr("data-id");
                     from = ui.draggable.attr("data-id");
@@ -3170,9 +3172,11 @@ if (typeof exports == "object") {
                     }
                 },
                 drop: function _uiDrop(event, ui) {
+
                     var to, from, toItem, item;
                     to = $(this).attr("data-id");
                     from = ui.draggable.attr("data-id");
+
                     toItem = Indexes[to];
                     item = Indexes[from];
                     if (to !== from) {
@@ -3311,7 +3315,7 @@ if (typeof exports == "object") {
         };
 
          // Toggles whether a folder is collapes or open
-        this.toggleFolder = function _toggleFolder(topIndex, index, event) {
+        this.toggleFolder = function _toggleFolder(index, event) {
             var len = self.flatData.length,
                 tree = Indexes[self.flatData[index].id],
                 item = self.flatData[index],
@@ -3321,7 +3325,8 @@ if (typeof exports == "object") {
                 level = item.depth,
                 i,
                 j,
-                o;
+                o,
+                t;
             //moveOff();
             if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && item.row.children.length === 0) {
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
@@ -3331,7 +3336,7 @@ if (typeof exports == "object") {
                                 child = self.buildTree(value[i], tree);
                                 tree.add(child);
                             }
-                            tree.data.open = true;
+                            tree.open = true;
                         })
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, topIndex);
@@ -3340,21 +3345,22 @@ if (typeof exports == "object") {
             } else {
                 for (j = index + 1; j < len; j++) {
                     o = self.flatData[j];
+                    t = Indexes[self.flatData[j].id];
                     if (o.depth <= level) {break; }
                     if (skip && o.depth > skipLevel) {continue; }
                     if (o.depth === skipLevel) { skip = false; }
-                    if (item.row.open) {                    // closing
+                    if (tree.open) {                    // closing
                         o.show = false;
                     } else {                                 // opening
                         o.show = true;
-                        if (!o.row.open) {
+                        if (!t.open) {
                             skipLevel = o.depth;
                             skip = true;
                         }
                     }
                 }
-                item.row.open = !item.row.open;
-                _calculateVisible(topIndex);
+                tree.open = !tree.open;
+                _calculateVisible(self.visibleTop);
                 _calculateHeight();
                 m.redraw(true);
             }
@@ -3486,7 +3492,6 @@ if (typeof exports == "object") {
         };
 
          // During pagination goes down one page
-         //
         this.pageDown = function _pageDown() {
             var firstIndex = self.showRange[0],
                 first = self.visibleIndexes.indexOf(firstIndex);
@@ -3506,7 +3511,6 @@ if (typeof exports == "object") {
         };
 
         // Remove dropzone from grid
-        //
         function _destroyDropzone() {
             self.dropzone.destroy();
         }
@@ -3636,7 +3640,7 @@ if (typeof exports == "object") {
                             row: data[i].data
                         };
                         flat.show = show;
-                        if (data[i].children.length > 0 && !data[i].data.open) {
+                        if (data[i].children.length > 0 && !data[i].open) {
                             show = false;
                             if (openLevel > data[i].depth) { openLevel = data[i].depth; }
                         }
@@ -3665,7 +3669,7 @@ if (typeof exports == "object") {
                 self.options.rowHeight = $('.tb-row').height();
             }
             $('#tb-tbody').scroll(function _scrollHook() {
-                if (!self.paginate) {
+                if (!self.options.paginate) {
                     var scrollTop, diff, itemsHeight, innerHeight, location, index;
                     scrollTop = $(this).scrollTop();                    // get current scroll top
                     diff = scrollTop - _lastLocation;                    //Compare to last scroll location
@@ -3696,7 +3700,7 @@ if (typeof exports == "object") {
         if (self.options.filesData) {
             _loadData(self.options.filesData);
         } else {
-            throw new Error("Treebeard Error: You need to define a data source through options.filesData");
+            throw new Error("Treebeard Error: You need to define a data source through 'options.filesData'");
         }
     };
 
@@ -3797,7 +3801,8 @@ if (typeof exports == "object") {
                                                 }, [
                                                     m("span.tdFirst", {
                                                         onclick: function _folderToggleClick(event) {
-                                                            ctrl.toggleFolder(ctrl.visibleTop, item, event);
+
+                                                            ctrl.toggleFolder(item, event);
                                                         }
                                                     },
                                                         (function _toggleView() {
@@ -3815,7 +3820,7 @@ if (typeof exports == "object") {
                                                             }
                                                             if (row.kind === "folder") {
                                                                 if (row.children.length > 0) {
-                                                                    if (row.open) {
+                                                                    if (tree.open) {
                                                                         return [toggleMinus, resolveIcon];
                                                                     }
                                                                     return [togglePlus, resolveIcon];
@@ -3865,10 +3870,10 @@ if (typeof exports == "object") {
                                                 var total_visible = ctrl.visibleIndexes.length,
                                                     total = Math.ceil(total_visible / ctrl.options.showTotal);
                                                 return m('.pull-right', [
-                                                    m('button.btn.btn-default.btn-sm',
+                                                    m('button.btn.btn-default.btn-sm.m-r-sm',
                                                         { onclick : ctrl.pageDown},
                                                         [ m('i.fa.fa-chevron-left')]),
-                                                    m('input.h-mar-10',
+                                                    m('input.m-r-sm',
                                                         {
                                                             type : "text",
                                                             style : "width: 30px;",
@@ -4013,17 +4018,12 @@ if (typeof exports == "object") {
             resolveIcon : function (item) {     // Here the user can interject and add their own icons, uses m()
                 // this = treebeard object;
                 // Item = item acted on
-                try {
-                    if (item.kind === "folder") {
-                        if (item.data.open){
-                            return m("i.fa.fa-folder-open-o", " ");
-                        }
-                        return m("i.fa.fa-folder-o", " ");
+                if (item.kind === "folder") {
+                    if (item.open) {
+                        return m("i.fa.fa-folder-open-o", " ");
                     }
-                } catch (e) {
-                    window.console.log("Item", item, "e", e);
+                    return m("i.fa.fa-folder-o", " ");
                 }
-
                 if (item.data.icon) {
                     return m("i.fa." + item.data.icon, " ");
                 }

@@ -30,7 +30,7 @@
             .list-group-item {
                 position: relative;
                 display: block;
-                padding: 10px 0px 0px 15px;
+                padding: 10px 0 0 15px;
                 background-color: #fff;
                 border: none;
             }
@@ -75,13 +75,13 @@
          }
         var options = {
             divID : 'grid',
-            filesData : "http://localhost:63342/mGrid/demo/sample_5.json",
+            filesData : "http://localhost:63342/mGrid/demo/small.json",
             rowHeight : 35,
             showTotal : 15,
-            paginate : true,
-            paginateToggle : false,
+            paginate : false,
+            paginateToggle : true,
             lazyLoad : true,
-            useDropzone : false,
+            useDropzone : true,
             uploadURL : "",
             allowMove : true,
             columns : [

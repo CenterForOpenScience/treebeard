@@ -589,8 +589,8 @@
   background: #ADD8E6;
 }
 .tb-row {
-  line-height: 37px;
   height: 35px;
+  padding-top: 5px;
 }
 .tb-footer {
   background: rgba(239, 239, 239, 0.51);
