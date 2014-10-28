@@ -1530,7 +1530,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-th{font-weight:700}
 .tb-details{background:#ADD8E6;height:623px;border:1px solid #EEE;padding:20px}
 .tb-row-active{background:#ADD8E6}
-.tb-row{line-height:37px}
+.tb-row{line-height:37px;height:35px}
 .tb-footer{background:rgba(239,239,239,.51);border:1px solid #CCC;border-top:none;padding:5px}
 .tb-head{padding:10px}
 .tb-head-filter,.tb-head-title{width:50%;display:inline-block}

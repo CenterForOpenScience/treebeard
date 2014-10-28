@@ -2904,7 +2904,6 @@ if (typeof exports == "object") {
 
      // Sorts ascending based on any attribute on data
     function ascByAttr(data, sortType) {
-        console.log(sortType);
         if (sortType === "number") {
             return function _numcompare(a, b) {
                 return a - b;
@@ -2924,7 +2923,6 @@ if (typeof exports == "object") {
     }
 
      // Sorts descending based on any attribute on data
-     //
     function descByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numcompare(a, b) {
@@ -2945,7 +2943,6 @@ if (typeof exports == "object") {
     }
 
      // Helper function that removes an item from an array of items based on the value of an attribute of that item
-     //
     function removeByProperty(arr, attr, value) {
         var i;
         for (i = 0; i < arr.length; i++) {
@@ -2958,7 +2955,6 @@ if (typeof exports == "object") {
     }
 
      // Item constructor
-     //
     Item = function _item(data) {
         if (data === undefined) {
             this.data = {};
@@ -2974,7 +2970,6 @@ if (typeof exports == "object") {
     };
 
      // Adds child item into the item
-     //
     Item.prototype.add = function _itemAdd(component) {
         component.parentID = this.id;
         component.depth = this.depth + 1;
@@ -2984,7 +2979,6 @@ if (typeof exports == "object") {
     };
 
      // Move item from one place to another
-     //
     Item.prototype.move = function _itemMove(toID) {
         var toItem = Indexes[toID],
             parentID = this.parentID,
@@ -3170,7 +3164,7 @@ if (typeof exports == "object") {
                     toItem = Indexes[to];
                     item = Indexes[from];
                     if (to !== from && self.options.movecheck(toItem, item) && self.canMove(toItem, item)) {
-                        $(this).addClass('tb-h-success');  // A TODO: style dictionary so people can override.
+                        $(this).addClass('tb-h-success');
                     } else {
                         $(this).addClass('tb-h-error');
                     }
@@ -3220,7 +3214,6 @@ if (typeof exports == "object") {
                     }
                 }
             });
-
         };
 
         this.canMove = function _canMove(toItem, fromItem) {
@@ -3234,7 +3227,6 @@ if (typeof exports == "object") {
             }
             return true;
         };
-        // A TODO On resize of the main container rerun showtotal; .
 
         // Adds a new node;
         this.createItem = function _createItem(item, parentID) {
@@ -3255,14 +3247,12 @@ if (typeof exports == "object") {
         };
 
          // Returns the object from the tree
-         //
         this.find = function _find(id) {
             return Indexes[id];
         };
 
          // Returns the index of an item in the flat row list
-         //
-        function _returnIndex(id) {
+        this.returnIndex = function _returnIndex(id) {
             var len = self.flatData.length, i, o;
             for (i = 0; i < len; i++) {
                 o = self.flatData[i];
@@ -3270,29 +3260,23 @@ if (typeof exports == "object") {
                     return i;
                 }
             }
-        }
-        /*
-        var firstIndex = self.showRange[0],
-                first = self.visibleIndexes.indexOf(firstIndex),
-                pagesBehind = Math.floor(first / self.options.showTotal),
-                firstItem = (pagesBehind * self.options.showTotal);
-            self.options.paginate = true;
-            $('.tb-scroll').removeClass('active');
-            $('.tb-paginate').addClass('active');
-            self.currentPage(pagesBehind + 1);
-            self.refreshRange(firstItem);
-        */
+        };
 
-         // Returns whether a single row contains the filtered items
+         // Returns whether a single row contains the filtered items, checking if columns can be filtered
         function _rowFilterResult(row) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
             var filter = self.filterText().toLowerCase(),
-                titleResult = row.title.toLowerCase().indexOf(filter); // A TODO: filter options; filterable option for columns, then row_filter checks for wht is filterable. Title sholdn't be hardcoded.
-            if (titleResult > -1) {
-                return true;
+                titleResult = false,
+                i,
+                o;
+            for (i = 0; i < self.options.columns.length; i++) {
+                o = self.options.columns[i];
+                if (o.filter && row[o.data].toLowerCase().indexOf(filter) !== -1) {
+                    titleResult = true;
+                }
             }
-            return false;
+            return titleResult;
         }
 
          // runs filter functions and resets depending on whether there is a filter word
@@ -3306,7 +3290,6 @@ if (typeof exports == "object") {
                 _calculateHeight();
                 m.redraw(true);
                 $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
-                //console.log(_lastNonFilterLocation);
                 if (self.options.onfilterreset) {
                     self.options.onfilterreset.call(self, filter);
                 }
@@ -3473,13 +3456,12 @@ if (typeof exports == "object") {
             self.options.paginate = false;
             $('.tb-paginate').removeClass('active');
             $('.tb-scroll').addClass('active');
-            //console.log(_lastLocation);
             $("#tb-tbody").scrollTop((self.currentPage() - 1) * self.options.showTotal * self.options.rowHeight);
             _calculateHeight();
         };
 
          // Changes view to paginate
-        this.togglePaginate = function _togglePaginate() {  // A TODO Check view reg pagination vs scroll, default behavior
+        this.togglePaginate = function _togglePaginate() {
             var firstIndex = self.showRange[0],
                 first = self.visibleIndexes.indexOf(firstIndex),
                 pagesBehind = Math.floor(first / self.options.showTotal),
@@ -3581,7 +3563,7 @@ if (typeof exports == "object") {
         }
 
         function _loadData(data) {
-            if ($.isArray(data)) { // A TODO:  Look into check for array. shortcut jquery
+            if ($.isArray(data)) {
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
                     Indexes[0] = value;
@@ -3591,19 +3573,25 @@ if (typeof exports == "object") {
                     _calculateVisible();
                     _calculateHeight();
                 });
-            } else { // A TODO: check if proper url:
+            } else {
+                // Test that it is a url
+                var urlPattern = new RegExp("(http|ftp|https)://[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?");
+                if (self.options.filesData.indexOf('localhost') === -1) {
+                    if (!urlPattern.test(self.options.filesData)) {
+                        throw new Error("Treebeard Error: Your URL is not valid. Include full path. You provided: " + self.options.filesData);
+                    }
+                }
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
                         self.treeData = self.buildTree(value);
-                        console.log(self.treeData);
                     })
                     .then(function _requestFlatten() {
                         Indexes[0] = self.treeData;
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
-                        window.console.log("FlatData", self.flatData);
-                        window.console.log("treeData", self.treeData);
+                        //window.console.log("FlatData", self.flatData);
+                        //window.console.log("treeData", self.treeData);
                         _calculateVisible();
                         _calculateHeight();
 
@@ -3636,13 +3624,12 @@ if (typeof exports == "object") {
             self.flatData = [];
             var openLevel = 1,
                 recursive = function redo(data, show, topLevel) {
-                    var length = data.length, i, children, childIDs, flat, j;
+                    var length = data.length, i, children, flat;
                     for (i = 0; i < length; i++) {
                         if (openLevel && data[i].depth <= openLevel) {
                             show = true;
                         }
                         children = data[i].children;
-                        childIDs = [];
                         flat = {
                             id: data[i].id,
                             depth : data[i].depth,
@@ -3673,7 +3660,10 @@ if (typeof exports == "object") {
         this.init = function _init(el, isInit) {
             if (isInit) { return; }
             var containerHeight = $('#tb-tbody').height();
-            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight); // A TODO: option of row.
+            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight);
+            if (!self.options.rowHeight) {
+                self.options.rowHeight = $('.tb-row').height();
+            }
             $('#tb-tbody').scroll(function _scrollHook() {
                 if (!self.paginate) {
                     var scrollTop, diff, itemsHeight, innerHeight, location, index;
@@ -3702,11 +3692,15 @@ if (typeof exports == "object") {
             if (self.options.uploads) { _applyDropzone(); }
         };
 
-        _loadData(Treebeard.options.filesData);
+        if (self.options.filesData) {
+            _loadData(self.options.filesData);
+        } else {
+            throw new Error("Treebeard Error: You need to define a data source through options.filesData");
+        }
     };
 
-    Treebeard.view = function treebeardView(ctrl) { // A TODO Column resizing and order chane.
-        window.window.console.log(ctrl.showRange);
+    Treebeard.view = function treebeardView(ctrl) {
+        //window.window.console.log(ctrl.showRange);
         return [
             m('.gridWrapper', {config : ctrl.init},  [
                 m(".tb-table", [
@@ -3908,12 +3902,21 @@ if (typeof exports == "object") {
         Treebeard.options = $.extend({
             divID : "myGrid",
             filesData : "small.json",
-            rowHeight : 35,         // Pixel height of the rows, needed to calculate scrolls and heights // TODO: get height from css
+            rowHeight : undefined,         // user can override or get from .tb-row height
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             uploads : true,         // Turns dropzone on/off.
-            columns : [],           // Defines columns based on data // A TODO Default define based on data
+            columns : [           // Defines columns based on data
+                {
+                    title: "Title",
+                    width : "50%",
+                    data : "title",  // Data field name
+                    sort : true,
+                    sortType : "text",
+                    folderIcons : true
+                }
+            ],
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.

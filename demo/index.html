@@ -75,11 +75,11 @@
          }
         var options = {
             divID : 'grid',
-            filesData : "sample_20.json",
+            filesData : "http://localhost:63342/mGrid/demo/sample_5.json",
             rowHeight : 35,
             showTotal : 15,
-            paginate : false,
-            paginateToggle : true,
+            paginate : true,
+            paginateToggle : false,
             lazyLoad : true,
             useDropzone : false,
             uploadURL : "",
@@ -87,17 +87,19 @@
             columns : [
                 {
                     title: "Title",
-                    width : "50%", // TODO Resize
+                    width : "50%",
                     data : "title",  // Data field name
                     sort : true,
                     sortType : "text",
-                    folderIcons : true // TODO: Is primary, only one. it's the first column.
+                    filter : true,
+                    folderIcons : true
                 },
                 {
                     title: "Author",
                     width : "25%",
                     data : "person",
                     sort : true,
+                    filter : true,
                     sortType : "text"
                 },
                 {
