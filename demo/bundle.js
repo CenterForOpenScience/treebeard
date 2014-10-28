@@ -3692,6 +3692,7 @@ if (typeof exports == "object") {
             if (self.options.uploads) { _applyDropzone(); }
         };
 
+        // Check if options inclide filesData, this is required to run so throw error if not.
         if (self.options.filesData) {
             _loadData(self.options.filesData);
         } else {
@@ -3807,7 +3808,7 @@ if (typeof exports == "object") {
                                                                     m("i.fa.fa-plus-square-o", " ")
                                                                     ),
                                                                 resolveIcon = m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
+                                                                    ctrl.options.resolveIcon.call(ctrl, tree)
                                                                     );
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
@@ -3897,7 +3898,6 @@ if (typeof exports == "object") {
     };
 
      // Starts treebard with user options;
-     //
     Treebeard.run = function _treebeardRun(options) {
         Treebeard.options = $.extend({
             divID : "myGrid",
@@ -3907,7 +3907,7 @@ if (typeof exports == "object") {
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             uploads : true,         // Turns dropzone on/off.
-            columns : [           // Defines columns based on data
+            columns : [            // Defines columns based on data
                 {
                     title: "Title",
                     width : "50%",
@@ -4010,11 +4010,14 @@ if (typeof exports == "object") {
                     window.console.log("dragstart", this, treebeard, event);
                 }
             },
-            resolve_icon : function (item) {     // Here the user can interject and add their own icons, uses m()
+            resolveIcon : function (item) {     // Here the user can interject and add their own icons, uses m()
                 // this = treebeard object;
                 // Item = item acted on
                 try {
                     if (item.kind === "folder") {
+                        if (item.data.open){
+                            return m("i.fa.fa-folder-open-o", " ");
+                        }
                         return m("i.fa.fa-folder-o", " ");
                     }
                 } catch (e) {

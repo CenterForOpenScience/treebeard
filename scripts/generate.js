@@ -133,19 +133,13 @@ module.exports =  function outputJSON (totalItems, depth){
         /*
          Construct your json object
          */
-        var obj = function (id, parent, indent){
+        var obj = function (id){
             this.id = id;
-            this.parent = parent;
-            this.indent = indent;
             this.person =  randomPerson();
             this.desc = styledString("sentence", 14);
             this.title = styledString("title", 5);
-            this.kind = randomOption("item,folder");
             this.age = randomNumber(60);
             this.skills = randomOption("js,css,html,python");
-            this.open = randomBoolean();
-            this.stuff = randomArray("mixed", randomNumber(8));
-            this.show = true;
             this.open = randomBoolean();
             this.date = new Date();
             this.icon = randomOption("fa-file-archive-o,fa-file-audio-o,fa-file-code-o,fa-file-excel-o,fa-file-image-o,fa-file-movie-o,fa-file-o,fa-file-pdf-o,fa-file-photo-o,fa-file-picture-o,fa-file-powerpoint-o,fa-file-sound-o,fa-file-text,fa-file-text-o,fa-file-video-o,fa-file-word-o,fa-file-zip-o");
@@ -156,7 +150,7 @@ module.exports =  function outputJSON (totalItems, depth){
          Build a json object going down "level" number of levels.
          */
         var counter = 1;
-        var buildJSON = function redo (level, parent, indent){
+        var buildJSON = function redo (level){
             if(counter < totalItems){
                 var childarray = [];
                 var totalIteration;
@@ -165,11 +159,16 @@ module.exports =  function outputJSON (totalItems, depth){
                 var remainingItems = totalItems-counter;
                 if(remainingItems<5){ iteration = remainingItems}
                 for(var i  = 0; i < iteration; i++){
-                    var thisObj = new obj(counter, parent, indent);
+                    var thisObj = new obj(counter);
                     if( counter === 1){ thisObj.open = true; }
                     counter++;
                     if( level > 0 && iteration != remainingItems) {
-                        thisObj.children = redo (level-1, thisObj.id, indent+1);
+                        thisObj.children = redo (level-1);
+                        if(thisObj.children.length > 0){
+                            thisObj.kind = "folder";
+                        } else {
+                            thisObj.kind = "item";
+                        }
                     }
                     childarray.push( thisObj);
                 }
@@ -177,7 +176,7 @@ module.exports =  function outputJSON (totalItems, depth){
             }
             return [];
         };
-        var output = buildJSON(depth, 0, 0);
+        var output = buildJSON(depth);
 
         var outputBuffer = new Buffer(JSON.stringify(output));
         if (file.isNull()) {

@@ -52,7 +52,6 @@
 
      // Sorts ascending based on any attribute on data
     function ascByAttr(data, sortType) {
-        console.log(sortType);
         if (sortType === "number") {
             return function _numcompare(a, b) {
                 return a - b;
@@ -72,7 +71,6 @@
     }
 
      // Sorts descending based on any attribute on data
-     //
     function descByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numcompare(a, b) {
@@ -93,7 +91,6 @@
     }
 
      // Helper function that removes an item from an array of items based on the value of an attribute of that item
-     //
     function removeByProperty(arr, attr, value) {
         var i;
         for (i = 0; i < arr.length; i++) {
@@ -106,7 +103,6 @@
     }
 
      // Item constructor
-     //
     Item = function _item(data) {
         if (data === undefined) {
             this.data = {};
@@ -122,7 +118,6 @@
     };
 
      // Adds child item into the item
-     //
     Item.prototype.add = function _itemAdd(component) {
         component.parentID = this.id;
         component.depth = this.depth + 1;
@@ -132,7 +127,6 @@
     };
 
      // Move item from one place to another
-     //
     Item.prototype.move = function _itemMove(toID) {
         var toItem = Indexes[toID],
             parentID = this.parentID,
@@ -318,7 +312,7 @@
                     toItem = Indexes[to];
                     item = Indexes[from];
                     if (to !== from && self.options.movecheck(toItem, item) && self.canMove(toItem, item)) {
-                        $(this).addClass('tb-h-success');  // A TODO: style dictionary so people can override.
+                        $(this).addClass('tb-h-success');
                     } else {
                         $(this).addClass('tb-h-error');
                     }
@@ -368,7 +362,6 @@
                     }
                 }
             });
-
         };
 
         this.canMove = function _canMove(toItem, fromItem) {
@@ -382,7 +375,6 @@
             }
             return true;
         };
-        // A TODO On resize of the main container rerun showtotal; .
 
         // Adds a new node;
         this.createItem = function _createItem(item, parentID) {
@@ -403,14 +395,12 @@
         };
 
          // Returns the object from the tree
-         //
         this.find = function _find(id) {
             return Indexes[id];
         };
 
          // Returns the index of an item in the flat row list
-         //
-        function _returnIndex(id) {
+        this.returnIndex = function _returnIndex(id) {
             var len = self.flatData.length, i, o;
             for (i = 0; i < len; i++) {
                 o = self.flatData[i];
@@ -418,29 +408,23 @@
                     return i;
                 }
             }
-        }
-        /*
-        var firstIndex = self.showRange[0],
-                first = self.visibleIndexes.indexOf(firstIndex),
-                pagesBehind = Math.floor(first / self.options.showTotal),
-                firstItem = (pagesBehind * self.options.showTotal);
-            self.options.paginate = true;
-            $('.tb-scroll').removeClass('active');
-            $('.tb-paginate').addClass('active');
-            self.currentPage(pagesBehind + 1);
-            self.refreshRange(firstItem);
-        */
+        };
 
-         // Returns whether a single row contains the filtered items
+         // Returns whether a single row contains the filtered items, checking if columns can be filtered
         function _rowFilterResult(row) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
             var filter = self.filterText().toLowerCase(),
-                titleResult = row.title.toLowerCase().indexOf(filter); // A TODO: filter options; filterable option for columns, then row_filter checks for wht is filterable. Title sholdn't be hardcoded.
-            if (titleResult > -1) {
-                return true;
+                titleResult = false,
+                i,
+                o;
+            for (i = 0; i < self.options.columns.length; i++) {
+                o = self.options.columns[i];
+                if (o.filter && row[o.data].toLowerCase().indexOf(filter) !== -1) {
+                    titleResult = true;
+                }
             }
-            return false;
+            return titleResult;
         }
 
          // runs filter functions and resets depending on whether there is a filter word
@@ -454,7 +438,6 @@
                 _calculateHeight();
                 m.redraw(true);
                 $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
-                //console.log(_lastNonFilterLocation);
                 if (self.options.onfilterreset) {
                     self.options.onfilterreset.call(self, filter);
                 }
@@ -621,13 +604,12 @@
             self.options.paginate = false;
             $('.tb-paginate').removeClass('active');
             $('.tb-scroll').addClass('active');
-            //console.log(_lastLocation);
             $("#tb-tbody").scrollTop((self.currentPage() - 1) * self.options.showTotal * self.options.rowHeight);
             _calculateHeight();
         };
 
          // Changes view to paginate
-        this.togglePaginate = function _togglePaginate() {  // A TODO Check view reg pagination vs scroll, default behavior
+        this.togglePaginate = function _togglePaginate() {
             var firstIndex = self.showRange[0],
                 first = self.visibleIndexes.indexOf(firstIndex),
                 pagesBehind = Math.floor(first / self.options.showTotal),
@@ -739,11 +721,13 @@
                     _calculateVisible();
                     _calculateHeight();
                 });
-            } else { // A TODO: check if proper url:
+            } else {
                 // Test that it is a url
                 var urlPattern = new RegExp("(http|ftp|https)://[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?");
-                if (!urlPattern.test('http://www.google.com')) {
-                    throw new Error("Treebeard Error: Your URL is not valid. Include full path. You provided: " + self.options.filesData);
+                if (self.options.filesData.indexOf('localhost') === -1) {
+                    if (!urlPattern.test(self.options.filesData)) {
+                        throw new Error("Treebeard Error: Your URL is not valid. Include full path. You provided: " + self.options.filesData);
+                    }
                 }
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
@@ -754,8 +738,8 @@
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
-                        window.console.log("FlatData", self.flatData);
-                        window.console.log("treeData", self.treeData);
+                        //window.console.log("FlatData", self.flatData);
+                        //window.console.log("treeData", self.treeData);
                         _calculateVisible();
                         _calculateHeight();
 
@@ -856,11 +840,16 @@
             if (self.options.uploads) { _applyDropzone(); }
         };
 
-        _loadData(Treebeard.options.filesData);
+        // Check if options inclide filesData, this is required to run so throw error if not.
+        if (self.options.filesData) {
+            _loadData(self.options.filesData);
+        } else {
+            throw new Error("Treebeard Error: You need to define a data source through options.filesData");
+        }
     };
 
     Treebeard.view = function treebeardView(ctrl) {
-        window.window.console.log(ctrl.showRange);
+        //window.window.console.log(ctrl.showRange);
         return [
             m('.gridWrapper', {config : ctrl.init},  [
                 m(".tb-table", [
@@ -967,7 +956,7 @@
                                                                     m("i.fa.fa-plus-square-o", " ")
                                                                     ),
                                                                 resolveIcon = m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolve_icon.call(ctrl, tree)
+                                                                    ctrl.options.resolveIcon.call(ctrl, tree)
                                                                     );
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
@@ -1057,7 +1046,6 @@
     };
 
      // Starts treebard with user options;
-     //
     Treebeard.run = function _treebeardRun(options) {
         Treebeard.options = $.extend({
             divID : "myGrid",
@@ -1067,7 +1055,7 @@
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             uploads : true,         // Turns dropzone on/off.
-            columns : [           // Defines columns based on data
+            columns : [            // Defines columns based on data
                 {
                     title: "Title",
                     width : "50%",
@@ -1170,11 +1158,14 @@
                     window.console.log("dragstart", this, treebeard, event);
                 }
             },
-            resolve_icon : function (item) {     // Here the user can interject and add their own icons, uses m()
+            resolveIcon : function (item) {     // Here the user can interject and add their own icons, uses m()
                 // this = treebeard object;
                 // Item = item acted on
                 try {
                     if (item.kind === "folder") {
+                        if (item.data.open){
+                            return m("i.fa.fa-folder-open-o", " ");
+                        }
                         return m("i.fa.fa-folder-o", " ");
                     }
                 } catch (e) {
