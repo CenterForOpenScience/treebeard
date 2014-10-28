@@ -10,52 +10,49 @@ treebeard
 Hierarchical data renderer built with Mithril
 
 
-Components 
------ 
-**This Project relies on these technologies for its workflow so it's important to familiarize yourself before starting.**
-
-**Npm**  
-https://www.npmjs.org/  
-Node package management, for server side dependencies and making gulp work
-
-**Bower**  
-http://bower.io/  
-front end dependencies
-
-
-**Gulp**  
-http://gulpjs.com/  
-builds the distribution by running important tasks including concatenation, minification(we are not doing this yet, but will), compiling less files. 
-
-
-**Browserify**  
-http://browserify.org/
-Browserify handles dependencies and scope for js libraries. It uses the CommonJS method. All components need to be working with browserify. There is a gulp task that is takign care of applying browserify.  
-
-**Bootstrap**  
-http://getbootstrap.com/  
-Forms the basic design with flat colors taken from elsewhere. If you are working with html you need to use the Bootstrap syntax. 
-
-**Mithril**  
-http://lhorie.github.io/mithril/  
-JS framework used for building the application. This application won't make sense without some understanding of Mithril. 
-
-
-Installation
+Using the library
 -----
-After cloning the project, go to the main project folder and  run the following commands to install dependencies
+
+You can install Treebeard with bower. In your project simply run 
+
+```bower install treebeard --save```
+
+Remember to reference the required files through bower_components. 
+
+
+You can also just take the files in `/dist` folder. You need the css and js files, either minified or in full and add them to your project page.
+
+```html
+<link rel="stylesheet" href="path/to/treebeard.css" type="text/css" />
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="path/to/mithril.js"></script>
+<script src="path/to/treebeard.js"></script>
+```
+
+
+* * * 
+Read more about using the library in the Wiki: https://github.com/caneruguz/treebeard/wiki
+
+* * * 
+
+
+Installation for Developers
+-----
+If you are a developer and want to work on the source code use the guide below. 
+
+Begin by cloning the project in any way that support your work flow, then go to the main project folder and  run the following commands to install dependencies
 
 For NPM:
 
-```npm install```
+    npm install
 
 for Bower 
 
-```bower install```
+    bower install
 
 then run gulp like this 
 
-``` gulp ```
+    gulp 
 
 Gulp will be watching for changes in the CSS, LESS and JS files so any time you change the distribution folder will be automatically regenerated. 
 
@@ -64,4 +61,4 @@ If you would like a simple server instance for this app you can install http-ser
 https://www.npmjs.org/package/http-server
 Install with NPM:
 
-``` npm install http-server ```
+    npm install http-server
