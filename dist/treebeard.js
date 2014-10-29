@@ -686,7 +686,7 @@
                             $.when(self.options.resolveUploadUrl.call(self, self.droppedItemCache))
                                 .then(function _resolveUploadUrlThen(newUrl) {
                                     if (newUrl) {
-                                        self.dropzone.url = newUrl;
+                                        self.dropzone.options.url = newUrl;
                                     }
                                     return newUrl;
                                 })

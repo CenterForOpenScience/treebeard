@@ -295,6 +295,7 @@
         function moveOn() {
             $(".td-title").draggable({
                 helper: "clone",
+                delay : 300,
                 drag : function (event, ui) {
                     $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 }
@@ -686,7 +687,7 @@
                             $.when(self.options.resolveUploadUrl.call(self, self.droppedItemCache))
                                 .then(function _resolveUploadUrlThen(newUrl) {
                                     if (newUrl) {
-                                        self.dropzone.url = newUrl;
+                                        self.dropzone.options.url = newUrl;
                                     }
                                     return newUrl;
                                 })
@@ -954,27 +955,16 @@
                                                         }
                                                     },
                                                         (function _toggleView() {
-                                                            var toggleMinus = m("span.tb-expand-icon-holder",
-                                                                    m("i.fa.fa-minus-square-o", " ")
-                                                                    ),
-                                                                togglePlus = m("span.tb-expand-icon-holder",
-                                                                    m("i.fa.fa-plus-square-o", " ")
-                                                                    ),
-                                                                resolveIcon = m("span.tb-expand-icon-holder",
+                                                            var resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    ),
+                                                                resolveToggle = m("span.tb-expand-icon-holder",
+                                                                    ctrl.options.resolveToggle.call(ctrl, tree)
                                                                     );
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
                                                             }
-                                                            if (row.kind === "folder") {
-                                                                if (row.children.length > 0) {
-                                                                    if (tree.open) {
-                                                                        return [toggleMinus, resolveIcon];
-                                                                    }
-                                                                    return [togglePlus, resolveIcon];
-                                                                }
-                                                            }
-                                                            return [m("span.tb-expand-icon-holder"), resolveIcon];
+                                                            return [resolveToggle, resolveIcon];
                                                         }())
                                                         ),
                                                     m("span.title-text", row[col.data] + " ")
@@ -1001,12 +991,19 @@
                                     m(".col-xs-4",
                                         (function _showPaginateToggle() {
                                             if (ctrl.options.paginateToggle) {
+                                                var activeScroll = "",
+                                                    activePaginate = "";
+                                                if (ctrl.options.paginate) {
+                                                    activePaginate = "active";
+                                                } else {
+                                                    activeScroll = "active";
+                                                }
                                                 return m('.btn-group.padder-10', [
-                                                    m("button.btn.btn-default.btn-sm.active.tb-scroll",
-                                                        { onclick : ctrl.toggleScroll },
+                                                    m("button.btn.btn-default.btn-sm.tb-scroll",
+                                                        { onclick : ctrl.toggleScroll, "class" : activeScroll},
                                                         "Scroll"),
                                                     m("button.btn.btn-default.btn-sm.tb-paginate",
-                                                        { onclick : ctrl.togglePaginate },
+                                                        { onclick : ctrl.togglePaginate, "class" : activePaginate },
                                                         "Paginate")
                                                 ]);
                                             }
@@ -1017,11 +1014,14 @@
                                             if (ctrl.options.paginate) {
                                                 var total_visible = ctrl.visibleIndexes.length,
                                                     total = Math.ceil(total_visible / ctrl.options.showTotal);
-                                                return m('.pull-right', [
-                                                    m('button.btn.btn-default.btn-sm.m-r-sm',
+                                                if(ctrl.options.resolvePagination){
+                                                    return ctrl.options.resolvePagination.call(ctrl, total, ctrl.currentPage());
+                                                }
+                                                return m('.tb-pagination.pull-right', [
+                                                    m('button.tb-pagination-prev.btn.btn-default.btn-sm.m-r-sm',
                                                         { onclick : ctrl.pageDown},
                                                         [ m('i.fa.fa-chevron-left')]),
-                                                    m('input.m-r-sm',
+                                                    m('input.tb-pagination-input.m-r-sm',
                                                         {
                                                             type : "text",
                                                             style : "width: 30px;",
@@ -1032,8 +1032,8 @@
                                                             value : ctrl.currentPage()
                                                         }
                                                         ),
-                                                    m('span', "/ " + total + " "),
-                                                    m('button.btn.btn-default.btn-sm',
+                                                    m('span.tb-pagination-span', "/ " + total + " "),
+                                                    m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
                                                             ])
@@ -1176,6 +1176,24 @@
                     return m("i.fa." + item.data.icon, " ");
                 }
                 return m("i.fa.fa-file ");
+            },
+            resolveToggle : function (item) {
+                var toggleMinus = m("i.fa.fa-minus-square-o", " "),
+                    togglePlus = m("i.fa.fa-plus-square-o", " ");
+                if (item.kind === "folder") {
+                    if (item.children.length > 0) {
+                        if (item.open) {
+                            return toggleMinus;
+                        }
+                        return togglePlus;
+                    }
+                }
+                return "";
+            },
+            resolvePagination : function (totalPages, currentPage) {
+                // this = treebeard object
+                window.console.log("resolvePAgination: totalPages: ", totalPages, " currentPage: ", currentPage);
+                return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
             },
             resolveUploadUrl : function (item) {  // Allows the user to calculate the url of each individual row
                 // this = treebeard object;
