@@ -17,7 +17,7 @@ var paths = {
         "./bower_components/jquery-ui/*.min.js",
         "./bower_components/jquery-mockjax/*.js",
         "./bower_components/bootstrap/dist/js/*.min.js",
-        "./node_modules/mithril/mithril.js",
+        "./bower_components/mithril/mithril.min.js",
         "./scripts/dropzone.js",
         "./scripts/grid.js"
     ],
