@@ -2898,12 +2898,19 @@ if (typeof exports == "object") {
                                     m(".col-xs-4",
                                         (function _showPaginateToggle() {
                                             if (ctrl.options.paginateToggle) {
+                                                var activeScroll = "",
+                                                    activePaginate = "";
+                                                if (ctrl.options.paginate) {
+                                                    activePaginate = "active";
+                                                } else {
+                                                    activeScroll = "active";
+                                                }
                                                 return m('.btn-group.padder-10', [
-                                                    m("button.btn.btn-default.btn-sm.active.tb-scroll",
-                                                        { onclick : ctrl.toggleScroll },
+                                                    m("button.btn.btn-default.btn-sm.tb-scroll",
+                                                        { onclick : ctrl.toggleScroll, "class" : activeScroll},
                                                         "Scroll"),
                                                     m("button.btn.btn-default.btn-sm.tb-paginate",
-                                                        { onclick : ctrl.togglePaginate },
+                                                        { onclick : ctrl.togglePaginate, "class" : activePaginate },
                                                         "Paginate")
                                                 ]);
                                             }
