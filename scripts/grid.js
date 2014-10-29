@@ -295,6 +295,7 @@
         function moveOn() {
             $(".td-title").draggable({
                 helper: "clone",
+                delay : 300,
                 drag : function (event, ui) {
                     $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 }
@@ -954,27 +955,16 @@
                                                         }
                                                     },
                                                         (function _toggleView() {
-                                                            var toggleMinus = m("span.tb-expand-icon-holder",
-                                                                    m("i.fa.fa-minus-square-o", " ")
-                                                                    ),
-                                                                togglePlus = m("span.tb-expand-icon-holder",
-                                                                    m("i.fa.fa-plus-square-o", " ")
-                                                                    ),
-                                                                resolveIcon = m("span.tb-expand-icon-holder",
+                                                            var resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    ),
+                                                                resolveToggle = m("span.tb-expand-icon-holder",
+                                                                    ctrl.options.resolveToggle.call(ctrl, tree)
                                                                     );
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
                                                             }
-                                                            if (row.kind === "folder") {
-                                                                if (row.children.length > 0) {
-                                                                    if (tree.open) {
-                                                                        return [toggleMinus, resolveIcon];
-                                                                    }
-                                                                    return [togglePlus, resolveIcon];
-                                                                }
-                                                            }
-                                                            return [m("span.tb-expand-icon-holder"), resolveIcon];
+                                                            return [resolveToggle, resolveIcon];
                                                         }())
                                                         ),
                                                     m("span.title-text", row[col.data] + " ")
@@ -1176,6 +1166,19 @@
                     return m("i.fa." + item.data.icon, " ");
                 }
                 return m("i.fa.fa-file ");
+            },
+            resolveToggle : function (item) {
+                var toggleMinus = m("i.fa.fa-minus-square-o", " "),
+                    togglePlus = m("i.fa.fa-plus-square-o", " ");
+                if (item.kind === "folder") {
+                    if (item.children.length > 0) {
+                        if (item.open) {
+                            return toggleMinus;
+                        }
+                        return togglePlus;
+                    }
+                }
+                return "";
             },
             resolveUploadUrl : function (item) {  // Allows the user to calculate the url of each individual row
                 // this = treebeard object;
