@@ -124,7 +124,6 @@
         component.parentID = this.id;
         component.depth = this.depth + 1;
         this.children.push(component);
-        this.open = true;
         return this;
     };
 
@@ -474,7 +473,8 @@
                 level = item.depth,
                 i,
                 j,
-                o;
+                o,
+                t;
             //moveOff();
             if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && item.row.children.length === 0) {
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
@@ -484,7 +484,7 @@
                                 child = self.buildTree(value[i], tree);
                                 tree.add(child);
                             }
-                            tree.data.open = true;
+                            tree.open = true;
                         })
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, topIndex);
@@ -493,20 +493,21 @@
             } else {
                 for (j = index + 1; j < len; j++) {
                     o = self.flatData[j];
+                    t = Indexes[self.flatData[j].id];
                     if (o.depth <= level) {break; }
                     if (skip && o.depth > skipLevel) {continue; }
                     if (o.depth === skipLevel) { skip = false; }
-                    if (item.open) {                    // closing
+                    if (tree.open) {                    // closing
                         o.show = false;
                     } else {                                 // opening
                         o.show = true;
-                        if (!o.open) {
+                        if (!t.open) {
                             skipLevel = o.depth;
                             skip = true;
                         }
                     }
                 }
-                item.open = !item.open;
+                tree.open = !tree.open;
                 _calculateVisible(self.visibleTop);
                 _calculateHeight();
                 m.redraw(true);
@@ -816,7 +817,7 @@
                 self.options.rowHeight = $('.tb-row').height();
             }
             $('#tb-tbody').scroll(function _scrollHook() {
-                if (!self.paginate) {
+                if (!self.options.paginate) {
                     var scrollTop, diff, itemsHeight, innerHeight, location, index;
                     scrollTop = $(this).scrollTop();                    // get current scroll top
                     diff = scrollTop - _lastLocation;                    //Compare to last scroll location
@@ -1166,7 +1167,7 @@
                 // this = treebeard object;
                 // Item = item acted on
                 if (item.kind === "folder") {
-                    if (item.data.open){
+                    if (item.open) {
                         return m("i.fa.fa-folder-open-o", " ");
                     }
                     return m("i.fa.fa-folder-o", " ");
