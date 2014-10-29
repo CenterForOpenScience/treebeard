@@ -2921,11 +2921,14 @@ if (typeof exports == "object") {
                                             if (ctrl.options.paginate) {
                                                 var total_visible = ctrl.visibleIndexes.length,
                                                     total = Math.ceil(total_visible / ctrl.options.showTotal);
-                                                return m('.pull-right', [
-                                                    m('button.btn.btn-default.btn-sm.m-r-sm',
+                                                if(ctrl.options.resolvePagination){
+                                                    return ctrl.options.resolvePagination.call(ctrl, total, ctrl.currentPage());
+                                                }
+                                                return m('.tb-pagination.pull-right', [
+                                                    m('button.tb-pagination-prev.btn.btn-default.btn-sm.m-r-sm',
                                                         { onclick : ctrl.pageDown},
                                                         [ m('i.fa.fa-chevron-left')]),
-                                                    m('input.m-r-sm',
+                                                    m('input.tb-pagination-input.m-r-sm',
                                                         {
                                                             type : "text",
                                                             style : "width: 30px;",
@@ -2936,8 +2939,8 @@ if (typeof exports == "object") {
                                                             value : ctrl.currentPage()
                                                         }
                                                         ),
-                                                    m('span', "/ " + total + " "),
-                                                    m('button.btn.btn-default.btn-sm',
+                                                    m('span.tb-pagination-span', "/ " + total + " "),
+                                                    m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
                                                             ])
@@ -3093,6 +3096,11 @@ if (typeof exports == "object") {
                     }
                 }
                 return "";
+            },
+            resolvePagination : function (totalPages, currentPage) {
+                // this = treebeard object
+                window.console.log("resolvePAgination: totalPages: ", totalPages, " currentPage: ", currentPage);
+                return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
             },
             resolveUploadUrl : function (item) {  // Allows the user to calculate the url of each individual row
                 // this = treebeard object;
