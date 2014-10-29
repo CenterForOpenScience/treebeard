@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "bootstrap": "~3.2.0",
-    "jquery-ui": "~1.11.0"
+    "jquery-ui": "~1.11.0",
+    "mithril": "~0.1.22"
   }
 }
