@@ -284,7 +284,7 @@
         this.visibleTop = undefined;                            // The first visible item. 
         this.currentPage = m.prop(1);                           // for pagination
         this.dropzone = null;                                   // Treebeard's own dropzone object
-        this.droppedItemCache = undefined;                      // Cache of the dropped item
+        this.dropzoneItemCache = undefined;                      // Cache of the dropped item
         this.filterOn = false;                                  // Filter state for use across the app
 
         // Helper function to redraw if user makes changes to the item (like deleting through a hook)
@@ -672,19 +672,23 @@
                     init: function _dropzoneInit() {
                         var ev,
                             dropzone,
-                            i;
+                            i,
+                            func;
                         for (i = 0; i < eventList.length; i++) {
                             ev = eventList[i];
                             if (self.options.dropzone[ev]) {
                                 dropzone = this;
-                                this.on(ev, function (arg) { self.options.dropzone[ev].call(dropzone, self, arg); });
+                                func = self.options.dropzone[ev];
+                                this.on(ev, function (arg) {
+                                    func.call(dropzone, self, arg);
+                                });
                             }
                         }
                     },
                     clickable : false,
                     accept : function _dropzoneAccept(file, done) {
-                        if (self.options.addcheck.call(this, self, self.droppedItemCache, file)) {
-                            $.when(self.options.resolveUploadUrl.call(self, self.droppedItemCache))
+                        if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
+                            $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache))
                                 .then(function _resolveUploadUrlThen(newUrl) {
                                     if (newUrl) {
                                         self.dropzone.options.url = newUrl;
@@ -701,14 +705,14 @@
                     drop : function _dropzoneDrop(event) {
                         var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                             item  = Indexes[rowID];
-                        self.droppedItemCache = item;
+                        self.dropzoneItemCache = item;
                     },
                     success : function _dropzoneSuccess(file, response) {
-                        var mockTree = new Item();
-                        self.droppedItemCache.add(mockTree);
+                        var mockTree = new Item(response);
+                        self.dropzoneItemCache.add(mockTree);
                         self.flatten(self.treeData.children, self.visibleTop);
                         if (self.options.onadd) {
-                            self.options.onadd.call(this, self, self.droppedItemCache, file, response);
+                            self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
                         }
                     }
                 }, self.options.dropzone);           // Extend default options
