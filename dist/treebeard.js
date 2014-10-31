@@ -780,7 +780,7 @@
         // Turns the tree structure into a flat index of nodes
         this.flatten = function _flatten(value, visibleTop) {
             self.flatData = [];
-            var openLevel = 1,
+            var openLevel,
                 recursive = function redo(data, show, topLevel) {
                     var length = data.length, i, children, flat;
                     for (i = 0; i < length; i++) {
@@ -796,7 +796,7 @@
                         flat.show = show;
                         if (data[i].children.length > 0 && !data[i].open) {
                             show = false;
-                            if (openLevel > data[i].depth) { openLevel = data[i].depth; }
+                            if (!openLevel || openLevel > data[i].depth) { openLevel = data[i].depth; }
                         }
                         self.flatData.push(flat); // add to flatlist
                         if (children.length > 0) {
