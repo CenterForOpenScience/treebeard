@@ -278,7 +278,8 @@
         this.filterText = m.prop("");                           // value of the filtertext input
         this.showRange = [];                                    // Array of indexes that the range shows
         this.options = Treebeard.options;                       // User defined options
-        this.selected = undefined;                              // The row selected on click.  
+        this.selected = undefined;                              // The row selected on click.
+        this.mouseon = undefined;                              // The row the mouse is on for mouseover events.
         this.rangeMargin = 0;                                   // Top margin, required for proper scrolling
         this.visibleIndexes = [];                               // List of items viewable as a result of an operation like filter.
         this.visibleTop = undefined;                            // The first visible item. 
@@ -940,6 +941,12 @@
                                             if (ctrl.options.onselectrow) {
                                                 ctrl.options.onselectrow.call(ctrl, tree, event);
                                             }
+                                        },
+                                        onmouseover : function _rowMouseover(event) {
+                                            ctrl.mouseon = id;
+                                            if (ctrl.options.onmouseoverrow) {
+                                                ctrl.options.onmouseoverrow.call(ctrl, tree, event);
+                                            }
                                         }
                                     }, [
                                         ctrl.options.columns.map(function _mapColumnsContent(col) {
@@ -1151,6 +1158,12 @@
                 // row = item selected
                 // event = mouse click event object
                 window.console.log("onselectrow", this, row, event);
+            },
+            onmouseoverrow : function (row, event) {
+                // this = treebeard object
+                // row = item selected
+                // event = mouse click event object
+                window.console.log("onmouseoverrow", this, row, event);
             },
             ontogglefolder : function (item, event) {
                 // this = treebeard object
