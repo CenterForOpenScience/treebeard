@@ -2875,6 +2875,10 @@ if (typeof exports == "object") {
                                         },
                                         onmouseover : function _rowMouseover(event) {
                                             ctrl.mouseon = id;
+                                            if (ctrl.options.hoverClass){
+                                                $('.tb-row').removeClass(ctrl.options.hoverClass);
+                                                $(this).addClass(ctrl.options.hoverClass);
+                                            }
                                             if (ctrl.options.onmouseoverrow) {
                                                 ctrl.options.onmouseoverrow.call(ctrl, tree, event);
                                             }
@@ -3018,6 +3022,7 @@ if (typeof exports == "object") {
                     folderIcons : true
                 }
             ],
+            hoverClass : undefined,
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
