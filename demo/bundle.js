@@ -2581,16 +2581,16 @@ if (typeof exports == "object") {
                 options = $.extend({
                     init: function _dropzoneInit() {
                         var ev,
-                            dropzone,
                             i,
                             func;
                         for (i = 0; i < eventList.length; i++) {
                             ev = eventList[i];
                             if (self.options.dropzone[ev]) {
-                                dropzone = this;
                                 func = self.options.dropzone[ev];
                                 this.on(ev, function (arg) {
-                                    func.call(dropzone, self, arg);
+                                    this.tb = self;
+                                    this.item = self.dropzoneItemCache;
+                                    return func.bind(this);
                                 });
                             }
                         }
@@ -2870,11 +2870,11 @@ if (typeof exports == "object") {
                                                     style : "padding-left: " + padding + "px; width:" + col.width
                                                 }, [
                                                     m("span.tdFirst", {
-                                                            onclick: function _folderToggleClick(event) {
+                                                        onclick: function _folderToggleClick(event) {
 
-                                                                ctrl.toggleFolder(item, event);
-                                                            }
-                                                        },
+                                                            ctrl.toggleFolder(item, event);
+                                                        }
+                                                    },
                                                         (function _toggleView() {
                                                             var resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveIcon.call(ctrl, tree)
@@ -2887,7 +2887,7 @@ if (typeof exports == "object") {
                                                             }
                                                             return [resolveToggle, resolveIcon];
                                                         }())
-                                                    ),
+                                                        ),
                                                     m("span.title-text", row[col.data] + " ")
                                                 ]);
                                             }
