@@ -4,12 +4,18 @@
     <meta charset="utf-8">
     <title>QUnit Tests for Treebeard</title>
     <link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
+    <link rel="stylesheet" href="../demo/bundle.css">
 </head>
 <body>
+<div id="myGrid" style="display:none"></div>
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
 <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
-<script src="../scripts/grid.js"></script>
+<script src="../demo/bundle.js"></script>
+<script type="text/javascript">
+    var tb = Treebeard.run({});
+
+</script>
 <script src="tests.js"></script>
 </body>
 </html>

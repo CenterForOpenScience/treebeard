@@ -2128,10 +2128,12 @@ if (typeof exports == "object") {
     };
 
     // Sorts children of the item by direction and selected field.
-    Item.prototype.sortChildren = function _itemSort(direction, field, sortType) {
-        if (!direction || !field) {
-            throw new Error("Treebeard Error: To sort children you need to pass both direction and field to Item.sortChildren");
+    Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType) {
+        var columns = treebeard.options.resolveRows(this)
+        if (!direction) {
+            throw new Error("Treebeard Error: To sort children you need to pass direction to Item.sortChildren");
         }
+
         if (this.children.length > 0) {
             if (direction === "asc") {
                 this.children.sort(ascByAttr(field, sortType));
@@ -2295,24 +2297,30 @@ if (typeof exports == "object") {
         // Adds a new node;
         this.createItem = function _createItem(item, parentID) {
             var parent = Indexes[parentID];
+            var newItem;
             $.when(self.options.createcheck.call(self, item, parent)).done(function _resolveCreateCheck(check) {
                 if (check) {
-                    var newItem = new Item(item);
+                    newItem = new Item(item);
                     parent.add(newItem, true);
                     self.flatten(self.treeData.children, self.visibleTop);
                     if (self.options.oncreate) {
                         self.options.oncreate.call(self, newItem, parent);
                     }
-                    return newItem.id;
+                } else {
+                    throw new Error('Treebeard Error: createcheck function returned false, item not created.');
                 }
-                throw new Error('Treebeard Error: createcheck function returned false, item not created.');
             });
+
+            return newItem;
 
         };
 
         // Returns the object from the tree
         this.find = function _find(id) {
-            return Indexes[id];
+            if (Indexes[id]) {
+                return Indexes[id];
+            }
+            return undefined;
         };
 
         // Returns the index of an item in the flat row list
@@ -2324,6 +2332,7 @@ if (typeof exports == "object") {
                     return i;
                 }
             }
+            return undefined;
         };
 
         // Returns whether a single row contains the filtered items, checking if columns can be filtered
@@ -2434,7 +2443,7 @@ if (typeof exports == "object") {
         //
         this.sortToggle = function _isSortedToggle() {
             var type = $(this).attr('data-direction'),
-                field = $(this).attr('data-field'),
+                //field = $(this).attr('data-field'),
                 sortType = $(this).attr('data-sortType'),
                 parent = $(this).parent(),
                 counter = 0,
@@ -2445,12 +2454,12 @@ if (typeof exports == "object") {
             if (!_isSorted[type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(type, field, sortType);
+                        item.sortChildren(self, type, sortType);
                         if (item.children.length > 0) { redo(item.children); }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(type, field, sortType);           // Then start recursive loop
+                self.treeData.sortChildren(self, type, sortType);           // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
                 _isSorted[type] = true;
@@ -2580,37 +2589,19 @@ if (typeof exports == "object") {
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
             //var eventList = ["drop", "dragstart", "dragend", "dragenter", "dragover", "dragleave", "addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending", "success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"],
             var options = $.extend({
-                //init: function _dropzoneInit() {
-                //    var ev,
-                //        i,
-                //        func;
-                //    for (i = 0; i < eventList.length; i++) {
-                //        ev = eventList[i];
-                //        if (self.options.dropzone[ev]) {
-                //            func = self.options.dropzone[ev];
-                //            this.on(ev, function (arg) {
-                //                this.tb = self;
-                //                this.item = self.dropzoneItemCache;
-                //                return func.bind(this);
-                //            });
-                //        }
-                //    }
-                //},
                 clickable : false,
                 accept : function _dropzoneAccept(file, done) {
                     if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache))
                             .then(function _resolveUploadUrlThen(newUrl) {
                                 if (newUrl) {
-                                    //self.dropzone.options.url = newUrl;
+                                    self.dropzone.options.url = newUrl;
                                 }
                                 return newUrl;
                             })
                             .done(function _resolveUploadUrlDone() {
                                 done();
                             });
-                    } else {
-                        window.alert("This isn't allowed");
                     }
                 },
                 drop : function _dropzoneDrop(event) {
@@ -2619,7 +2610,7 @@ if (typeof exports == "object") {
                     self.dropzoneItemCache = item;
                 },
                 success : function _dropzoneSuccess(file, response) {
-                    if($.isFunction(self.options.dropzoneEvents.success)){
+                    if ($.isFunction(self.options.dropzoneEvents.success)) {
                         self.options.dropzoneEvents.success.call(this, self, file, response);
                     }
                     if ($.isFunction(self.options.onadd)) {
@@ -2627,22 +2618,22 @@ if (typeof exports == "object") {
                     }
                 },
                 error : function _dropzoneError(file, message, xhr) {
-                    if($.isFunction(self.options.dropzoneEvents.error)) {
+                    if ($.isFunction(self.options.dropzoneEvents.error)) {
                         self.options.dropzoneEvents.error.call(this, self, file, message, xhr);
                     }
                 },
                 uploadprogress : function _dropzoneUploadProgress(file, progress, bytesSent) {
-                    if($.isFunction(self.options.dropzoneEvents.uploadprogress)) {
+                    if ($.isFunction(self.options.dropzoneEvents.uploadprogress)) {
                         self.options.dropzoneEvents.uploadprogress.call(this, self, file, progress, bytesSent);
                     }
                 },
-                sending : function _dropzoneSending (file, xhr, formData){
-                    if($.isFunction(self.options.dropzoneEvents.sending)) {
+                sending : function _dropzoneSending(file, xhr, formData) {
+                    if ($.isFunction(self.options.dropzoneEvents.sending)) {
                         self.options.dropzoneEvents.sending.call(this, self, file, xhr, formData);
                     }
                 },
-                complete : function _dropzoneComplete (file){
-                    if($.isFunction(self.options.dropzoneEvents.complete)){
+                complete : function _dropzoneComplete(file) {
+                    if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
                 }
@@ -2797,7 +2788,6 @@ if (typeof exports == "object") {
     };
 
     Treebeard.view = function treebeardView(ctrl) {
-        //window.window.console.log(ctrl.showRange);
         return [
             m('.gridWrapper', {config : ctrl.init},  [
                 m(".tb-table", [
@@ -2811,11 +2801,11 @@ if (typeof exports == "object") {
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
                                             return m("input.form-control[placeholder='filter'][type='text']", {
-                                                    style: "width:100%;display:inline;",
-                                                    onkeyup: ctrl.filter,
-                                                    value : ctrl.filterText()
-                                                }
-                                            );
+                                                style: "width:100%;display:inline;",
+                                                onkeyup: ctrl.filter,
+                                                value : ctrl.filterText()
+                                            }
+                                                );
                                         }
                                     }())
                                 ])
@@ -2823,21 +2813,34 @@ if (typeof exports == "object") {
                         }
                     }()),
                     m(".tb-row-titles", [
-                        ctrl.options.columns.map(function _mapColumnTitles(col) {
-                            var sortView = "";
+                        ctrl.options.columnTitles.map(function _mapColumnTitles(col, index) {
+                            var sortView = "",
+                                up,
+                                down;
                             if (col.sort) {
+                                if (ctrl.options.sortButtonSelector.up) {
+                                    up = ctrl.options.sortButtonSelector.up;
+                                } else {
+                                    up = 'i.fa.fa-sort-asc';
+                                }
+
+                                if (ctrl.options.sortButtonSelector.down) {
+                                    down = ctrl.options.sortButtonSelector.down;
+                                } else {
+                                    down = 'i.fa.fa-sort-desc';
+                                }
                                 sortView =  [
-                                    m('i.fa.fa-sort-asc.tb-sort-inactive.asc-btn.m-r-xs', {
-                                        onclick: ctrl.sortToggle,
-                                        "data-direction": "asc",
-                                        "data-field" : col.data,
-                                        "data-sortType" : col.sortType
+                                    m(up + '.tb-sort-inactive.asc-btn.m-r-xs', {
+                                        onclick: ctrl.sortToggle(index),
+                                        "data-direction": "asc"
+                                        //"data-field" : col.data,
+                                        //"data-sortType" : col.sortType
                                     }),
-                                    m('i.fa.fa-sort-desc.tb-sort-inactive.desc-btn', {
-                                        onclick: ctrl.sortToggle,
-                                        "data-direction": "desc",
-                                        "data-field" : col.data,
-                                        "data-sortType" : col.sortType
+                                    m(down + '.tb-sort-inactive.desc-btn', {
+                                        onclick: ctrl.sortToggle(index),
+                                        "data-direction": "desc"
+                                        //"data-field" : col.data,
+                                        //"data-sortType" : col.sortType
                                     })
                                 ];
                             }
@@ -2862,7 +2865,7 @@ if (typeof exports == "object") {
                                         oddEvenClass = "tb-even";
                                     }
                                     if (ctrl.filterOn) {
-                                        padding = 0;
+                                        padding = 20;
                                     } else {
                                         padding = indent * 20;
                                     }
@@ -2882,7 +2885,7 @@ if (typeof exports == "object") {
                                         },
                                         onmouseover : function _rowMouseover(event) {
                                             ctrl.mouseon = id;
-                                            if (ctrl.options.hoverClass){
+                                            if (ctrl.options.hoverClass) {
                                                 $('.tb-row').removeClass(ctrl.options.hoverClass);
                                                 $(this).addClass(ctrl.options.hoverClass);
                                             }
@@ -2898,8 +2901,8 @@ if (typeof exports == "object") {
                                                 m('span', row[col.data])
                                             ]);
                                             if (col.folderIcons) {
-                                                if(col.custom) {
-                                                    title =m("span.title-text", col.custom.call(ctrl, tree, col))
+                                                if (col.custom) {
+                                                    title = m("span.title-text", col.custom.call(ctrl, tree, col));
                                                 } else {
                                                     title = m("span.title-text", row[col.data] + " ");
                                                 }
@@ -2909,25 +2912,25 @@ if (typeof exports == "object") {
                                                     style : "padding-left: " + padding + "px; width:" + col.width
                                                 }, [
                                                     m("span.tdFirst", {
-                                                            onclick: function _folderToggleClick(event) {
-                                                                if (ctrl.options.togglecheck.call(ctrl, tree)){
-                                                                    ctrl.toggleFolder(item, event);
-                                                                }
+                                                        onclick: function _folderToggleClick(event) {
+                                                            if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                ctrl.toggleFolder(item, event);
                                                             }
-                                                        },
+                                                        }
+                                                    },
                                                         (function _toggleView() {
                                                             var resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                ),
+                                                                    ),
                                                                 resolveToggle = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                );
+                                                                    );
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
                                                             }
                                                             return [resolveToggle, resolveIcon];
                                                         }())
-                                                    ),
+                                                        ),
                                                     title
                                                 ]);
                                             }
@@ -2974,7 +2977,7 @@ if (typeof exports == "object") {
                                             if (ctrl.options.paginate) {
                                                 var total_visible = ctrl.visibleIndexes.length,
                                                     total = Math.ceil(total_visible / ctrl.options.showTotal);
-                                                if(ctrl.options.resolvePagination){
+                                                if (ctrl.options.resolvePagination) {
                                                     return ctrl.options.resolvePagination.call(ctrl, total, ctrl.currentPage());
                                                 }
                                                 return m('.tb-pagination.pull-right', [
@@ -2991,12 +2994,12 @@ if (typeof exports == "object") {
                                                             },
                                                             value : ctrl.currentPage()
                                                         }
-                                                    ),
+                                                        ),
                                                     m('span.tb-pagination-span', "/ " + total + " "),
                                                     m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
-                                                        ])
+                                                            ])
                                                 ]);
                                             }
                                         }())
@@ -3014,31 +3017,40 @@ if (typeof exports == "object") {
     Treebeard.run = function _treebeardRun(options) {
         Treebeard.options = $.extend({
             divID : "myGrid",
-            filesData : "small.json",
+            filesData : "http://localhost:63342/mGrid/demo/small.json",
             rowHeight : undefined,         // user can override or get from .tb-row height
             showTotal : 15,         // Actually this is calculated with div height, not needed. NEEDS CHECKING
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             uploads : true,         // Turns dropzone on/off.
-            columns : [            // Defines columns based on data
+            columnTitles : [
                 {
                     title: "Title",
-                    width : "50%",
-                    data : "title",  // Data field name
-                    sort : true,
-                    sortType : "text",
-                    folderIcons : true
+                    width: "50%",
+                    sortType : "text"
+
                 }
             ],
+            resolveRows : function (item) {
+                return [            // Defines columns based on data
+                    {
+                        data : "title",  // Data field name
+                        folderIcons : true,
+                        sortBy : "title",
+                        sort : true
+                    }
+                ];
+            },
             hoverClass : undefined,
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
-            onload : function (){
+            sortButtonSelector : {}, // custom buttons for sort
+            onload : function () {
                 // this = treebeard object;
                 console.log("onload this", this);
             },
-            togglecheck : function (item){
+            togglecheck : function (item) {
                 // this = treebeard object;
                 // item = folder to toggle
                 return true;
@@ -3177,11 +3189,11 @@ if (typeof exports == "object") {
                 // this = treebeard object;
                 // Item = item acted on
                 window.console.log("resolveLazyloadUrl", this, item);
-                return "small.json";
+                return "http://localhost:63342/mGrid/demo/small.json";
             }
 
         }, options);
-        m.module(document.getElementById(Treebeard.options.divID), Treebeard);
+       return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
     };
 
     return Treebeard;
