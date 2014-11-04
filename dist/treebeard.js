@@ -606,7 +606,7 @@
                 counter = counter + 1;
             }
             self.showRange = range;
-            m.redraw.strategy('none');
+            //m.redraw.strategy('none');
             m.redraw(true);
         };
 
@@ -960,6 +960,7 @@
                                         padding = indent * 20;
                                     }
                                     return m(".tb-row", {
+                                        "key" : id,
                                         "class" : css + " " + oddEvenClass,
                                         "data-id" : id,
                                         "data-level": indent,
