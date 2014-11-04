@@ -2305,8 +2305,7 @@ if (typeof exports == "object") {
                     }
                     return newItem.id;
                 }
-                throw new Error("Treebeard Error: createcheck function returned false, item not created.");
-
+                throw new Error('Treebeard Error: createcheck function returned false, item not created.');
             });
 
         };
@@ -2603,7 +2602,7 @@ if (typeof exports == "object") {
                         $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache))
                             .then(function _resolveUploadUrlThen(newUrl) {
                                 if (newUrl) {
-                                    self.dropzone.options.url = newUrl;
+                                    //self.dropzone.options.url = newUrl;
                                 }
                                 return newUrl;
                             })
@@ -2625,6 +2624,11 @@ if (typeof exports == "object") {
                     }
                     if ($.isFunction(self.options.onadd)) {
                         self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
+                    }
+                },
+                error : function _dropzoneError(file, message, xhr) {
+                    if($.isFunction(self.options.dropzoneEvents.error)) {
+                        self.options.dropzoneEvents.error.call(this, self, file, message, xhr);
                     }
                 },
                 uploadprogress : function _dropzoneUploadProgress(file, progress, bytesSent) {
@@ -2779,6 +2783,9 @@ if (typeof exports == "object") {
                 moveOn();
             }
             if (self.options.uploads) { _applyDropzone(); }
+            if($.isFunction(self.options.onload)){
+                self.options.onload.call(self);
+            }
         };
 
         // Check if options inclide filesData, this is required to run so throw error if not.
@@ -2850,7 +2857,7 @@ if (typeof exports == "object") {
                                         tree = Indexes[id],
                                         row = ctrl.flatData[item].row,
                                         padding,
-                                        css;
+                                        css = "";
                                     if (index % 2 === 0) {
                                         oddEvenClass = "tb-even";
                                     }
@@ -2859,7 +2866,6 @@ if (typeof exports == "object") {
                                     } else {
                                         padding = indent * 20;
                                     }
-                                    if (id === ctrl.selected) { css = "tb-row-active"; } else { css = ""; }
                                     return m(".tb-row", {
                                         "class" : css + " " + oddEvenClass,
                                         "data-id" : id,
@@ -2903,8 +2909,9 @@ if (typeof exports == "object") {
                                                 }, [
                                                     m("span.tdFirst", {
                                                             onclick: function _folderToggleClick(event) {
-
-                                                                ctrl.toggleFolder(item, event);
+                                                                if (ctrl.options.togglecheck.call(ctrl, tree)){
+                                                                    ctrl.toggleFolder(item, event);
+                                                                }
                                                             }
                                                         },
                                                         (function _toggleView() {
@@ -3026,6 +3033,16 @@ if (typeof exports == "object") {
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
+            onload : function (){
+                // this = treebeard object;
+                console.log("onload this", this);
+            },
+            togglecheck : function (item){
+                // this = treebeard object;
+                // item = folder to toggle
+                return true;
+
+            },
             onfilter : function (filterText) {   // Fires on keyup when filter text is changed.
                 // this = treebeard object;
                 // filterText = the value of the filtertext input box.
