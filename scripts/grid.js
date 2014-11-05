@@ -422,7 +422,7 @@
             var len = self.flatData.length, i, o;
             for (i = 0; i < len; i++) {
                 o = self.flatData[i];
-                if (o.row.id === id) {
+                if (o.id === id) {
                     return i;
                 }
             }
