@@ -430,16 +430,17 @@
         };
 
         // Returns whether a single row contains the filtered items, checking if columns can be filtered
-        function _rowFilterResult(row) {
+        function _rowFilterResult(item) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
+            var cols = self.options.resolveRows(item);
             var filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
                 o;
-            for (i = 0; i < self.options.columns.length; i++) {
-                o = self.options.columns[i];
-                if (o.filter && row[o.data].toLowerCase().indexOf(filter) !== -1) {
+            for (i = 0; i < cols.length; i++) {
+                o = cols[i];
+                if (o.filter && item.data[o.data].toLowerCase().indexOf(filter) !== -1) {
                     titleResult = true;
                 }
             }
@@ -585,7 +586,7 @@
                 o;
             self.visibleIndexes = [];
             for (i = 0; i < len; i++) {
-                o = self.flatData[i].row;
+                o = self.flatData[i];
                 if (self.filterOn) {
                     if (_rowFilterResult(o)) {
                         total++;
