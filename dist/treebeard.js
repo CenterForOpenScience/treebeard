@@ -141,12 +141,14 @@
         if (parentID > -1) {
             parent.removeChild(parseInt(this.id, 10));
         }
+        return this;
     };
 
     Item.prototype.redoDepth = function _itemRedoDepth() {
-        var i;
         function recursive(items, depth) {
+            var i;
             for (i = 0; i < items.length; i++) {
+                console.log("i", i, "items[i].id", items[i].id);
                 items[i].depth = depth;
                 if (items[i].children.length > 0) {
                     recursive(items[i].children, depth + 1);
@@ -404,9 +406,7 @@
                     throw new Error('Treebeard Error: createcheck function returned false, item not created.');
                 }
             });
-
             return newItem;
-
         };
 
         // Returns the object from the tree
@@ -536,7 +536,6 @@
         // Sorting toggles, incomplete (why incomplete?)
         //
         this.sortToggle = function _isSortedToggle(ev) {
-            console.log("SortToggle ", this, ev.target);
             var element = $(ev.target);
             var type = element.attr('data-direction'),
                 index = this,
@@ -958,7 +957,7 @@
                                         row = ctrl.flatData[item].row,
                                         padding,
                                         css = "",
-                                        rowCols = ctrl.options.resolveRows.call(tree);
+                                        rowCols = ctrl.options.resolveRows.call(ctrl, tree);
                                     if (index % 2 === 0) {
                                         oddEvenClass = "tb-even";
                                     }

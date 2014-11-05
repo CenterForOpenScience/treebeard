@@ -2864,7 +2864,7 @@ if (typeof exports == "object") {
                                         row = ctrl.flatData[item].row,
                                         padding,
                                         css = "",
-                                        rowCols = ctrl.options.resolveRows.call(tree);
+                                        rowCols = ctrl.options.resolveRows.call(ctrl, tree);
                                     if (index % 2 === 0) {
                                         oddEvenClass = "tb-even";
                                     }
