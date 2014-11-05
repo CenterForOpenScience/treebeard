@@ -2128,8 +2128,9 @@ if (typeof exports == "object") {
     };
 
     // Sorts children of the item by direction and selected field.
-    Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType) {
-        var columns = treebeard.options.resolveRows(this)
+    Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
+        var columns = treebeard.options.resolveRows(this),
+            field = columns[index].data;
         if (!direction) {
             throw new Error("Treebeard Error: To sort children you need to pass direction to Item.sortChildren");
         }
@@ -2441,11 +2442,14 @@ if (typeof exports == "object") {
 
         // Sorting toggles, incomplete (why incomplete?)
         //
-        this.sortToggle = function _isSortedToggle() {
-            var type = $(this).attr('data-direction'),
+        this.sortToggle = function _isSortedToggle(ev) {
+            console.log("SortToggle ", this, ev.target);
+            var element = $(ev.target);
+            var type = element.attr('data-direction'),
+                index = this,
                 //field = $(this).attr('data-field'),
-                sortType = $(this).attr('data-sortType'),
-                parent = $(this).parent(),
+                sortType = element.attr('data-sortType'),
+                parent = element.parent(),
                 counter = 0,
                 redo;
             $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');  // turn all styles off
@@ -2454,12 +2458,12 @@ if (typeof exports == "object") {
             if (!_isSorted[type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(self, type, sortType);
+                        item.sortChildren(self, type, sortType, index);
                         if (item.children.length > 0) { redo(item.children); }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(self, type, sortType);           // Then start recursive loop
+                self.treeData.sortChildren(self, type, sortType, index);           // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
                 _isSorted[type] = true;
@@ -2831,13 +2835,13 @@ if (typeof exports == "object") {
                                 }
                                 sortView =  [
                                     m(up + '.tb-sort-inactive.asc-btn.m-r-xs', {
-                                        onclick: ctrl.sortToggle(index),
+                                        onclick: ctrl.sortToggle.bind(index),
                                         "data-direction": "asc",
                                         //"data-field" : col.data,
                                         "data-sortType" : col.sortType
                                     }),
                                     m(down + '.tb-sort-inactive.desc-btn', {
-                                        onclick: ctrl.sortToggle(index),
+                                        onclick: ctrl.sortToggle.bind(index),
                                         "data-direction": "desc",
                                         //"data-field" : col.data,
                                         "data-sortType" : col.sortType
@@ -3029,7 +3033,8 @@ if (typeof exports == "object") {
                 {
                     title: "Title",
                     width: "50%",
-                    sortType : "text"
+                    sortType : "text",
+                    sort : true
                 },
                 {
                     title: "Author",
@@ -3051,22 +3056,19 @@ if (typeof exports == "object") {
                     {
                         data : "title",  // Data field name
                         folderIcons : true,
-                        sortBy : "title",
-                        sort : true,
                         filter : true
                     },
                     {
                         data : "person",
-                        sort : true,
                         filter : true
                     },
                     {
                         data : "age",
-                        sort : true
+                        filter : false
                     },
                     {
                         data : "action",
-                        sort : false,
+                        sortInclude : false,
                         custom : function (row, col) {
                             var that = this;
                             return m("button.btn.btn-danger.btn-xs", {

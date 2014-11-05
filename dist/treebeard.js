@@ -221,8 +221,9 @@
     };
 
     // Sorts children of the item by direction and selected field.
-    Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType) {
-        var columns = treebeard.options.resolveRows(this)
+    Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
+        var columns = treebeard.options.resolveRows(this),
+            field = columns[index].data;
         if (!direction) {
             throw new Error("Treebeard Error: To sort children you need to pass direction to Item.sortChildren");
         }
@@ -534,11 +535,14 @@
 
         // Sorting toggles, incomplete (why incomplete?)
         //
-        this.sortToggle = function _isSortedToggle() {
-            var type = $(this).attr('data-direction'),
+        this.sortToggle = function _isSortedToggle(ev) {
+            console.log("SortToggle ", this, ev.target);
+            var element = $(ev.target);
+            var type = element.attr('data-direction'),
+                index = this,
                 //field = $(this).attr('data-field'),
-                sortType = $(this).attr('data-sortType'),
-                parent = $(this).parent(),
+                sortType = element.attr('data-sortType'),
+                parent = element.parent(),
                 counter = 0,
                 redo;
             $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');  // turn all styles off
@@ -547,12 +551,12 @@
             if (!_isSorted[type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(self, type, sortType);
+                        item.sortChildren(self, type, sortType, index);
                         if (item.children.length > 0) { redo(item.children); }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(self, type, sortType);           // Then start recursive loop
+                self.treeData.sortChildren(self, type, sortType, index);           // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
                 _isSorted[type] = true;
@@ -924,16 +928,16 @@
                                 }
                                 sortView =  [
                                     m(up + '.tb-sort-inactive.asc-btn.m-r-xs', {
-                                        onclick: ctrl.sortToggle(index),
-                                        "data-direction": "asc"
+                                        onclick: ctrl.sortToggle.bind(index),
+                                        "data-direction": "asc",
                                         //"data-field" : col.data,
-                                        //"data-sortType" : col.sortType
+                                        "data-sortType" : col.sortType
                                     }),
                                     m(down + '.tb-sort-inactive.desc-btn', {
-                                        onclick: ctrl.sortToggle(index),
-                                        "data-direction": "desc"
+                                        onclick: ctrl.sortToggle.bind(index),
+                                        "data-direction": "desc",
                                         //"data-field" : col.data,
-                                        //"data-sortType" : col.sortType
+                                        "data-sortType" : col.sortType
                                     })
                                 ];
                             }
@@ -953,7 +957,8 @@
                                         tree = Indexes[id],
                                         row = ctrl.flatData[item].row,
                                         padding,
-                                        css = "";
+                                        css = "",
+                                        rowCols = ctrl.options.resolveRows.call(tree);
                                     if (index % 2 === 0) {
                                         oddEvenClass = "tb-even";
                                     }
@@ -987,10 +992,11 @@
                                             }
                                         }
                                     }, [
-                                        ctrl.options.columns.map(function _mapColumnsContent(col) {
+                                        rowCols.map(function _mapColumnsContent(col, index) {
                                             var cell,
-                                                title;
-                                            cell = m(".tb-td", { 'class' : col.css, style : "width:" + col.width }, [
+                                                title,
+                                                colInfo = ctrl.options.columnTitles[index];
+                                            cell = m(".tb-td", { 'class' : col.css, style : "width:" + colInfo.width }, [
                                                 m('span', row[col.data])
                                             ]);
                                             if (col.folderIcons) {
@@ -1002,7 +1008,7 @@
                                                 cell = m(".tb-td.td-title", {
                                                     "data-id" : id,
                                                     'class' : col.css,
-                                                    style : "padding-left: " + padding + "px; width:" + col.width
+                                                    style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                 }, [
                                                     m("span.tdFirst", {
                                                         onclick: function _folderToggleClick(event) {
@@ -1028,7 +1034,7 @@
                                                 ]);
                                             }
                                             if (!col.folderIcons && col.custom) {
-                                                cell = m(".tb-td", { 'class' : col.css, style : "width:" + col.width }, [
+                                                cell = m(".tb-td", { 'class' : col.css, style : "width:" + colInfo.width }, [
                                                     col.custom.call(ctrl, tree, col)
                                                 ]);
                                             }
@@ -1120,8 +1126,22 @@
                 {
                     title: "Title",
                     width: "50%",
+                    sortType : "text",
+                    sort : true
+                },
+                {
+                    title: "Author",
+                    width : "25%",
                     sortType : "text"
-
+                },
+                {
+                    title: "Age",
+                    width : "10%",
+                    sortType : "number"
+                },
+                {
+                    title: "Actions",
+                    width : "15%"
                 }
             ],
             resolveRows : function (item) {
@@ -1129,8 +1149,28 @@
                     {
                         data : "title",  // Data field name
                         folderIcons : true,
-                        sortBy : "title",
-                        sort : true
+                        filter : true
+                    },
+                    {
+                        data : "person",
+                        filter : true
+                    },
+                    {
+                        data : "age",
+                        filter : false
+                    },
+                    {
+                        data : "action",
+                        sortInclude : false,
+                        custom : function (row, col) {
+                            var that = this;
+                            return m("button.btn.btn-danger.btn-xs", {
+                                onclick: function _deleteClick(e) {
+                                    e.stopPropagation();
+                                    that.deleteNode(row.parentID, row.id);
+                                }
+                            }, " X ");
+                        }
                     }
                 ];
             },
