@@ -925,15 +925,15 @@
                                 sortView =  [
                                     m(up + '.tb-sort-inactive.asc-btn.m-r-xs', {
                                         onclick: ctrl.sortToggle(index),
-                                        "data-direction": "asc"
+                                        "data-direction": "asc",
                                         //"data-field" : col.data,
-                                        //"data-sortType" : col.sortType
+                                        "data-sortType" : col.sortType
                                     }),
                                     m(down + '.tb-sort-inactive.desc-btn', {
                                         onclick: ctrl.sortToggle(index),
-                                        "data-direction": "desc"
+                                        "data-direction": "desc",
                                         //"data-field" : col.data,
-                                        //"data-sortType" : col.sortType
+                                        "data-sortType" : col.sortType
                                     })
                                 ];
                             }
@@ -953,7 +953,8 @@
                                         tree = Indexes[id],
                                         row = ctrl.flatData[item].row,
                                         padding,
-                                        css = "";
+                                        css = "",
+                                        rowCols = ctrl.options.resolveRows.call(tree);
                                     if (index % 2 === 0) {
                                         oddEvenClass = "tb-even";
                                     }
@@ -987,10 +988,11 @@
                                             }
                                         }
                                     }, [
-                                        ctrl.options.columns.map(function _mapColumnsContent(col) {
+                                        rowCols.map(function _mapColumnsContent(col, index) {
                                             var cell,
-                                                title;
-                                            cell = m(".tb-td", { 'class' : col.css, style : "width:" + col.width }, [
+                                                title,
+                                                colInfo = ctrl.options.columnTitles[index];
+                                            cell = m(".tb-td", { 'class' : col.css, style : "width:" + colInfo.width }, [
                                                 m('span', row[col.data])
                                             ]);
                                             if (col.folderIcons) {
@@ -1002,7 +1004,7 @@
                                                 cell = m(".tb-td.td-title", {
                                                     "data-id" : id,
                                                     'class' : col.css,
-                                                    style : "padding-left: " + padding + "px; width:" + col.width
+                                                    style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                 }, [
                                                     m("span.tdFirst", {
                                                         onclick: function _folderToggleClick(event) {
@@ -1028,7 +1030,7 @@
                                                 ]);
                                             }
                                             if (!col.folderIcons && col.custom) {
-                                                cell = m(".tb-td", { 'class' : col.css, style : "width:" + col.width }, [
+                                                cell = m(".tb-td", { 'class' : col.css, style : "width:" + colInfo.width }, [
                                                     col.custom.call(ctrl, tree, col)
                                                 ]);
                                             }
@@ -1121,7 +1123,20 @@
                     title: "Title",
                     width: "50%",
                     sortType : "text"
-
+                },
+                {
+                    title: "Author",
+                    width : "25%",
+                    sortType : "text"
+                },
+                {
+                    title: "Age",
+                    width : "10%",
+                    sortType : "number"
+                },
+                {
+                    title: "Actions",
+                    width : "15%"
                 }
             ],
             resolveRows : function (item) {
@@ -1130,7 +1145,30 @@
                         data : "title",  // Data field name
                         folderIcons : true,
                         sortBy : "title",
+                        sort : true,
+                        filter : true
+                    },
+                    {
+                        data : "person",
+                        sort : true,
+                        filter : true
+                    },
+                    {
+                        data : "age",
                         sort : true
+                    },
+                    {
+                        data : "action",
+                        sort : false,
+                        custom : function (row, col) {
+                            var that = this;
+                            return m("button.btn.btn-danger.btn-xs", {
+                                onclick: function _deleteClick(e) {
+                                    e.stopPropagation();
+                                    that.deleteNode(row.parentID, row.id);
+                                }
+                            }, " X ");
+                        }
                     }
                 ];
             },
