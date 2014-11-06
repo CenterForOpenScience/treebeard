@@ -2030,6 +2030,9 @@ if (typeof exports == "object") {
     Item.prototype.add = function _itemAdd(component, toTop) {
         component.parentID = this.id;
         component.depth = this.depth + 1;
+        if(component.depth > 1 && component.children.length === 0) {
+            component.open = false;
+        }
         if (toTop) {
             this.children.unshift(component);
         } else {
@@ -2385,6 +2388,19 @@ if (typeof exports == "object") {
             }
         };
 
+        this.updateFolder = function(data, parent){
+            // check state of current children, delete all? empty...
+            // check if data is in fact array?
+            parent.children = [];
+            var child, i;
+            for (i = 0; i < data.length; i++) {
+                child = self.buildTree(data[i], parent);
+                parent.add(child);
+            }
+            parent.open = true;
+
+        }
+
         // Toggles whether a folder is collapes or open
         this.toggleFolder = function _toggleFolder(index, event) {
             var len = self.flatData.length,
@@ -2399,20 +2415,34 @@ if (typeof exports == "object") {
                 o,
                 t;
             //moveOff();
-            if (self.options.resolveLazyloadUrl && item.row.kind === "folder") {
+            if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && tree.open === false) {
+                // if(tree.open){
+                //     tree.children = [];
+                //     tree.open = false;
+                //     self.redraw();
+                // } else {
+                tree.children = [];
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
                         .then(function _getUrlBuildtree(value) {
-                            for (i = 0; i < value.length; i++) {
-                                child = self.buildTree(value[i], tree);
-                                tree.add(child);
+                            if(!value){
+                                self.options.lazyLoadError.call(self, tree);
+                            } else {
+                                for (i = 0; i < value.length; i++) {
+                                    child = self.buildTree(value[i], tree);
+                                    tree.add(child);
+                                }
+                                tree.open = true;
                             }
-                            tree.open = true;
+                        }, function (info){
+                            self.options.lazyLoadError.call(self, tree);
                         })
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
                         });
                 });
+                // }
+
             } else {
                 for (j = index + 1; j < len; j++) {
                     o = self.flatData[j];
@@ -2668,7 +2698,13 @@ if (typeof exports == "object") {
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
-                }
+                },
+                addedfile : function _dropzoneAddedFile(file) {
+                    if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
+                        self.options.dropzoneEvents.addedfile.call(this, self, file);
+                    }
+                },
+
 
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
@@ -2957,7 +2993,7 @@ if (typeof exports == "object") {
                                                             var resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveIcon.call(ctrl, tree)
                                                                 ),
-                                                                resolveToggle = m("span.tb-expand-icon-holder",
+                                                                resolveToggle = m("span.tb-expand-icon-holder.tb-toggle-icon",
                                                                     ctrl.options.resolveToggle.call(ctrl, tree)
                                                                 );
                                                             if (ctrl.filterOn) {
@@ -3223,6 +3259,7 @@ if (typeof exports == "object") {
                 // Item = item acted on
                 if (item.kind === "folder") {
                     if (item.open) {
+
                         return m("i.fa.fa-folder-open-o", " ");
                     }
                     return m("i.fa.fa-folder-o", " ");
@@ -3261,6 +3298,10 @@ if (typeof exports == "object") {
                 // Item = item acted on
                 window.console.log("resolveLazyloadUrl", this, item);
                 return "http://localhost:63342/mGrid/demo/small.json";
+            },
+            lazyLoadError : function (item){
+                // this = treebeard object;
+                // Item = item acted on
             }
 
         }, options);

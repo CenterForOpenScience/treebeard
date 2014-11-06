@@ -123,6 +123,9 @@
     Item.prototype.add = function _itemAdd(component, toTop) {
         component.parentID = this.id;
         component.depth = this.depth + 1;
+        if(component.depth > 1 && component.children.length === 0) {
+            component.open = false;
+        }
         if (toTop) {
             this.children.unshift(component);
         } else {
@@ -141,12 +144,14 @@
         if (parentID > -1) {
             parent.removeChild(parseInt(this.id, 10));
         }
+        return this;
     };
 
     Item.prototype.redoDepth = function _itemRedoDepth() {
-        var i;
         function recursive(items, depth) {
+            var i;
             for (i = 0; i < items.length; i++) {
+                console.log("i", i, "items[i].id", items[i].id);
                 items[i].depth = depth;
                 if (items[i].children.length > 0) {
                     recursive(items[i].children, depth + 1);
@@ -428,17 +433,17 @@
         };
 
         // Returns whether a single row contains the filtered items, checking if columns can be filtered
-
         function _rowFilterResult(item) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
+            var cols = self.options.resolveRows(item);
             var filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
                 o;
-            for (i = 0; i < self.options.columns.length; i++) {
-                o = self.options.columns[i];
-                if (o.filter && item[o.data].toLowerCase().indexOf(filter) !== -1) {
+            for (i = 0; i < cols.length; i++) {
+                o = cols[i];
+                if (o.filter && item.data[o.data].toLowerCase().indexOf(filter) !== -1) {
                     titleResult = true;
                 }
             }
@@ -488,6 +493,7 @@
             parent.open = true;
 
         }
+
         // Toggles whether a folder is collapes or open
         this.toggleFolder = function _toggleFolder(index, event) {
             var len = self.flatData.length,
@@ -502,20 +508,34 @@
                 o,
                 t;
             //moveOff();
-            if (self.options.resolveLazyloadUrl && item.row.kind === "folder") {
+            if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && tree.open === false) {
+                // if(tree.open){
+                //     tree.children = [];
+                //     tree.open = false;
+                //     self.redraw();
+                // } else {
+                tree.children = [];
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
                         .then(function _getUrlBuildtree(value) {
-                            for (i = 0; i < value.length; i++) {
-                                child = self.buildTree(value[i], tree);
-                                tree.add(child);
+                            if(!value){
+                                self.options.lazyLoadError.call(self, tree);
+                            } else {
+                                for (i = 0; i < value.length; i++) {
+                                    child = self.buildTree(value[i], tree);
+                                    tree.add(child);
+                                }
+                                tree.open = true;
                             }
-                            tree.open = true;
+                        }, function (info){
+                            self.options.lazyLoadError.call(self, tree);
                         })
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
                         });
                 });
+                // }
+
             } else {
                 for (j = index + 1; j < len; j++) {
                     o = self.flatData[j];
@@ -593,12 +613,12 @@
             var len = self.flatData.length,
                 total = 0,
                 i,
-                o;
+                item;
             self.visibleIndexes = [];
             for (i = 0; i < len; i++) {
-                o = self.flatData[i].row;
+                item = Indexes[self.flatData[i].id];
                 if (self.filterOn) {
-                    if (_rowFilterResult(o)) {
+                    if (_rowFilterResult(item)) {
                         total++;
                         self.visibleIndexes.push(i);
                     }
@@ -771,7 +791,14 @@
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
-                }
+                },
+                addedfile : function _dropzoneAddedFile(file) {
+                    if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
+                        self.options.dropzoneEvents.addedfile.call(this, self, file);
+                    }
+                },
+
+
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
         }
@@ -936,11 +963,11 @@
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
                                             return m("input.form-control[placeholder='filter'][type='text']", {
-                                                style: "width:100%;display:inline;",
-                                                onkeyup: ctrl.filter,
-                                                value : ctrl.filterText()
-                                            }
-                                                );
+                                                    style: "width:100%;display:inline;",
+                                                    onkeyup: ctrl.filter,
+                                                    value : ctrl.filterText()
+                                                }
+                                            );
                                         }
                                     }())
                                 ])
@@ -1059,7 +1086,7 @@
                                                             var resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveIcon.call(ctrl, tree)
                                                                 ),
-                                                                resolveToggle = m("span.tb-expand-icon-holder",
+                                                                resolveToggle = m("span.tb-expand-icon-holder.tb-toggle-icon",
                                                                     ctrl.options.resolveToggle.call(ctrl, tree)
                                                                 );
                                                             if (ctrl.filterOn) {
@@ -1067,7 +1094,7 @@
                                                             }
                                                             return [resolveToggle, resolveIcon];
                                                         }())
-                                                        ),
+                                                    ),
                                                     title
                                                 ]);
                                             }
@@ -1136,7 +1163,7 @@
                                                     m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
-                                                            ])
+                                                        ])
                                                 ]);
                                             }
                                         }())
@@ -1185,7 +1212,6 @@
                     }
                 ]},
             resolveRows : function (item) {
-
                 return [            // Defines columns based on data
                     {
                         data : "title",  // Data field name
@@ -1326,6 +1352,7 @@
                 // Item = item acted on
                 if (item.kind === "folder") {
                     if (item.open) {
+
                         return m("i.fa.fa-folder-open-o", " ");
                     }
                     return m("i.fa.fa-folder-o", " ");
@@ -1364,6 +1391,10 @@
                 // Item = item acted on
                 window.console.log("resolveLazyloadUrl", this, item);
                 return "http://localhost:63342/mGrid/demo/small.json";
+            },
+            lazyLoadError : function (item){
+                // this = treebeard object;
+                // Item = item acted on
             }
 
         }, options);
