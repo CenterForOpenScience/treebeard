@@ -406,7 +406,13 @@
                     throw new Error('Treebeard Error: createcheck function returned false, item not created.');
                 }
             });
+<<<<<<< HEAD
+
             return newItem;
+
+=======
+            return newItem;
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
         };
 
         // Returns the object from the tree
@@ -430,7 +436,11 @@
         };
 
         // Returns whether a single row contains the filtered items, checking if columns can be filtered
+<<<<<<< HEAD
+        function _rowFilterResult(row) {
+=======
         function _rowFilterResult(item) {
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
             var cols = self.options.resolveRows(item);
@@ -478,12 +488,27 @@
             }
         };
 
+<<<<<<< HEAD
+        this.updateFolder = function(data, parent){
+            // check state of current children, delete all? empty...
+            // check if data is in fact array?
+            parent.children = [];
+            var child, i;
+            for (i = 0; i < data.length; i++) {
+                child = self.buildTree(data[i], parent);
+                parent.add(child);
+            }
+            parent.open = true;
+
+        }
+
+=======
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
         // Toggles whether a folder is collapes or open
         this.toggleFolder = function _toggleFolder(index, event) {
             var len = self.flatData.length,
                 tree = Indexes[self.flatData[index].id],
                 item = self.flatData[index],
-                child,
                 skip = false,
                 skipLevel = item.depth,
                 level = item.depth,
@@ -496,14 +521,12 @@
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
                         .then(function _getUrlBuildtree(value) {
-                            for (i = 0; i < value.length; i++) {
-                                child = self.buildTree(value[i], tree);
-                                tree.add(child);
-                            }
-                            tree.open = true;
+                            self.updateFolder(value, tree);
                         })
                         .then(function _getUrlFlatten() {
-                            self.flatten(self.treeData.children, topIndex);
+                            self.flatten(self.treeData.children, 0);
+                            self.redraw();
+                            console.log("I REDREW");
                         });
                 });
             } else {
@@ -537,10 +560,18 @@
         // Sorting toggles, incomplete (why incomplete?)
         //
         this.sortToggle = function _isSortedToggle(ev) {
+<<<<<<< HEAD
+            console.log("SortToggle ", this, ev.target);
+            var element = $(ev.target);
+            var type = element.attr('data-direction'),
+                index = this,
+                //field = $(this).attr('data-field'),
+=======
             var element = $(ev.target);
             var type = element.attr('data-direction'),
                 index = this,
             //field = $(this).attr('data-field'),
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                 sortType = element.attr('data-sortType'),
                 parent = element.parent(),
                 counter = 0,
@@ -705,6 +736,17 @@
                     var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                         item  = Indexes[rowID];
                     self.dropzoneItemCache = item;
+<<<<<<< HEAD
+                },
+                success : function _dropzoneSuccess(file, response) {
+                    if ($.isFunction(self.options.dropzoneEvents.success)) {
+                        self.options.dropzoneEvents.success.call(this, self, file, response);
+                    }
+                    if ($.isFunction(self.options.onadd)) {
+                        self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
+                    }
+                },
+=======
                     if ($.isFunction(self.options.dropzoneEvents.drop)) {
                         self.options.dropzoneEvents.drop.call(this, self, event);
                     }
@@ -742,6 +784,7 @@
                         self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
                     }
                 },
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                 error : function _dropzoneError(file, message, xhr) {
                     if ($.isFunction(self.options.dropzoneEvents.error)) {
                         self.options.dropzoneEvents.error.call(this, self, file, message, xhr);
@@ -762,7 +805,10 @@
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
                 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
         }
@@ -1040,6 +1086,21 @@
                                                     style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                 }, [
                                                     m("span.tdFirst", {
+<<<<<<< HEAD
+                                                        onclick: function _folderToggleClick(event) {
+                                                            if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                ctrl.toggleFolder(item, event);
+                                                            }
+                                                        }
+                                                    },
+                                                        (function _toggleView() {
+                                                            var resolveIcon = m("span.tb-expand-icon-holder",
+                                                                    ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    ),
+                                                                resolveToggle = m("span.tb-expand-icon-holder",
+                                                                    ctrl.options.resolveToggle.call(ctrl, tree)
+                                                                    );
+=======
                                                             onclick: function _folderToggleClick(event) {
                                                                 if (ctrl.options.togglecheck.call(ctrl, tree)) {
                                                                     ctrl.toggleFolder(item, event);
@@ -1053,12 +1114,17 @@
                                                                 resolveToggle = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveToggle.call(ctrl, tree)
                                                                 );
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
                                                             }
                                                             return [resolveToggle, resolveIcon];
                                                         }())
+<<<<<<< HEAD
+                                                        ),
+=======
                                                     ),
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                                                     title
                                                 ]);
                                             }
@@ -1122,7 +1188,11 @@
                                                             },
                                                             value : ctrl.currentPage()
                                                         }
+<<<<<<< HEAD
+                                                        ),
+=======
                                                     ),
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                                                     m('span.tb-pagination-span', "/ " + total + " "),
                                                     m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
@@ -1176,7 +1246,11 @@
                     }
                 ]},
             resolveRows : function (item) {
+<<<<<<< HEAD
+                return [            // Defines s based on data
+=======
                 return [            // Defines columns based on data
+>>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                     {
                         data : "title",  // Data field name
                         folderIcons : true,
@@ -1357,7 +1431,7 @@
             }
 
         }, options);
-        return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
+       return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
     };
 
     return Treebeard;
