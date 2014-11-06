@@ -2447,7 +2447,7 @@ if (typeof exports == "object") {
             var element = $(ev.target);
             var type = element.attr('data-direction'),
                 index = this,
-                //field = $(this).attr('data-field'),
+            //field = $(this).attr('data-field'),
                 sortType = element.attr('data-sortType'),
                 parent = element.parent(),
                 counter = 0,
@@ -2612,6 +2612,34 @@ if (typeof exports == "object") {
                     var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                         item  = Indexes[rowID];
                     self.dropzoneItemCache = item;
+                    if ($.isFunction(self.options.dropzoneEvents.drop)) {
+                        self.options.dropzoneEvents.drop.call(this, self, event);
+                    }
+                },
+                dragstart : function _dropzoneDragStart(event) {
+                    if ($.isFunction(self.options.dropzoneEvents.dragstart)) {
+                        self.options.dropzoneEvents.dragstart.call(this, self, event);
+                    }
+                },
+                dragend : function _dropzoneDragEnd(event) {
+                    if ($.isFunction(self.options.dropzoneEvents.dragend)) {
+                        self.options.dropzoneEvents.dragend.call(this, self, event);
+                    }
+                },
+                dragenter : function _dropzoneDragEnter(event) {
+                    if ($.isFunction(self.options.dropzoneEvents.dragenter)) {
+                        self.options.dropzoneEvents.dragenter.call(this, self, event);
+                    }
+                },
+                dragover : function _dropzoneDragOver(event) {
+                    if ($.isFunction(self.options.dropzoneEvents.dragover)) {
+                        self.options.dropzoneEvents.dragover.call(this, self, event);
+                    }
+                },
+                dragleave : function _dropzoneDragLeave(event) {
+                    if ($.isFunction(self.options.dropzoneEvents.dragleave)) {
+                        self.options.dropzoneEvents.dragleave.call(this, self, event);
+                    }
                 },
                 success : function _dropzoneSuccess(file, response) {
                     if ($.isFunction(self.options.dropzoneEvents.success)) {
@@ -2641,6 +2669,7 @@ if (typeof exports == "object") {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
                 }
+
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
         }
@@ -2805,11 +2834,11 @@ if (typeof exports == "object") {
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
                                             return m("input.form-control[placeholder='filter'][type='text']", {
-                                                style: "width:100%;display:inline;",
-                                                onkeyup: ctrl.filter,
-                                                value : ctrl.filterText()
-                                            }
-                                                );
+                                                    style: "width:100%;display:inline;",
+                                                    onkeyup: ctrl.filter,
+                                                    value : ctrl.filterText()
+                                                }
+                                            );
                                         }
                                     }())
                                 ])
@@ -2918,25 +2947,25 @@ if (typeof exports == "object") {
                                                     style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                 }, [
                                                     m("span.tdFirst", {
-                                                        onclick: function _folderToggleClick(event) {
-                                                            if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                ctrl.toggleFolder(item, event);
+                                                            onclick: function _folderToggleClick(event) {
+                                                                if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                    ctrl.toggleFolder(item, event);
+                                                                }
                                                             }
-                                                        }
-                                                    },
+                                                        },
                                                         (function _toggleView() {
                                                             var resolveIcon = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                    ),
+                                                                ),
                                                                 resolveToggle = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                    );
+                                                                );
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
                                                             }
                                                             return [resolveToggle, resolveIcon];
                                                         }())
-                                                        ),
+                                                    ),
                                                     title
                                                 ]);
                                             }
@@ -3000,12 +3029,12 @@ if (typeof exports == "object") {
                                                             },
                                                             value : ctrl.currentPage()
                                                         }
-                                                        ),
+                                                    ),
                                                     m('span.tb-pagination-span', "/ " + total + " "),
                                                     m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
-                                                            ])
+                                                        ])
                                                 ]);
                                             }
                                         }())
@@ -3233,7 +3262,7 @@ if (typeof exports == "object") {
             }
 
         }, options);
-       return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
+        return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
     };
 
     return Treebeard;
