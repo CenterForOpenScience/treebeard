@@ -2399,7 +2399,7 @@ if (typeof exports == "object") {
                 o,
                 t;
             //moveOff();
-            if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && item.row.children.length === 0) {
+            if (self.options.resolveLazyloadUrl && item.row.kind === "folder") {
                 $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                     m.request({method: "GET", url: url})
                         .then(function _getUrlBuildtree(value) {
@@ -2846,7 +2846,7 @@ if (typeof exports == "object") {
                         }
                     }()),
                     m(".tb-row-titles", [
-                        ctrl.options.columnTitles.map(function _mapColumnTitles(col, index) {
+                        ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index) {
                             var sortView = "",
                                 up,
                                 down;
@@ -2931,7 +2931,7 @@ if (typeof exports == "object") {
                                         rowCols.map(function _mapColumnsContent(col, index) {
                                             var cell,
                                                 title,
-                                                colInfo = ctrl.options.columnTitles[index];
+                                                colInfo = ctrl.options.columnTitles.call(ctrl)[index];
                                             cell = m(".tb-td", { 'class' : col.css, style : "width:" + colInfo.width }, [
                                                 m('span', row[col.data])
                                             ]);
@@ -3051,6 +3051,7 @@ if (typeof exports == "object") {
     // Starts treebard with user options;
     Treebeard.run = function _treebeardRun(options) {
         Treebeard.options = $.extend({
+            placement : '',
             divID : "myGrid",
             filesData : "http://localhost:63342/mGrid/demo/small.json",
             rowHeight : undefined,         // user can override or get from .tb-row height
@@ -3058,28 +3059,29 @@ if (typeof exports == "object") {
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             uploads : true,         // Turns dropzone on/off.
-            columnTitles : [
-                {
-                    title: "Title",
-                    width: "50%",
-                    sortType : "text",
-                    sort : true
-                },
-                {
-                    title: "Author",
-                    width : "25%",
-                    sortType : "text"
-                },
-                {
-                    title: "Age",
-                    width : "10%",
-                    sortType : "number"
-                },
-                {
-                    title: "Actions",
-                    width : "15%"
-                }
-            ],
+            columnTitles : function() {
+                return [
+                    {
+                        title: "Title",
+                        width: "50%",
+                        sortType : "text",
+                        sort : true
+                    },
+                    {
+                        title: "Author",
+                        width : "25%",
+                        sortType : "text"
+                    },
+                    {
+                        title: "Age",
+                        width : "10%",
+                        sortType : "number"
+                    },
+                    {
+                        title: "Actions",
+                        width : "15%"
+                    }
+                ]},
             resolveRows : function (item) {
                 return [            // Defines columns based on data
                     {
