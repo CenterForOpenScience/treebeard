@@ -83,17 +83,17 @@ gulp.task('js-dist-min', function(){
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('css-dist-full', ["css-dist-min"], function(){
+gulp.task('css-dist-full', ["css-dist-min"], function () {
     return gulp.src("./less/style.css")
         .pipe(rename("treebeard.css"))
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('js-dist-full',  ["js-dist-min"], function(){
+gulp.task('js-dist-full',  ["js-dist-min"], function () {
     return gulp.src('./scripts/grid.js')
         .pipe(rename("treebeard.js"))
         .pipe(gulp.dest('./dist'));
 });
 
 
-gulp.task("default", ["css", "js", "watch","js-dist-full", "css-dist-full" ]);
+gulp.task("default", ["css", "js", "watch", "js-dist-full", "css-dist-full" ]);
