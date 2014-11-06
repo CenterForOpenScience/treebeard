@@ -503,7 +503,7 @@
                             tree.open = true;
                         })
                         .then(function _getUrlFlatten() {
-                            self.flatten(self.treeData.children, topIndex);
+                            self.flatten(self.treeData.children, self.visibleTop);
                         });
                 });
             } else {
