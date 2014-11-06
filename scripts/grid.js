@@ -227,7 +227,7 @@
 
     // Sorts children of the item by direction and selected field.
     Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
-        var columns = treebeard.options.resolveRows(this),
+        var columns = treebeard.options.resolveRows.call(treebeard, this),
             field = columns[index].data;
         if (!direction) {
             throw new Error("Treebeard Error: To sort children you need to pass direction to Item.sortChildren");
@@ -436,7 +436,7 @@
         function _rowFilterResult(item) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
-            var cols = self.options.resolveRows(item);
+            var cols = self.options.resolveRows.call(self, item);
             var filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
@@ -506,17 +506,17 @@
                 i,
                 j,
                 o,
-                t;
+                t,
+                lazyLoad;
             //moveOff();
-            if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && tree.open === false) {
-                // if(tree.open){
-                //     tree.children = [];
-                //     tree.open = false;
-                //     self.redraw();
-                // } else {
-                tree.children = [];
-                $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
-                    m.request({method: "GET", url: url})
+            var icon = $('.tb-row[data-id="'+item.id+'"]').find('.tb-toggle-icon');
+            m.render(icon.get(0), m('i.icon-refresh.fangorn-spin'));
+            $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url){
+                lazyLoad = url;
+
+                if (lazyLoad && item.row.kind === "folder" && tree.open === false) {
+                    tree.children = [];
+                    m.request({method: "GET", url: lazyLoad})
                         .then(function _getUrlBuildtree(value) {
                             if(!value){
                                 self.options.lazyLoadError.call(self, tree);
@@ -526,6 +526,9 @@
                                     tree.add(child);
                                 }
                                 tree.open = true;
+                                var iconTemplate = self.options.resolveToggle.call(self, tree);
+                                m.render(icon.get(0), iconTemplate);
+
                             }
                         }, function (info){
                             self.options.lazyLoadError.call(self, tree);
@@ -533,35 +536,38 @@
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
                         });
-                });
-                // }
 
-            } else {
-                for (j = index + 1; j < len; j++) {
-                    o = self.flatData[j];
-                    t = Indexes[self.flatData[j].id];
-                    if (o.depth <= level) {break; }
-                    if (skip && o.depth > skipLevel) {continue; }
-                    if (o.depth === skipLevel) { skip = false; }
-                    if (tree.open) {                    // closing
-                        o.show = false;
-                    } else {                                 // opening
-                        o.show = true;
-                        if (!t.open) {
-                            skipLevel = o.depth;
-                            skip = true;
+                } else {
+                    for (j = index + 1; j < len; j++) {
+                        o = self.flatData[j];
+                        t = Indexes[self.flatData[j].id];
+                        if (o.depth <= level) {break; }
+                        if (skip && o.depth > skipLevel) {continue; }
+                        if (o.depth === skipLevel) { skip = false; }
+                        if (tree.open) {                    // closing
+                            o.show = false;
+                        } else {                                 // opening
+                            o.show = true;
+                            if (!t.open) {
+                                skipLevel = o.depth;
+                                skip = true;
+                            }
                         }
                     }
+                    tree.open = !tree.open;
+                    _calculateVisible(self.visibleTop);
+                    _calculateHeight();
+                    m.redraw(true);
+                    var iconTemplate = self.options.resolveToggle.call(self, tree);
+                    m.render(icon.get(0), iconTemplate);
                 }
-                tree.open = !tree.open;
-                _calculateVisible(self.visibleTop);
-                _calculateHeight();
-                m.redraw(true);
-            }
-            moveOn();
-            if (self.options.ontogglefolder) {
-                self.options.ontogglefolder.call(self, tree, event);
-            }
+                moveOn();
+                if (self.options.ontogglefolder) {
+                    self.options.ontogglefolder.call(self, tree, event);
+                }
+            });
+
+
         };
 
         // Sorting toggles, incomplete (why incomplete?)

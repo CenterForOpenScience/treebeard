@@ -311,9 +311,9 @@ require.register("dropzone/lib/dropzone.js", function (exports, module) {
 
     /*
     This is a list of all available events you can register on a dropzone object.
-    
+
     You can register an event handler like this:
-    
+
         dropzone.on("dragEnter", function() { });
      */
 
@@ -1783,7 +1783,7 @@ require.register("dropzone/lib/dropzone.js", function (exports, module) {
 
 
   /*
-  
+
   Bugfix for iOS 6 and 7
   Source: http://stackoverflow.com/questions/11929099/html5-canvas-drawimage-ratio-bug-ios
   based on the work of https://github.com/stomita/ios-imagefile-megapixel
@@ -2134,7 +2134,7 @@ if (typeof exports == "object") {
 
     // Sorts children of the item by direction and selected field.
     Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
-        var columns = treebeard.options.resolveRows(this),
+        var columns = treebeard.options.resolveRows.call(treebeard, this),
             field = columns[index].data;
         if (!direction) {
             throw new Error("Treebeard Error: To sort children you need to pass direction to Item.sortChildren");
@@ -2343,7 +2343,7 @@ if (typeof exports == "object") {
         function _rowFilterResult(item) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
-            var cols = self.options.resolveRows(item);
+            var cols = self.options.resolveRows.call(self, item);
             var filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
@@ -2413,17 +2413,17 @@ if (typeof exports == "object") {
                 i,
                 j,
                 o,
-                t;
+                t,
+                lazyLoad;
             //moveOff();
-            if (self.options.resolveLazyloadUrl && item.row.kind === "folder" && tree.open === false) {
-                // if(tree.open){
-                //     tree.children = [];
-                //     tree.open = false;
-                //     self.redraw();
-                // } else {
-                tree.children = [];
-                $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
-                    m.request({method: "GET", url: url})
+            var icon = $('.tb-row[data-id="'+item.id+'"]').find('.tb-toggle-icon');
+            m.render(icon.get(0), m('i.icon-refresh.fangorn-spin'));
+            $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url){
+                lazyLoad = url;
+
+                if (lazyLoad && item.row.kind === "folder" && tree.open === false) {
+                    tree.children = [];
+                    m.request({method: "GET", url: lazyLoad})
                         .then(function _getUrlBuildtree(value) {
                             if(!value){
                                 self.options.lazyLoadError.call(self, tree);
@@ -2433,6 +2433,9 @@ if (typeof exports == "object") {
                                     tree.add(child);
                                 }
                                 tree.open = true;
+                                var iconTemplate = self.options.resolveToggle.call(self, tree);
+                                m.render(icon.get(0), iconTemplate);
+
                             }
                         }, function (info){
                             self.options.lazyLoadError.call(self, tree);
@@ -2440,35 +2443,38 @@ if (typeof exports == "object") {
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
                         });
-                });
-                // }
 
-            } else {
-                for (j = index + 1; j < len; j++) {
-                    o = self.flatData[j];
-                    t = Indexes[self.flatData[j].id];
-                    if (o.depth <= level) {break; }
-                    if (skip && o.depth > skipLevel) {continue; }
-                    if (o.depth === skipLevel) { skip = false; }
-                    if (tree.open) {                    // closing
-                        o.show = false;
-                    } else {                                 // opening
-                        o.show = true;
-                        if (!t.open) {
-                            skipLevel = o.depth;
-                            skip = true;
+                } else {
+                    for (j = index + 1; j < len; j++) {
+                        o = self.flatData[j];
+                        t = Indexes[self.flatData[j].id];
+                        if (o.depth <= level) {break; }
+                        if (skip && o.depth > skipLevel) {continue; }
+                        if (o.depth === skipLevel) { skip = false; }
+                        if (tree.open) {                    // closing
+                            o.show = false;
+                        } else {                                 // opening
+                            o.show = true;
+                            if (!t.open) {
+                                skipLevel = o.depth;
+                                skip = true;
+                            }
                         }
                     }
+                    tree.open = !tree.open;
+                    _calculateVisible(self.visibleTop);
+                    _calculateHeight();
+                    m.redraw(true);
+                    var iconTemplate = self.options.resolveToggle.call(self, tree);
+                    m.render(icon.get(0), iconTemplate);
                 }
-                tree.open = !tree.open;
-                _calculateVisible(self.visibleTop);
-                _calculateHeight();
-                m.redraw(true);
-            }
-            moveOn();
-            if (self.options.ontogglefolder) {
-                self.options.ontogglefolder.call(self, tree, event);
-            }
+                moveOn();
+                if (self.options.ontogglefolder) {
+                    self.options.ontogglefolder.call(self, tree, event);
+                }
+            });
+
+
         };
 
         // Sorting toggles, incomplete (why incomplete?)
