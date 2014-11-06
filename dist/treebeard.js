@@ -141,14 +141,12 @@
         if (parentID > -1) {
             parent.removeChild(parseInt(this.id, 10));
         }
-        return this;
     };
 
     Item.prototype.redoDepth = function _itemRedoDepth() {
+        var i;
         function recursive(items, depth) {
-            var i;
             for (i = 0; i < items.length; i++) {
-                console.log("i", i, "items[i].id", items[i].id);
                 items[i].depth = depth;
                 if (items[i].children.length > 0) {
                     recursive(items[i].children, depth + 1);
@@ -406,13 +404,9 @@
                     throw new Error('Treebeard Error: createcheck function returned false, item not created.');
                 }
             });
-<<<<<<< HEAD
 
             return newItem;
 
-=======
-            return newItem;
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
         };
 
         // Returns the object from the tree
@@ -436,21 +430,16 @@
         };
 
         // Returns whether a single row contains the filtered items, checking if columns can be filtered
-<<<<<<< HEAD
         function _rowFilterResult(row) {
-=======
-        function _rowFilterResult(item) {
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
-            var cols = self.options.resolveRows(item);
             var filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
                 o;
-            for (i = 0; i < cols.length; i++) {
-                o = cols[i];
-                if (o.filter && item.data[o.data].toLowerCase().indexOf(filter) !== -1) {
+            for (i = 0; i < self.options.columns.length; i++) {
+                o = self.options.columns[i];
+                if (o.filter && row[o.data].toLowerCase().indexOf(filter) !== -1) {
                     titleResult = true;
                 }
             }
@@ -488,7 +477,6 @@
             }
         };
 
-<<<<<<< HEAD
         this.updateFolder = function(data, parent){
             // check state of current children, delete all? empty...
             // check if data is in fact array?
@@ -502,8 +490,6 @@
 
         }
 
-=======
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
         // Toggles whether a folder is collapes or open
         this.toggleFolder = function _toggleFolder(index, event) {
             var len = self.flatData.length,
@@ -560,18 +546,11 @@
         // Sorting toggles, incomplete (why incomplete?)
         //
         this.sortToggle = function _isSortedToggle(ev) {
-<<<<<<< HEAD
             console.log("SortToggle ", this, ev.target);
             var element = $(ev.target);
             var type = element.attr('data-direction'),
                 index = this,
                 //field = $(this).attr('data-field'),
-=======
-            var element = $(ev.target);
-            var type = element.attr('data-direction'),
-                index = this,
-            //field = $(this).attr('data-field'),
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                 sortType = element.attr('data-sortType'),
                 parent = element.parent(),
                 counter = 0,
@@ -614,12 +593,12 @@
             var len = self.flatData.length,
                 total = 0,
                 i,
-                item;
+                o;
             self.visibleIndexes = [];
             for (i = 0; i < len; i++) {
-                item = Indexes[self.flatData[i].id];
+                o = self.flatData[i].row;
                 if (self.filterOn) {
-                    if (_rowFilterResult(item)) {
+                    if (_rowFilterResult(o)) {
                         total++;
                         self.visibleIndexes.push(i);
                     }
@@ -736,7 +715,6 @@
                     var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                         item  = Indexes[rowID];
                     self.dropzoneItemCache = item;
-<<<<<<< HEAD
                 },
                 success : function _dropzoneSuccess(file, response) {
                     if ($.isFunction(self.options.dropzoneEvents.success)) {
@@ -746,45 +724,6 @@
                         self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
                     }
                 },
-=======
-                    if ($.isFunction(self.options.dropzoneEvents.drop)) {
-                        self.options.dropzoneEvents.drop.call(this, self, event);
-                    }
-                },
-                dragstart : function _dropzoneDragStart(event) {
-                    if ($.isFunction(self.options.dropzoneEvents.dragstart)) {
-                        self.options.dropzoneEvents.dragstart.call(this, self, event);
-                    }
-                },
-                dragend : function _dropzoneDragEnd(event) {
-                    if ($.isFunction(self.options.dropzoneEvents.dragend)) {
-                        self.options.dropzoneEvents.dragend.call(this, self, event);
-                    }
-                },
-                dragenter : function _dropzoneDragEnter(event) {
-                    if ($.isFunction(self.options.dropzoneEvents.dragenter)) {
-                        self.options.dropzoneEvents.dragenter.call(this, self, event);
-                    }
-                },
-                dragover : function _dropzoneDragOver(event) {
-                    if ($.isFunction(self.options.dropzoneEvents.dragover)) {
-                        self.options.dropzoneEvents.dragover.call(this, self, event);
-                    }
-                },
-                dragleave : function _dropzoneDragLeave(event) {
-                    if ($.isFunction(self.options.dropzoneEvents.dragleave)) {
-                        self.options.dropzoneEvents.dragleave.call(this, self, event);
-                    }
-                },
-                success : function _dropzoneSuccess(file, response) {
-                    if ($.isFunction(self.options.dropzoneEvents.success)) {
-                        self.options.dropzoneEvents.success.call(this, self, file, response);
-                    }
-                    if ($.isFunction(self.options.onadd)) {
-                        self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
-                    }
-                },
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                 error : function _dropzoneError(file, message, xhr) {
                     if ($.isFunction(self.options.dropzoneEvents.error)) {
                         self.options.dropzoneEvents.error.call(this, self, file, message, xhr);
@@ -805,10 +744,6 @@
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
                 }
-<<<<<<< HEAD
-=======
-
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
         }
@@ -973,11 +908,11 @@
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
                                             return m("input.form-control[placeholder='filter'][type='text']", {
-                                                    style: "width:100%;display:inline;",
-                                                    onkeyup: ctrl.filter,
-                                                    value : ctrl.filterText()
-                                                }
-                                            );
+                                                style: "width:100%;display:inline;",
+                                                onkeyup: ctrl.filter,
+                                                value : ctrl.filterText()
+                                            }
+                                                );
                                         }
                                     }())
                                 ])
@@ -1086,7 +1021,6 @@
                                                     style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                 }, [
                                                     m("span.tdFirst", {
-<<<<<<< HEAD
                                                         onclick: function _folderToggleClick(event) {
                                                             if (ctrl.options.togglecheck.call(ctrl, tree)) {
                                                                 ctrl.toggleFolder(item, event);
@@ -1100,31 +1034,12 @@
                                                                 resolveToggle = m("span.tb-expand-icon-holder",
                                                                     ctrl.options.resolveToggle.call(ctrl, tree)
                                                                     );
-=======
-                                                            onclick: function _folderToggleClick(event) {
-                                                                if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                    ctrl.toggleFolder(item, event);
-                                                                }
-                                                            }
-                                                        },
-                                                        (function _toggleView() {
-                                                            var resolveIcon = m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                ),
-                                                                resolveToggle = m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                );
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                                                             if (ctrl.filterOn) {
                                                                 return resolveIcon;
                                                             }
                                                             return [resolveToggle, resolveIcon];
                                                         }())
-<<<<<<< HEAD
                                                         ),
-=======
-                                                    ),
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                                                     title
                                                 ]);
                                             }
@@ -1188,16 +1103,12 @@
                                                             },
                                                             value : ctrl.currentPage()
                                                         }
-<<<<<<< HEAD
                                                         ),
-=======
-                                                    ),
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                                                     m('span.tb-pagination-span', "/ " + total + " "),
                                                     m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
-                                                        ])
+                                                            ])
                                                 ]);
                                             }
                                         }())
@@ -1244,11 +1155,7 @@
                 }
             ],
             resolveRows : function (item) {
-<<<<<<< HEAD
                 return [            // Defines s based on data
-=======
-                return [            // Defines columns based on data
->>>>>>> 1b8c8145e8a2b33443c6412148cf47e66db15fa6
                     {
                         data : "title",  // Data field name
                         folderIcons : true,
