@@ -2911,11 +2911,10 @@ if (typeof exports == "object") {
                 m(".tb-table", [
                     (function showHeadA() {
                         if (ctrl.options.showFilter || ctrl.options.title) {
-                            return m('.tb-head', [
-                                m(".tb-head-title", [
-                                    m("h3", functionOrString(ctrl.options.title))
-                                ]),
-                                m(".tb-head-filter", [
+                            return m('.tb-head.clearfix', [
+                                m(".tb-head-filter", {
+                                    style: "width:"+ctrl.options.filterStyle.width+"; float:"+ctrl.options.filterStyle.float
+                                }, [
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
                                             return m("input.form-control[placeholder='filter'][type='text']", {
@@ -3161,6 +3160,7 @@ if (typeof exports == "object") {
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             uploads : true,         // Turns dropzone on/off.
+            filterStyle : { float : 'right', width : '50%'},
             columnTitles : function() {
                 return [
                     {
