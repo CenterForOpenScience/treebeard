@@ -1541,6 +1541,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-h-error{background-color:rgba(255,4,0,.53)}
 .tb-expand-icon-holder{height:10px;width:20px;display:inline-block}
 .clearfix{display:table;content:" ";clear:both}
+.tb-notify{padding:5px 10px;text-align:center}
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)

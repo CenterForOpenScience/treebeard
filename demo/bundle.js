@@ -1931,6 +1931,8 @@ if (typeof exports == "object") {
     var Indexes = {},
     // Item constructor
         Item,
+    // Notifications constructor
+        Notify,
     // Initialize and namespace Treebeard module
         Treebeard = {},
 
@@ -2009,6 +2011,37 @@ if (typeof exports == "object") {
         return false;
     }
 
+
+    Notify = function _notify(message, type, column, timeout){
+        this.column = null ||  column;
+        this.type = "info" || type;
+        this.message = 'Hello' || message;
+        this.on = false;
+        this.timeout = 3000 || timeout;
+        this.toggle = function(){
+            this.on = !this.on;
+        };
+        this.show = function(){
+            this.on = true;
+            var self = this;
+            if(self.timeout){
+                setTimeout(function(){ self.hide(); }, self.timeout);
+            }
+            m.redraw(true);
+        };
+        this.hide = function(){
+            this.on = false;
+            m.redraw(true);
+        };
+        this.update = function(message, type, column, timeout) {
+            this.type = type || this.type;
+            this.column = column || this.column;
+            this.timeout = timeout || this.timeout;
+            this.message = message;
+            this.show(true);
+        };
+    };
+
     // Item constructor
     Item = function _item(data) {
         if (data === undefined) {
@@ -2024,6 +2057,7 @@ if (typeof exports == "object") {
         this.depth = 0;
         this.children =  [];
         this.parentID = null;
+        this.notify = new Notify();
     };
 
     // Adds child item into the item
@@ -2428,10 +2462,14 @@ if (typeof exports == "object") {
                             if(!value){
                                 self.options.lazyLoadError.call(self, tree);
                             } else {
+                                if(!$.isArray(value)){
+                                    value = value.data;
+                                }
                                 for (i = 0; i < value.length; i++) {
                                     child = self.buildTree(value[i], tree);
                                     tree.add(child);
                                 }
+
                                 tree.open = true;
                                 var iconTemplate = self.options.resolveToggle.call(self, tree);
                                 m.render(icon.get(0), iconTemplate);
@@ -2638,6 +2676,11 @@ if (typeof exports == "object") {
                                     self.dropzone.options.url = newUrl;
                                 }
                                 return newUrl;
+                            })
+                            .then(function _resolveUploadMethodThen() {
+                                if($.isFunction(self.options.resolveUploadMethod)){
+                                    self.dropzone.options.method  = self.options.resolveUploadMethod.call(self, self.dropzoneItemCache);
+                                }
                             })
                             .done(function _resolveUploadUrlDone() {
                                 done();
@@ -2945,80 +2988,97 @@ if (typeof exports == "object") {
                                     } else {
                                         padding = indent * 20;
                                     }
-                                    return m(".tb-row", {
-                                        "key" : id,
-                                        "class" : css + " " + oddEvenClass,
-                                        "data-id" : id,
-                                        "data-level": indent,
-                                        "data-index": item,
-                                        "data-rIndex": index,
-                                        style : "height: " + ctrl.options.rowHeight + "px;",
-                                        onclick : function _rowClick(event) {
-                                            ctrl.selected = id;
-                                            if (ctrl.options.onselectrow) {
-                                                ctrl.options.onselectrow.call(ctrl, tree, event);
-                                            }
-                                        },
-                                        onmouseover : function _rowMouseover(event) {
-                                            ctrl.mouseon = id;
-                                            if (ctrl.options.hoverClass) {
-                                                $('.tb-row').removeClass(ctrl.options.hoverClass);
-                                                $(this).addClass(ctrl.options.hoverClass);
-                                            }
-                                            if (ctrl.options.onmouseoverrow) {
-                                                ctrl.options.onmouseoverrow.call(ctrl, tree, event);
-                                            }
-                                        }
-                                    }, [
-                                        rowCols.map(function _mapColumnsContent(col, index) {
-                                            var cell,
-                                                title,
-                                                colInfo = ctrl.options.columnTitles.call(ctrl)[index];
-                                            cell = m(".tb-td", { 'class' : col.css, style : "width:" + colInfo.width }, [
-                                                m('span', row[col.data])
-                                            ]);
-                                            if (col.folderIcons) {
-                                                if (col.custom) {
-                                                    title = m("span.title-text", col.custom.call(ctrl, tree, col));
-                                                } else {
-                                                    title = m("span.title-text", row[col.data] + " ");
+                                    if(tree.notify.on && !tree.notify.column){
+                                        return m(".tb-row", [
+                                            m('.tb-notify.text-'+tree.notify.type, [
+                                                m('span', tree.notify.message)
+                                            ])
+                                        ]);
+                                    } else {
+                                        return m(".tb-row", {
+                                            "key" : id,
+                                            "class" : css + " " + oddEvenClass,
+                                            "data-id" : id,
+                                            "data-level": indent,
+                                            "data-index": item,
+                                            "data-rIndex": index,
+                                            style : "height: " + ctrl.options.rowHeight + "px;",
+                                            onclick : function _rowClick(event) {
+                                                ctrl.selected = id;
+                                                if (ctrl.options.onselectrow) {
+                                                    ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }
-                                                cell = m(".tb-td.td-title", {
-                                                    "data-id" : id,
-                                                    'class' : col.css,
-                                                    style : "padding-left: " + padding + "px; width:" + colInfo.width
-                                                }, [
-                                                    m("span.tdFirst", {
-                                                            onclick: function _folderToggleClick(event) {
-                                                                if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                    ctrl.toggleFolder(item, event);
+                                            },
+                                            onmouseover : function _rowMouseover(event) {
+                                                ctrl.mouseon = id;
+                                                if (ctrl.options.hoverClass) {
+                                                    $('.tb-row').removeClass(ctrl.options.hoverClass);
+                                                    $(this).addClass(ctrl.options.hoverClass);
+                                                }
+                                                if (ctrl.options.onmouseoverrow) {
+                                                    ctrl.options.onmouseoverrow.call(ctrl, tree, event);
+                                                }
+                                            }
+                                        }, [
+                                            rowCols.map(function _mapColumnsContent(col, index) {
+                                                var cell,
+                                                    title,
+                                                    colInfo = ctrl.options.columnTitles.call(ctrl)[index],
+                                                    colcss = col.css ? col.css : '';
+                                                cell = m('.tb-td.tb-col-'+index, { 'class' : col.css, style : "width:" + colInfo.width }, [
+                                                    m('span', row[col.data])
+                                                ]);
+                                                if(tree.notify.on && tree.notify.column === index){
+                                                    return m('.tb-td.tb-col-'+index, { style : "width:" + colInfo.width },  [
+                                                        m('.tb-notify.text-'+tree.notify.type, [
+                                                            m('span', tree.notify.message)
+                                                        ])
+                                                    ]);
+                                                }
+                                                if (col.folderIcons) {
+                                                    if (col.custom) {
+                                                        title = m("span.title-text", col.custom.call(ctrl, tree, col));
+                                                    } else {
+                                                        title = m("span.title-text", row[col.data] + " ");
+                                                    }
+                                                    cell = m('.tb-td.td-title.tb-col-'+index, {
+                                                        "data-id" : id,
+                                                        'class' : colcss,
+                                                        style : "padding-left: " + padding + "px; width:" + colInfo.width
+                                                    }, [
+                                                        m("span.tdFirst", {
+                                                                onclick: function _folderToggleClick(event) {
+                                                                    if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                        ctrl.toggleFolder(item, event);
+                                                                    }
                                                                 }
-                                                            }
-                                                        },
-                                                        (function _toggleView() {
-                                                            var resolveIcon = m("span.tb-expand-icon-holder",
-                                                                    ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                ),
-                                                                resolveToggle = m("span.tb-expand-icon-holder.tb-toggle-icon",
-                                                                    ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                );
-                                                            if (ctrl.filterOn) {
-                                                                return resolveIcon;
-                                                            }
-                                                            return [resolveToggle, resolveIcon];
-                                                        }())
-                                                    ),
-                                                    title
-                                                ]);
-                                            }
-                                            if (!col.folderIcons && col.custom) {
-                                                cell = m(".tb-td", { 'class' : col.css, style : "width:" + colInfo.width }, [
-                                                    col.custom.call(ctrl, tree, col)
-                                                ]);
-                                            }
-                                            return cell;
-                                        })
-                                    ]);
+                                                            },
+                                                            (function _toggleView() {
+                                                                var resolveIcon = m("span.tb-expand-icon-holder",
+                                                                        ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    ),
+                                                                    resolveToggle = m("span.tb-expand-icon-holder.tb-toggle-icon",
+                                                                        ctrl.options.resolveToggle.call(ctrl, tree)
+                                                                    );
+                                                                if (ctrl.filterOn) {
+                                                                    return resolveIcon;
+                                                                }
+                                                                return [resolveToggle, resolveIcon];
+                                                            }())
+                                                        ),
+                                                        title
+                                                    ]);
+                                                }
+                                                if (!col.folderIcons && col.custom) {
+                                                    cell = m('.tb-td.tb-col-'+index, { 'class' : colcss, style : "width:" + colInfo.width }, [
+                                                        col.custom.call(ctrl, tree, col)
+                                                    ]);
+                                                }
+                                                return cell;
+                                            })
+                                        ]);
+                                    }
+
                                 })
                             ])
 
