@@ -83,49 +83,8 @@
             lazyLoad : true,
             useDropzone : true,
             uploadURL : "",
-            allowMove : true,
-            columns : [
-                {
-                    title: "Title",
-                    width : "50%",
-                    data : "title",  // Data field name
-                    sort : true,
-                    sortType : "text",
-                    filter : true,
-                    folderIcons : true
-                },
-                {
-                    title: "Author",
-                    width : "25%",
-                    data : "person",
-                    sort : true,
-                    filter : true,
-                    sortType : "text"
-                },
-                {
-                    title: "Age",
-                    width : "10%",
-                    data : "age",
-                    sort : true,
-                    sortType : "number"
-                },
-                {
-                    title: "Actions",
-                    width : "15%",
-                    data : "action",
-                    sort : false,
-                    custom : function (row, col){
-                        var that = this;
-                        return m("button.btn.btn-danger.btn-xs", {
-                            onclick: function _deleteClick(e) {
-                                e.stopPropagation();
-                                that.deleteNode(row.parentID, row.id);
-                            }
-                        }, " X ")
+            allowMove : true
 
-                    }
-                }
-            ]
 
         }
 

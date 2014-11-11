@@ -1532,15 +1532,16 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-row-active{background:#ADD8E6}
 .tb-row{height:35px;padding-top:5px}
 .tb-footer{background:rgba(239,239,239,.51);border:1px solid #CCC;border-top:none;padding:5px}
-.tb-head{padding:10px}
+.tb-head{padding:10px;width:100%}
 .tb-head-filter,.tb-head-title{width:50%;display:inline-block}
 .tb-sort-inactive{color:#999}
 .tb-sort-active{color:#222}
 .form-comp{margin:0 16px}
 .tb-h-success{background-color:rgba(255,255,0,.53)}
 .tb-h-error{background-color:rgba(255,4,0,.53)}
-.tb-expand-icon-holder{height:10px;width:20px;display:inline-block}
+.tb-expand-icon-holder,.tb-toggle-icon{height:10px;width:20px;display:inline-block}
 .clearfix{display:table;content:" ";clear:both}
+.tb-notify{padding:5px 10px;text-align:center}
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
