@@ -2373,7 +2373,7 @@ if (typeof exports == "object") {
             var len = self.flatData.length, i, o;
             for (i = 0; i < len; i++) {
                 o = self.flatData[i];
-                if (o.row.id === id) {
+                if (o.id === id) {
                     return i;
                 }
             }
@@ -2440,7 +2440,7 @@ if (typeof exports == "object") {
             }
             parent.open = true;
 
-        }
+        };
 
         // Toggles whether a folder is collapes or open
         this.toggleFolder = function _toggleFolder(index, event) {
@@ -2515,7 +2515,7 @@ if (typeof exports == "object") {
                 }
                 moveOn();
                 if (self.options.ontogglefolder) {
-                    self.options.ontogglefolder.call(self, tree, event);
+                    self.options.ontogglefolder.call(self, tree);
                 }
             });
 
@@ -2681,7 +2681,11 @@ if (typeof exports == "object") {
                             .then(function _resolveUploadUrlThen(newUrl) {
                                 if (newUrl) {
                                     self.dropzone.options.url = newUrl;
-                                    self.dropzoneItemCache.open = true;
+                                    // self.dropzoneItemCache.open = true;
+                                    var index = self.returnIndex(self.dropzoneItemCache.id);
+                                    if(!self.dropzoneItemCache.open) {
+                                        self.toggleFolder(index, null);
+                                    }
                                 }
                                 return newUrl;
                             })
@@ -3322,11 +3326,10 @@ if (typeof exports == "object") {
                 // event = mouse click event object
                 window.console.log("onmouseoverrow", this, row, event);
             },
-            ontogglefolder : function (item, event) {
+            ontogglefolder : function (item) {
                 // this = treebeard object
                 // item = toggled folder item
-                // event = mouse click event object
-                window.console.log("ontogglefolder", this, item, event);
+                window.console.log("ontogglefolder", this, item);
             },
             dropzone : {                                           // All dropzone options.
                 url: "http://www.torrentplease.com/dropzone.php",  // When users provide single URL for all uploads
