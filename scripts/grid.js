@@ -1471,7 +1471,7 @@
                 // this = treebeard object;
                 // Item = item acted on
                 window.console.log("resolveLazyloadUrl", this, item);
-                return "http://localhost:63342/mGrid/demo/small.json";
+                return false;
             },
             lazyLoadError : function (item){
                 // this = treebeard object;
