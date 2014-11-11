@@ -133,6 +133,13 @@
             this.message = message;
             this.show(true);
         };
+        this.selfDestruct = function(treebeard, item, timeout){
+            this.on = false;
+            this.on = true;
+            var self = this;
+            var out = timeout || 3000;
+            setTimeout(function(){ self.hide(); item.removeSelf(); treebeard.redraw(); }, out);
+        }
     };
 
     // Item constructor
@@ -767,6 +774,7 @@
                             .then(function _resolveUploadUrlThen(newUrl) {
                                 if (newUrl) {
                                     self.dropzone.options.url = newUrl;
+                                    self.dropzoneItemCache.open = true;
                                 }
                                 return newUrl;
                             })
@@ -1082,7 +1090,7 @@
                                     }
                                     if(tree.notify.on && !tree.notify.column){
                                         return m(".tb-row", [
-                                            m('.tb-notify.text-'+tree.notify.type, [
+                                            m('.tb-notify.alert-'+tree.notify.type, [
                                                 m('span', tree.notify.message)
                                             ])
                                         ]);
@@ -1122,7 +1130,7 @@
                                                 ]);
                                                 if(tree.notify.on && tree.notify.column === index){
                                                     return m('.tb-td.tb-col-'+index, { style : "width:" + colInfo.width },  [
-                                                        m('.tb-notify.text-'+tree.notify.type, [
+                                                        m('.tb-notify.alert-'+tree.notify.type, [
                                                             m('span', tree.notify.message)
                                                         ])
                                                     ]);
@@ -1146,16 +1154,20 @@
                                                                 }
                                                             },
                                                             (function _toggleView() {
-                                                                var resolveIcon = m("span.tb-expand-icon-holder",
-                                                                        ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                    ),
-                                                                    resolveToggle = m("span.tb-expand-icon-holder.tb-toggle-icon",
-                                                                        ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                    );
+                                                                var set = [{
+                                                                    'id' : 1,
+                                                                    'css' : 'tb-expand-icon-holder',
+                                                                    'resolve' : ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                },{
+                                                                    'id' : 2,
+                                                                    'css' : 'tb-toggle-icon',
+                                                                    'resolve' : ctrl.options.resolveToggle.call(ctrl, tree)
+                                                                }]
+
                                                                 if (ctrl.filterOn) {
-                                                                    return resolveIcon;
+                                                                    return m('span.'+set[0].css, { key : set[0].id }, set[0].resolve);
                                                                 }
-                                                                return [resolveToggle, resolveIcon];
+                                                                return [m('span.'+set[1].css, { key : set[1].id }, set[1].resolve), m('span.'+set[0].css, { key : set[0].id }, set[0].resolve)];
                                                             }())
                                                         ),
                                                         title
