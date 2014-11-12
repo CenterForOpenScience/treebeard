@@ -1526,11 +1526,11 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-tbody-inner{overflow:hidden}
 .tb-row-titles{background:#EEE;padding:10px 0 5px 16px;border:1px solid #CCC;border-bottom:none}
 .td-title{cursor:pointer}
-.tb-td,.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-td,.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:35px}
 .tb-th{font-weight:700}
 .tb-details{background:#ADD8E6;height:623px;border:1px solid #EEE;padding:20px}
 .tb-row-active{background:#ADD8E6}
-.tb-row{height:35px;padding-top:5px}
+.tb-row{height:35px}
 .tb-footer{background:rgba(239,239,239,.51);border:1px solid #CCC;border-top:none;padding:5px}
 .tb-head{padding:10px;width:100%}
 .tb-head-filter,.tb-head-title{width:50%;display:inline-block}

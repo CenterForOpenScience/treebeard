@@ -68,14 +68,9 @@
         /*
          *  User defined options
          */
-
-         var myCustomFunc = function(col){
-            console.log("This is", this);
-            return m('span', this[col.data]+' --')
-         }
         var options = {
             divID : 'grid',
-            filesData : "http://localhost:63342/mGrid/demo/small.json",
+            filesData : "small.json",
             rowHeight : 35,
             showTotal : 15,
             paginate : false,
@@ -84,19 +79,11 @@
             useDropzone : true,
             uploadURL : "",
             allowMove : true
-
-
         }
-
-
         /*
          *  User defined code to implement Treebeard anywhere on the page.
          */
         Treebeard.run(options);
-
-
-
-
     </script>
     </body>
 </html>
