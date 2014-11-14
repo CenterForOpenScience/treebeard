@@ -104,6 +104,53 @@
         return false;
     }
 
+    //Modals within treebeard
+    Modal = function _modal () {
+        var el = $('#tb-tbody'),
+            self = this;
+        this.on = false;
+        this.timeout = false;
+        this.css = '';
+        this.content = null;
+        this.actions = null;
+        this.height = el.height();
+        this.width = el.width();
+        this.dismiss = function () {
+            this.on = false;
+            m.redraw(true);
+        };
+        this.show = function () {
+            this.on = true;
+            if (self.timeout) {
+                setTimeout(function () { self.dismiss(); }, self.timeout);
+            }
+            m.redraw(true);
+        };
+        this.toggle = function () {
+            this.on = !this.on;
+            m.redraw(true);
+        };
+        this.update = function (contentMithril, actions) {
+            self.updateSize();
+            if (contentMithril) {
+                this.content = contentMithril;
+            }
+            if (actions) {
+                this.actions = actions;
+            }
+            this.on = true;
+            m.redraw(true);
+        };
+        this.updateSize = function () {
+            this.height = el.height();
+            this.width = el.width();
+            m.redraw(true);
+        };
+        $(window).resize(function () {
+            self.updateSize();
+        });
+    };
+
     // Handles notifications over rows, redraws entire row or a column
     Notify = function _notify(message, type, column, timeout) {
         this.column = column || undefined;
@@ -1056,6 +1103,16 @@
                         })
                     ]),
                     m("#tb-tbody", [
+                        (function showModal() {
+                            if (ctrl.modal.on) {
+                                return m('.tb-modal-shade', { style : 'width:' + ctrl.modal.width + 'px; position : absolute; height:' + ctrl.modal.height + 'px;'}, [
+                                    m('.tb-modal-inner', { 'class' : ctrl.modal.css }, [
+                                        m('.tb-modal-dismiss', { 'onclick' : function () { ctrl.modal.dismiss(); } }, [m('i.icon-remove-sign')]),
+                                        m('.tb-modal-content', ctrl.modal.content),
+                                        m('.tb-modal-footer', ctrl.modal.actions)])
+                                ]);
+                            }
+                        }()),
                         m('.tb-tbody-inner', [
                             m('', { style : "margin-top:" + ctrl.rangeMargin + "px" }, [
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
@@ -1075,9 +1132,9 @@
                                     } else {
                                         padding = indent * 20;
                                     }
-                                    if (tree.notify.on && !tree.notify.column) {
+                                    if(tree.notify.on && !tree.notify.column){
                                         return m(".tb-row", [
-                                            m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
+                                            m('.tb-notify.alert-'+tree.notify.type, { 'class' : tree.notify.css }, [
                                                 m('span', tree.notify.message)
                                             ])
                                         ]);
@@ -1108,15 +1165,16 @@
                                             }
                                         }, [
                                             rowCols.map(function _mapColumnsContent(col, index) {
-                                                var title,
+                                                var cell,
+                                                    title,
                                                     colInfo = ctrl.options.columnTitles.call(ctrl)[index],
-                                                    colcss = col.css || '',
-                                                    cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + colInfo.width }, [
-                                                        m('span', row[col.data])
-                                                    ]);
-                                                if (tree.notify.on && tree.notify.column === index) {
-                                                    return m('.tb-td.tb-col-' + index, { style : "width:" + colInfo.width },  [
-                                                        m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
+                                                    colcss = col.css ? col.css : '';
+                                                cell = m('.tb-td.tb-col-'+index, { 'class' : col.css, style : "width:" + colInfo.width }, [
+                                                    m('span', row[col.data])
+                                                ]);
+                                                if(tree.notify.on && tree.notify.column === index){
+                                                    return m('.tb-td.tb-col-'+index, { style : "width:" + colInfo.width },  [
+                                                        m('.tb-notify.alert-'+tree.notify.type, { 'class' : tree.notify.css }, [
                                                             m('span', tree.notify.message)
                                                         ])
                                                     ]);
@@ -1127,39 +1185,40 @@
                                                     } else {
                                                         title = m("span.title-text", row[col.data] + " ");
                                                     }
-                                                    cell = m('.tb-td.td-title.tb-col-' + index, {
+                                                    cell = m('.tb-td.td-title.tb-col-'+index, {
                                                         "data-id" : id,
                                                         'class' : colcss,
                                                         style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                     }, [
                                                         m("span.tdFirst", {
-                                                            onclick: function _folderToggleClick(event) {
-                                                                if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                    ctrl.toggleFolder(item, event);
+                                                                onclick: function _folderToggleClick(event) {
+                                                                    if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                        ctrl.toggleFolder(item, event);
+                                                                    }
                                                                 }
-                                                            }
-                                                        },
+                                                            },
                                                             (function _toggleView() {
                                                                 var set = [{
                                                                     'id' : 1,
                                                                     'css' : 'tb-expand-icon-holder',
                                                                     'resolve' : ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                }, {
+                                                                },{
                                                                     'id' : 2,
                                                                     'css' : 'tb-toggle-icon',
                                                                     'resolve' : ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                }];
+                                                                }]
+
                                                                 if (ctrl.filterOn) {
-                                                                    return m('span.' + set[0].css, { key : set[0].id }, set[0].resolve);
+                                                                    return m('span.'+set[0].css, { key : set[0].id }, set[0].resolve);
                                                                 }
-                                                                return [m('span.' + set[1].css, { key : set[1].id }, set[1].resolve), m('span.' + set[0].css, { key : set[0].id }, set[0].resolve)];
+                                                                return [m('span.'+set[1].css, { key : set[1].id }, set[1].resolve), m('span.'+set[0].css, { key : set[0].id }, set[0].resolve)];
                                                             }())
-                                                            ),
+                                                        ),
                                                         title
                                                     ]);
                                                 }
                                                 if (!col.folderIcons && col.custom) {
-                                                    cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + colInfo.width }, [
+                                                    cell = m('.tb-td.tb-col-'+index, { 'class' : colcss, style : "width:" + colInfo.width }, [
                                                         col.custom.call(ctrl, tree, col)
                                                     ]);
                                                 }
@@ -1172,6 +1231,9 @@
                             ])
 
                         ])
+
+
+
                     ]),
                     (function _footer() {
                         if (ctrl.options.paginate || ctrl.options.paginateToggle) {
