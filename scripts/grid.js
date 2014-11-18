@@ -582,16 +582,22 @@
         };
 
         this.updateFolder = function(data, parent){
-            // check state of current children, delete all? empty...
-            // check if data is in fact array?
-            parent.children = [];
-            var child, i;
-            for (i = 0; i < data.length; i++) {
-                child = self.buildTree(data[i], parent);
-                parent.add(child);
-            }
-            parent.open = true;
 
+            if (data) {
+                parent.children = [];
+                var child, i;
+                for (i = 0; i < data.length; i++) {
+                    child = self.buildTree(data[i], parent);
+                    parent.add(child);
+                }
+                parent.open = true;
+                return;
+            }
+
+            var index = self.returnIndex(parent.id);
+            parent.open = false;
+            parent.load= false;
+            self.toggleFolder(index, null);
         };
 
         // Toggles whether a folder is collapes or open
