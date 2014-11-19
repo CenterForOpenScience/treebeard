@@ -378,20 +378,20 @@
 
         m.redraw.strategy("all");
         // public variables
-        this.modal = new Modal();                               //  Box-wide modal
+        this.modal = new Modal;                                     // Box wide modal
         this.flatData = [];                                     // Flat data, gets regenerated often
         this.treeData = {};                                     // The data in hierarchical form
         this.filterText = m.prop("");                           // value of the filtertext input
         this.showRange = [];                                    // Array of indexes that the range shows
         this.options = Treebeard.options;                       // User defined options
         this.selected = undefined;                              // The row selected on click.
-        this.mouseon = undefined;                               // The row the mouse is on for mouseover events.
+        this.mouseon = undefined;                              // The row the mouse is on for mouseover events.
         this.rangeMargin = 0;                                   // Top margin, required for proper scrolling
         this.visibleIndexes = [];                               // List of items viewable as a result of an operation like filter.
         this.visibleTop = undefined;                            // The first visible item.
         this.currentPage = m.prop(1);                           // for pagination
         this.dropzone = null;                                   // Treebeard's own dropzone object
-        this.dropzoneItemCache = undefined;                     // Cache of the dropped item
+        this.dropzoneItemCache = undefined;                      // Cache of the dropped item
         this.filterOn = false;                                  // Filter state for use across the app
         this.multiselected = [];
         this.pressedKey = undefined;
@@ -405,31 +405,32 @@
             var draggableOptions,
                 droppableOptions,
                 drag,
-                drop;
+                drop,
+                dragSelector;
 
             draggableOptions = {
                 helper: "clone",
                 cursor : 'move',
                 delay : 200,
                 drag : function (event, ui) {
-                    if (self.options.dragEvents.create) {
+                    if(self.options.dragEvents.create){
                         self.options.dragEvents.create.call(self, event, ui);
                     } else {
                         $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
                 },
                 create : function (event, ui) {
-                    if (self.options.dragEvents.create) {
+                    if(self.options.dragEvents.create){
                         self.options.dragEvents.create.call(self, event, ui);
                     }
                 },
                 start : function (event, ui) {
-                    if (self.options.dragEvents.start) {
+                    if(self.options.dragEvents.start){
                         self.options.dragEvents.start.call(self, event, ui);
                     }
                 },
                 stop : function (event, ui) {
-                    if (self.options.dragEvents.stop) {
+                    if(self.options.dragEvents.stop){
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
                 }
@@ -438,32 +439,32 @@
             droppableOptions = {
                 tolerance : 'pointer',
                 activate : function (event, ui) {
-                    if (self.options.dropEvents.activate) {
+                    if(self.options.dropEvents.activate){
                         self.options.dropEvents.activate.call(self, event, ui);
                     }
                 },
                 create : function (event, ui) {
-                    if (self.options.dropEvents.create) {
+                    if(self.options.dropEvents.create){
                         self.options.dropEvents.create.call(self, event, ui);
                     }
                 },
                 deactivate : function (event, ui) {
-                    if (self.options.dropEvents.deactivate) {
+                    if(self.options.dropEvents.deactivate){
                         self.options.dropEvents.deactivate.call(self, event, ui);
                     }
                 },
                 drop : function (event, ui) {
-                    if (self.options.dropEvents.drop) {
+                    if(self.options.dropEvents.drop){
                         self.options.dropEvents.drop.call(self, event, ui);
                     }
                 },
                 out : function (event, ui) {
-                    if (self.options.dropEvents.out) {
+                    if(self.options.dropEvents.out){
                         self.options.dropEvents.out.call(self, event, ui);
                     }
                 },
                 over : function (event, ui) {
-                    if (self.options.dropEvents.over) {
+                    if(self.options.dropEvents.over){
                         self.options.dropEvents.over.call(self, event, ui);
                     }
                 }
@@ -471,9 +472,11 @@
 
             drag = $.extend(draggableOptions, self.options.dragOptions);
             drop = $.extend(droppableOptions, self.options.dropOptions);
-            $('.td-title').draggable(drag);
+            dragSelector = self.options.moveClass ? self.options.moveClass : '.td-title';
+
+            $('.' + dragSelector).draggable(drag);
             $('.tb-row').droppable(drop);
-        }
+        };
         // Removes move related instances.
         function moveOff() {
             $(".td-title").draggable("destroy");
@@ -1511,6 +1514,7 @@
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
+            moveClass : undefined,
             sortButtonSelector : {}, // custom buttons for sort
             dragOptions : {},
             dropOptions : {},

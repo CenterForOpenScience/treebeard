@@ -402,63 +402,81 @@
         };
 
         this.moveOn = function () {
-            $('.td-title').draggable({
+            var draggableOptions,
+                droppableOptions,
+                drag,
+                drop,
+                dragSelector;
+
+            draggableOptions = {
                 helper: "clone",
-                delay : 300,
-                drag : function (event, ui) {
-                    $(ui.helper).css({ 'height' : '30px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
-                }
-            });
-
-            $('.tb-row').droppable({
-                tolerance : 'fit',
                 cursor : 'move',
-                out: function uiOut() {
-                    $('.tb-row.tb-h-success').removeClass('tb-h-success');
-                    $('.tb-row.tb-h-error').removeClass('tb-h-error');
-                    console.log('drop out');
-                },
-                over: function _uiOver(event, ui) {
-
-                    var to, from, toItem, item;
-                    to = $(this).attr("data-id");
-                    from = ui.draggable.attr("data-id");
-                    toItem = Indexes[to];
-                    item = Indexes[from];
-                    if (to !== from && self.options.movecheck(toItem, item) && self.canMove(toItem, item)) {
-                        $(this).addClass('tb-h-success');
+                delay : 200,
+                drag : function (event, ui) {
+                    if(self.options.dragEvents.create){
+                        self.options.dragEvents.create.call(self, event, ui);
                     } else {
-                        $(this).addClass('tb-h-error');
+                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
                 },
-                drop: function _uiDrop(event, ui) {
-
-                    var to, from, toItem, item;
-                    to = $(this).attr("data-id");
-                    from = ui.draggable.attr("data-id");
-
-                    toItem = Indexes[to];
-                    item = Indexes[from];
-                    if (to !== from) {
-                        if (self.options.movecheck.call(self, toItem, item) && self.canMove(toItem, item)) {
-                            item.move(to);
-                            self.flatten(self.treeData.children, self.visibleTop);
-                            if (self.options.onmove) {
-                                self.options.onmove(toItem, item);
-                            }
-                        } else {
-                            if (self.options.movefail) {
-                                self.options.movefail.call(self, toItem, item);
-                            } else {
-                                window.alert("You can't move your item here.");
-                            }
-                        }
+                create : function (event, ui) {
+                    if(self.options.dragEvents.create){
+                        self.options.dragEvents.create.call(self, event, ui);
                     }
-                    $('.tb-row.tb-h-success').removeClass('tb-h-success');
-                    $('.tb-row.tb-h-error').removeClass('tb-h-error');
+                },
+                start : function (event, ui) {
+                    if(self.options.dragEvents.start){
+                        self.options.dragEvents.start.call(self, event, ui);
+                    }
+                },
+                stop : function (event, ui) {
+                    if(self.options.dragEvents.stop){
+                        self.options.dragEvents.stop.call(self, event, ui);
+                    }
                 }
-            });
-        }
+            };
+
+            droppableOptions = {
+                tolerance : 'pointer',
+                activate : function (event, ui) {
+                    if(self.options.dropEvents.activate){
+                        self.options.dropEvents.activate.call(self, event, ui);
+                    }
+                },
+                create : function (event, ui) {
+                    if(self.options.dropEvents.create){
+                        self.options.dropEvents.create.call(self, event, ui);
+                    }
+                },
+                deactivate : function (event, ui) {
+                    if(self.options.dropEvents.deactivate){
+                        self.options.dropEvents.deactivate.call(self, event, ui);
+                    }
+                },
+                drop : function (event, ui) {
+                    if(self.options.dropEvents.drop){
+                        self.options.dropEvents.drop.call(self, event, ui);
+                    }
+                },
+                out : function (event, ui) {
+                    if(self.options.dropEvents.out){
+                        self.options.dropEvents.out.call(self, event, ui);
+                    }
+                },
+                over : function (event, ui) {
+                    if(self.options.dropEvents.over){
+                        self.options.dropEvents.over.call(self, event, ui);
+                    }
+                }
+            };
+
+            drag = $.extend(draggableOptions, self.options.dragOptions);
+            drop = $.extend(droppableOptions, self.options.dropOptions);
+            dragSelector = self.options.moveClass ? self.options.moveClass : '.td-title';
+
+            $('.' + dragSelector).draggable(drag);
+            $('.tb-row').droppable(drop);
+        };
         // Removes move related instances.
         function moveOff() {
             $(".td-title").draggable("destroy");
@@ -1496,7 +1514,12 @@
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
+            moveClass : undefined,
             sortButtonSelector : {}, // custom buttons for sort
+            dragOptions : {},
+            dropOptions : {},
+            dragEvents : {}, // users can override draggable options and events
+            dropEvents : {},// users can override droppable options and events
             onload : function () {
                 // this = treebeard object;
                 console.log("onload this", this);
@@ -1634,7 +1657,7 @@
             },
             resolvePagination : function (totalPages, currentPage) {
                 // this = treebeard object
-                window.console.log("resolvePAgination: totalPages: ", totalPages, " currentPage: ", currentPage);
+                window.console.log("resolvePagination: totalPages: ", totalPages, " currentPage: ", currentPage);
                 return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
             },
             resolveUploadUrl : function (item) {  // Allows the user to calculate the url of each individual row
