@@ -413,8 +413,8 @@
                 cursor : 'move',
                 delay : 200,
                 drag : function (event, ui) {
-                    if(self.options.dragEvents.create){
-                        self.options.dragEvents.create.call(self, event, ui);
+                    if(self.options.dragEvents.drag){
+                        self.options.dragEvents.drag.call(self, event, ui);
                     } else {
                         $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
