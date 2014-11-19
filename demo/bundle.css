@@ -1548,6 +1548,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-modal-dismiss{float:right;color:gray;font-size:27px;margin-top:2px;margin-right:10px}
 .tb-modal-content,.tb-modal-footer{padding:15px 25px}
 .tb-modal-footer{border-top:1px solid #eee;text-align:right}
+.tb-multiselect{background-color:#f08080}
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)

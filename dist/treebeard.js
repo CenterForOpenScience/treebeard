@@ -107,25 +107,25 @@
     }
 
 
-    Notify = function _notify(message, type, column, timeout){
-        this.column = null ||  column;
-        this.type = "info" || type;
-        this.message = 'Hello' || message;
+    Notify = function _notify(message, type, column, timeout) {
+        this.column = column || null;
+        this.type = type || "info";
+        this.message =  message || 'Hello';
         this.on = false;
-        this.timeout = 3000 || timeout;
+        this.timeout = timeout || timeout;
         this.css = '';
-        this.toggle = function(){
+        this.toggle = function () {
             this.on = !this.on;
         };
-        this.show = function(){
+        this.show = function () {
             this.on = true;
             var self = this;
-            if(self.timeout){
-                setTimeout(function(){ self.hide(); }, self.timeout);
+            if (self.timeout) {
+                setTimeout(function () { self.hide(); }, self.timeout);
             }
             m.redraw(true);
         };
-        this.hide = function(){
+        this.hide = function () {
             this.on = false;
             m.redraw(true);
         };
@@ -137,18 +137,18 @@
             this.css = css || '';
             this.show(true);
         };
-        this.selfDestruct = function(treebeard, item, timeout){
+        this.selfDestruct = function (treebeard, item, timeout) {
             this.on = false;
             this.on = true;
-            var self = this;
-            var out = timeout || 3000;
-            setTimeout(function(){ self.hide(); item.removeSelf(); treebeard.redraw(); }, out);
+            var self = this,
+                out = timeout || 3000;
+            setTimeout(function () { self.hide(); item.removeSelf(); treebeard.redraw(); }, out);
         };
     };
 
-    Modal = function _modal(){
-        var el = $('#tb-tbody');
-        var self = this;
+    Modal = function _modal() {
+        var el = $('#tb-tbody'),
+            self = this;
         this.on = false;
         this.timeout = false;
         this.css = '';
@@ -162,19 +162,18 @@
         };
         this.show = function () {
             this.on = true;
-            var self = this;
-            if(self.timeout){
-                setTimeout(function(){ self.dismiss(); }, self.timeout);
+            if (self.timeout) {
+                setTimeout(function () { self.dismiss(); }, self.timeout);
             }
             m.redraw(true);
         };
-        this.toggle = function (){
+        this.toggle = function () {
             this.on = !this.on;
             m.redraw(true);
         };
-        this.update = function(contentMithril, actions) {
+        this.update = function (contentMithril, actions) {
             self.updateSize();
-            if(contentMithril){
+            if (contentMithril) {
                 this.content = contentMithril;
             }
             if (actions) {
@@ -183,15 +182,12 @@
             this.on = true;
             m.redraw(true);
         };
-        this.updateSize = function() {
-            console.log("update");
-            var el = $('#tb-tbody');
+        this.updateSize = function () {
             this.height = el.height();
             this.width = el.width();
             m.redraw(true);
-
         };
-        $(window).resize(function(){
+        $(window).resize(function () {
             self.updateSize();
         });
     };
@@ -398,6 +394,8 @@
         this.dropzone = null;                                   // Treebeard's own dropzone object
         this.dropzoneItemCache = undefined;                      // Cache of the dropped item
         this.filterOn = false;                                  // Filter state for use across the app
+        this.multiselected = [];
+        this.pressedKey = undefined;
 
         // Helper function to redraw if user makes changes to the item (like deleting through a hook)
         this.redraw = function _redraw() {
@@ -495,8 +493,8 @@
 
         // Adds a new node;
         this.createItem = function _createItem(item, parentID) {
-            var parent = Indexes[parentID];
-            var newItem;
+            var parent = Indexes[parentID],
+                newItem;
             $.when(self.options.createcheck.call(self, item, parent)).done(function _resolveCreateCheck(check) {
                 if (check) {
                     newItem = new Item(item);
@@ -532,12 +530,24 @@
             return undefined;
         };
 
+        // Returns the index of an item in the flat row list
+        this.returnRangeIndex = function _returnRangeIndex(id) {
+            var len = self.showRange.length, i, o;
+            for (i = 0; i < len; i++) {
+                o = self.showRange[i];
+                if (o.id === id) {
+                    return i;
+                }
+            }
+            return undefined;
+        };
+
         // Returns whether a single row contains the filtered items, checking if columns can be filtered
         function _rowFilterResult(item) {
             $('#tb-tbody').scrollTop(0);
             self.currentPage(1);
-            var cols = self.options.resolveRows.call(self, item);
-            var filter = self.filterText().toLowerCase(),
+            var cols = self.options.resolveRows.call(self, item),
+                filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
                 o;
@@ -581,8 +591,7 @@
             }
         };
 
-        this.updateFolder = function(data, parent){
-
+        this.updateFolder = function (data, parent) {
             if (data) {
                 parent.children = [];
                 var child, i;
@@ -593,10 +602,9 @@
                 parent.open = true;
                 return;
             }
-
             var index = self.returnIndex(parent.id);
             parent.open = false;
-            parent.load= false;
+            parent.load = false;
             self.toggleFolder(index, null);
         };
 
@@ -624,10 +632,10 @@
                     tree.children = [];
                     m.request({method: "GET", url: lazyLoad})
                         .then(function _getUrlBuildtree(value) {
-                            if(!value){
+                            if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
                             } else {
-                                if(!$.isArray(value)){
+                                if (!$.isArray(value)) {
                                     value = value.data;
                                 }
                                 for (i = 0; i < value.length; i++) {
@@ -641,7 +649,7 @@
                                 m.render(icon.get(0), iconTemplate);
 
                             }
-                        }, function (info){
+                        }, function (info) {
                             self.options.lazyLoadError.call(self, tree);
                         })
                         .then(function _getUrlFlatten() {
@@ -677,17 +685,13 @@
                     self.options.ontogglefolder.call(self, tree);
                 }
             });
-
-
         };
 
         // Sorting toggles, incomplete (why incomplete?)
-        //
         this.sortToggle = function _isSortedToggle(ev) {
-            var element = $(ev.target);
-            var type = element.attr('data-direction'),
+            var element = $(ev.target),
+                type = element.attr('data-direction'),
                 index = this,
-            //field = $(this).attr('data-field'),
                 sortType = element.attr('data-sortType'),
                 parent = element.parent(),
                 counter = 0,
@@ -766,7 +770,6 @@
                 counter = counter + 1;
             }
             self.showRange = range;
-            //m.redraw.strategy('none');
             m.redraw(true);
         };
 
@@ -823,6 +826,67 @@
             }
         };
 
+        this.isMultiselected = function (id) {
+            self.multiselected.map(function (item) {
+                if (item.id === id) {
+                    return true;
+                }
+            });
+            return false;
+        };
+
+        this.removeMultiselected = function (id) {
+            self.multiselected.map(function (item, index, arr) {
+                if (item.id === id) {
+                    arr.splice(index, 1);
+                }
+            });
+            return false;
+        };
+
+        this.handleMultiselect = function (id, index) {
+            var tree = Indexes[id],
+                originalIndex,
+                finalIndex;
+
+            // If there is no multiselect yet
+            if (self.selected && self.multiselected.length === 0) {
+                self.multiselected.push(tree);
+            }
+            // if key is shift
+            if (self.pressedKey === 16) {
+                // get the index of this and add all visible indexes between this one and last selected
+                originalIndex = self.returnRangeIndex(self.selected);
+                finalIndex = self.returnRangeIndex(id);
+                if (originalIndex > finalIndex) {
+
+                }
+            }
+
+            // if key is cmd
+            if (self.pressedKey === 91) {
+                if (!self.isMultiselected(tree.id)) {
+                    self.multiselected.push(tree);
+                } else {
+                    self.removeMultiselected(tree.id);
+                }
+
+            }
+
+            if (self.options.onmultiselect) {
+                self.options.onmultiselect.call(self, event, tree);
+            }
+            console.log("Multiselected " , self.multiselected);
+            $('.tb-multiselect').removeClass('tb-multiselect');
+            this.multiselected.map(function (item) {
+                $('.tb-row[data-id="' + item.id + '"]').addClass('tb-multiselect');
+            });
+        };
+
+        this.clearMultiselect = function() {
+            $('.tb-multiselect').removeClass('tb-multiselect');
+            self.multiselected = [];
+        }
         // Remove dropzone from grid
         function _destroyDropzone() {
             self.dropzone.destroy();
@@ -923,9 +987,7 @@
                     if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
                         self.options.dropzoneEvents.addedfile.call(this, self, file);
                     }
-                },
-
-
+                }
             }, self.options.dropzone);           // Extend default options
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
         }
@@ -942,13 +1004,6 @@
                     _calculateHeight();
                 });
             } else {
-                // Test that it is a url
-                var urlPattern = new RegExp("(http|ftp|https)://[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?");
-                if (self.options.filesData.indexOf('localhost') === -1) {
-                    if (!urlPattern.test(self.options.filesData)) {
-                        throw new Error("Treebeard Error: Your URL is not valid. Include full path. You provided: " + self.options.filesData);
-                    }
-                }
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
                         self.treeData = self.buildTree(value);
@@ -1064,8 +1119,18 @@
                 moveOn();
             }
             if (self.options.uploads) { _applyDropzone(); }
-            if($.isFunction(self.options.onload)){
+            if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
+            }
+            if (self.options.multiselect) {
+                $(window).keydown(function (event) {
+                    self.pressedKey = event.keyCode;
+                    console.log("Pressed KEy", self.pressedKey);
+                });
+                $(window).keyup(function (event) {
+                    self.pressedKey = undefined;
+                    console.log("Pressed KEy", self.pressedKey);
+                });
             }
         };
 
@@ -1170,9 +1235,9 @@
                                     } else {
                                         padding = indent * 20;
                                     }
-                                    if(tree.notify.on && !tree.notify.column){
+                                    if (tree.notify.on && !tree.notify.column) {
                                         return m(".tb-row", [
-                                            m('.tb-notify.alert-'+tree.notify.type, { 'class' : tree.notify.css }, [
+                                            m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
                                                 m('span', tree.notify.message)
                                             ])
                                         ]);
@@ -1186,7 +1251,13 @@
                                             "data-rIndex": index,
                                             style : "height: " + ctrl.options.rowHeight + "px;",
                                             onclick : function _rowClick(event) {
-                                                ctrl.selected = id;
+                                                if (ctrl.pressedKey && ctrl.options.multiselect) {
+                                                    ctrl.handleMultiselect(id, index, event);
+                                                }
+                                                if (!ctrl.pressedKey) {
+                                                    ctrl.selected = id;
+                                                    ctrl.clearMultiselect();
+                                                }
                                                 if (ctrl.options.onselectrow) {
                                                     ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }
@@ -1207,12 +1278,12 @@
                                                     title,
                                                     colInfo = ctrl.options.columnTitles.call(ctrl)[index],
                                                     colcss = col.css ? col.css : '';
-                                                cell = m('.tb-td.tb-col-'+index, { 'class' : col.css, style : "width:" + colInfo.width }, [
+                                                cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + colInfo.width }, [
                                                     m('span', row[col.data])
                                                 ]);
-                                                if(tree.notify.on && tree.notify.column === index){
-                                                    return m('.tb-td.tb-col-'+index, { style : "width:" + colInfo.width },  [
-                                                        m('.tb-notify.alert-'+tree.notify.type, { 'class' : tree.notify.css }, [
+                                                if(tree.notify.on && tree.notify.column === index) {
+                                                    return m('.tb-td.tb-col-' + index, { style : "width:" + colInfo.width },  [
+                                                        m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
                                                             m('span', tree.notify.message)
                                                         ])
                                                     ]);
@@ -1348,6 +1419,7 @@
             paginate : false,       // Whether the applet starts with pagination or not.
             paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
             uploads : true,         // Turns dropzone on/off.
+            multiselect : false,
             filterStyle : { float : 'right', width : '50%'},
             columnTitles : function() {
                 return [
@@ -1492,11 +1564,18 @@
                 // event = mouse click event object
                 window.console.log("onselectrow", this, row, event);
             },
+            onmultiselect : function (event, tree) {
+                // this = treebeard object
+                // tree = item currently clicked on
+                // event = mouse click event object
+                window.console.log("onmultiselect", this, tree, event);
+
+            },
             onmouseoverrow : function (row, event) {
                 // this = treebeard object
                 // row = item selected
                 // event = mouse click event object
-                window.console.log("onmouseoverrow", this, row, event);
+                //window.console.log("onmouseoverrow", this, row, event);
             },
             ontogglefolder : function (item) {
                 // this = treebeard object
