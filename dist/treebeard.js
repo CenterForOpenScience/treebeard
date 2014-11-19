@@ -217,7 +217,7 @@
     Item.prototype.add = function _itemAdd(component, toTop) {
         component.parentID = this.id;
         component.depth = this.depth + 1;
-        if(component.depth > 1 && component.children.length === 0) {
+        if (component.depth > 1 && component.children.length === 0) {
             component.open = false;
         }
         if (toTop) {
@@ -245,7 +245,6 @@
         function recursive(items, depth) {
             var i;
             for (i = 0; i < items.length; i++) {
-                console.log("i", i, "items[i].id", items[i].id);
                 items[i].depth = depth;
                 if (items[i].children.length > 0) {
                     recursive(items[i].children, depth + 1);
@@ -534,7 +533,7 @@
         this.returnRangeIndex = function _returnRangeIndex(id) {
             var len = self.showRange.length, i, o;
             for (i = 0; i < len; i++) {
-                o = self.showRange[i];
+                o = self.flatData[self.showRange[i]];
                 if (o.id === id) {
                     return i;
                 }
@@ -621,13 +620,11 @@
                 j,
                 o,
                 t,
-                lazyLoad;
-            //moveOff();
-            var icon = $('.tb-row[data-id="'+item.id+'"]').find('.tb-toggle-icon');
+                lazyLoad,
+                icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
             m.render(icon.get(0), m('i.icon-refresh.fangorn-spin'));
-            $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url){
+            $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
-
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
                     tree.children = [];
                     m.request({method: "GET", url: lazyLoad})
@@ -827,12 +824,13 @@
         };
 
         this.isMultiselected = function (id) {
+            var outcome = false;
             self.multiselected.map(function (item) {
                 if (item.id === id) {
-                    return true;
+                    outcome = true;
                 }
             });
-            return false;
+            return outcome;
         };
 
         this.removeMultiselected = function (id) {
@@ -844,22 +842,44 @@
             return false;
         };
 
+        this.highlightMultiselect = function () {
+            $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
+            this.multiselected.map(function (item) {
+                $('.tb-row[data-id="' + item.id + '"]').addClass(self.options.hoverClassMultiselect);
+            });
+        };
+
         this.handleMultiselect = function (id, index) {
             var tree = Indexes[id],
                 originalIndex,
-                finalIndex;
-
-            // If there is no multiselect yet
-            if (self.selected && self.multiselected.length === 0) {
-                self.multiselected.push(tree);
-            }
+                finalIndex,
+                begin,
+                end,
+                i;
             // if key is shift
             if (self.pressedKey === 16) {
                 // get the index of this and add all visible indexes between this one and last selected
-                originalIndex = self.returnRangeIndex(self.selected);
-                finalIndex = self.returnRangeIndex(id);
-                if (originalIndex > finalIndex) {
-
+                // If there is no multiselect yet
+                if (self.multiselected.length === 0 && !self.selected) {
+                    self.selected = tree.id;
+                    self.multiselected.push(tree);
+                } else {
+                    originalIndex = self.returnRangeIndex(self.selected);
+                    finalIndex = self.returnRangeIndex(id);
+                    if (originalIndex > finalIndex) {
+                        // going up
+                        begin = finalIndex;
+                        end = originalIndex;
+                    } else {
+                        begin = originalIndex;
+                        end = finalIndex;
+                    }
+                    if (originalIndex !== finalIndex) {
+                        self.multiselected = [];
+                        for (i = begin; i < end + 1; i++) {
+                            self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                        }
+                    }
                 }
             }
 
@@ -870,23 +890,18 @@
                 } else {
                     self.removeMultiselected(tree.id);
                 }
-
             }
 
             if (self.options.onmultiselect) {
                 self.options.onmultiselect.call(self, event, tree);
             }
-            console.log("Multiselected " , self.multiselected);
-            $('.tb-multiselect').removeClass('tb-multiselect');
-            this.multiselected.map(function (item) {
-                $('.tb-row[data-id="' + item.id + '"]').addClass('tb-multiselect');
-            });
+            self.highlightMultiselect.call(this);
         };
 
-        this.clearMultiselect = function() {
-            $('.tb-multiselect').removeClass('tb-multiselect');
+        this.clearMultiselect = function () {
+            $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
             self.multiselected = [];
-        }
+        };
         // Remove dropzone from grid
         function _destroyDropzone() {
             self.dropzone.destroy();
@@ -895,7 +910,6 @@
         // Apply dropzone to grid
         function _applyDropzone() {
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
-            //var eventList = ["drop", "dragstart", "dragend", "dragenter", "dragover", "dragleave", "addedfile", "removedfile", "thumbnail", "error", "processing", "uploadprogress", "sending", "success", "complete", "canceled", "maxfilesreached", "maxfilesexceeded"],
             var options = $.extend({
                 clickable : false,
                 accept : function _dropzoneAccept(file, done) {
@@ -906,14 +920,14 @@
                                     self.dropzone.options.url = newUrl;
                                     // self.dropzoneItemCache.open = true;
                                     var index = self.returnIndex(self.dropzoneItemCache.id);
-                                    if(!self.dropzoneItemCache.open) {
+                                    if (!self.dropzoneItemCache.open) {
                                         self.toggleFolder(index, null);
                                     }
                                 }
                                 return newUrl;
                             })
                             .then(function _resolveUploadMethodThen() {
-                                if($.isFunction(self.options.resolveUploadMethod)){
+                                if ($.isFunction(self.options.resolveUploadMethod)) {
                                     self.dropzone.options.method  = self.options.resolveUploadMethod.call(self, self.dropzoneItemCache);
                                 }
                             })
@@ -1150,7 +1164,7 @@
                         if (ctrl.options.showFilter || ctrl.options.title) {
                             return m('.tb-head.clearfix', [
                                 m(".tb-head-filter", {
-                                    style: "width:"+ctrl.options.filterStyle.width+"; float:"+ctrl.options.filterStyle.float
+                                    style: "width:" + ctrl.options.filterStyle.width + "; float:" + ctrl.options.filterStyle.float
                                 }, [
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
@@ -1210,9 +1224,9 @@
                             if (ctrl.modal.on) {
                                 return m('.tb-modal-shade', { style : 'width:' + ctrl.modal.width + 'px; position : absolute; height:' + ctrl.modal.height + 'px;'}, [
                                     m('.tb-modal-inner', { 'class' : ctrl.modal.css }, [
-                                        m('.tb-modal-dismiss', { 'onclick' : function(){ ctrl.modal.dismiss(); } }, [m('i.icon-remove-sign')]),
+                                        m('.tb-modal-dismiss', { 'onclick' : function () { ctrl.modal.dismiss(); } }, [m('i.icon-remove-sign')]),
                                         m('.tb-modal-content', ctrl.modal.content),
-                                        m('.tb-modal-footer', ctrl.modal.actions)]),
+                                        m('.tb-modal-footer', ctrl.modal.actions)])
                                 ]);
                             }
                         }()),
@@ -1281,7 +1295,7 @@
                                                 cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + colInfo.width }, [
                                                     m('span', row[col.data])
                                                 ]);
-                                                if(tree.notify.on && tree.notify.column === index) {
+                                                if (tree.notify.on && tree.notify.column === index) {
                                                     return m('.tb-td.tb-col-' + index, { style : "width:" + colInfo.width },  [
                                                         m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
                                                             m('span', tree.notify.message)
@@ -1294,7 +1308,7 @@
                                                     } else {
                                                         title = m("span.title-text", row[col.data] + " ");
                                                     }
-                                                    cell = m('.tb-td.td-title.tb-col-'+index, {
+                                                    cell = m('.tb-td.td-title.tb-col-' + index, {
                                                         "data-id" : id,
                                                         'class' : colcss,
                                                         style : "padding-left: " + padding + "px; width:" + colInfo.width
@@ -1311,23 +1325,22 @@
                                                                     'id' : 1,
                                                                     'css' : 'tb-expand-icon-holder',
                                                                     'resolve' : ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                },{
+                                                                }, {
                                                                     'id' : 2,
                                                                     'css' : 'tb-toggle-icon',
                                                                     'resolve' : ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                }]
-
+                                                                }];
                                                                 if (ctrl.filterOn) {
-                                                                    return m('span.'+set[0].css, { key : set[0].id }, set[0].resolve);
+                                                                    return m('span.' + set[0].css, { key : set[0].id }, set[0].resolve);
                                                                 }
-                                                                return [m('span.'+set[1].css, { key : set[1].id }, set[1].resolve), m('span.'+set[0].css, { key : set[0].id }, set[0].resolve)];
+                                                                return [m('span.' + set[1].css, { key : set[1].id }, set[1].resolve), m('span.' + set[0].css, { key : set[0].id }, set[0].resolve)];
                                                             }())
                                                         ),
                                                         title
                                                     ]);
                                                 }
                                                 if (!col.folderIcons && col.custom) {
-                                                    cell = m('.tb-td.tb-col-'+index, { 'class' : colcss, style : "width:" + colInfo.width }, [
+                                                    cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + colInfo.width }, [
                                                         col.custom.call(ctrl, tree, col)
                                                     ]);
                                                 }
@@ -1421,7 +1434,7 @@
             uploads : true,         // Turns dropzone on/off.
             multiselect : false,
             filterStyle : { float : 'right', width : '50%'},
-            columnTitles : function() {
+            columnTitles : function () {
                 return [
                     {
                         title: "Title",
@@ -1475,6 +1488,7 @@
                 ];
             },
             hoverClass : undefined,
+            hoverClassMultiselect : 'tb-multiselect',
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
@@ -1583,7 +1597,7 @@
                 window.console.log("ontogglefolder", this, item);
             },
             dropzone : {                                           // All dropzone options.
-                url: "http://www.torrentplease.com/dropzone.php",  // When users provide single URL for all uploads
+                url: "http://www.torrentplease.com/dropzone.php"  // When users provide single URL for all uploads
             },
             dropzoneEvents : {},
             resolveIcon : function (item) {     // Here the user can interject and add their own icons, uses m()
@@ -1631,7 +1645,7 @@
                 window.console.log("resolveLazyloadUrl", this, item);
                 return false;
             },
-            lazyLoadError : function (item){
+            lazyLoadError : function (item) {
                 // this = treebeard object;
                 // Item = item acted on
             }

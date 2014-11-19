@@ -842,6 +842,13 @@
             return false;
         };
 
+        this.highlightMultiselect = function () {
+            $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
+            this.multiselected.map(function (item) {
+                $('.tb-row[data-id="' + item.id + '"]').addClass(self.options.hoverClassMultiselect);
+            });
+        };
+
         this.handleMultiselect = function (id, index) {
             var tree = Indexes[id],
                 originalIndex,
@@ -870,7 +877,7 @@
                     if (originalIndex !== finalIndex) {
                         self.multiselected = [];
                         for (i = begin; i < end + 1; i++) {
-                            self.multiselected.push(self.flatData[self.showRange[i]]);
+                            self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
                         }
                     }
                 }
@@ -888,15 +895,11 @@
             if (self.options.onmultiselect) {
                 self.options.onmultiselect.call(self, event, tree);
             }
-            //console.log("Multiselected ", self.multiselected);
-            $('.tb-multiselect').removeClass('tb-multiselect');
-            this.multiselected.map(function (item) {
-                $('.tb-row[data-id="' + item.id + '"]').addClass('tb-multiselect');
-            });
+            self.highlightMultiselect.call(this);
         };
 
         this.clearMultiselect = function () {
-            $('.tb-multiselect').removeClass('tb-multiselect');
+            $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
             self.multiselected = [];
         };
         // Remove dropzone from grid
@@ -1166,11 +1169,11 @@
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
                                             return m("input.form-control[placeholder='filter'][type='text']", {
-                                                style: "width:100%;display:inline;",
-                                                onkeyup: ctrl.filter,
-                                                value : ctrl.filterText()
-                                            }
-                                                );
+                                                    style: "width:100%;display:inline;",
+                                                    onkeyup: ctrl.filter,
+                                                    value : ctrl.filterText()
+                                                }
+                                            );
                                         }
                                     }())
                                 ])
@@ -1311,12 +1314,12 @@
                                                         style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                     }, [
                                                         m("span.tb-td-first", {
-                                                            onclick: function _folderToggleClick(event) {
-                                                                if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                    ctrl.toggleFolder(item, event);
+                                                                onclick: function _folderToggleClick(event) {
+                                                                    if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                        ctrl.toggleFolder(item, event);
+                                                                    }
                                                                 }
-                                                            }
-                                                        },
+                                                            },
                                                             (function _toggleView() {
                                                                 var set = [{
                                                                     'id' : 1,
@@ -1332,7 +1335,7 @@
                                                                 }
                                                                 return [m('span.' + set[1].css, { key : set[1].id }, set[1].resolve), m('span.' + set[0].css, { key : set[0].id }, set[0].resolve)];
                                                             }())
-                                                            ),
+                                                        ),
                                                         title
                                                     ]);
                                                 }
@@ -1378,7 +1381,7 @@
                                                 ]);
                                             }
                                         }())
-                                        ),
+                                    ),
                                     m('.col-xs-8', [ m('.padder-10', [
                                         (function _showPaginate() {
                                             if (ctrl.options.paginate) {
@@ -1401,12 +1404,12 @@
                                                             },
                                                             value : ctrl.currentPage()
                                                         }
-                                                        ),
+                                                    ),
                                                     m('span.tb-pagination-span', "/ " + total + " "),
                                                     m('button.tb-pagination-next.btn.btn-default.btn-sm',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
-                                                            ])
+                                                        ])
                                                 ]);
                                             }
                                         }())
@@ -1485,6 +1488,7 @@
                 ];
             },
             hoverClass : undefined,
+            hoverClassMultiselect : 'tb-multiselect',
             showFilter : true,     // Gives the option to filter by showing the filter box.
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
@@ -1641,7 +1645,7 @@
                 window.console.log("resolveLazyloadUrl", this, item);
                 return false;
             },
-            lazyLoadError : function (item){
+            lazyLoadError : function (item) {
                 // this = treebeard object;
                 // Item = item acted on
             }
