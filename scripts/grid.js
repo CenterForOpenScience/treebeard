@@ -378,20 +378,20 @@
 
         m.redraw.strategy("all");
         // public variables
-        this.modal = new Modal;                                     // Box wide modal
+        this.modal = new Modal();                               //  Box-wide modal
         this.flatData = [];                                     // Flat data, gets regenerated often
         this.treeData = {};                                     // The data in hierarchical form
         this.filterText = m.prop("");                           // value of the filtertext input
         this.showRange = [];                                    // Array of indexes that the range shows
         this.options = Treebeard.options;                       // User defined options
         this.selected = undefined;                              // The row selected on click.
-        this.mouseon = undefined;                              // The row the mouse is on for mouseover events.
+        this.mouseon = undefined;                               // The row the mouse is on for mouseover events.
         this.rangeMargin = 0;                                   // Top margin, required for proper scrolling
         this.visibleIndexes = [];                               // List of items viewable as a result of an operation like filter.
         this.visibleTop = undefined;                            // The first visible item.
         this.currentPage = m.prop(1);                           // for pagination
         this.dropzone = null;                                   // Treebeard's own dropzone object
-        this.dropzoneItemCache = undefined;                      // Cache of the dropped item
+        this.dropzoneItemCache = undefined;                     // Cache of the dropped item
         this.filterOn = false;                                  // Filter state for use across the app
         this.multiselected = [];
         this.pressedKey = undefined;
@@ -401,61 +401,78 @@
             self.flatten(self.treeData.children, self.visibleTop);
         };
 
-        function moveOn() {
-            $(".td-title").draggable({
+        this.moveOn = function () {
+            var draggableOptions,
+                droppableOptions,
+                drag,
+                drop;
+
+            draggableOptions = {
                 helper: "clone",
-                delay : 300,
+                cursor : 'move',
+                delay : 200,
                 drag : function (event, ui) {
-                    $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
-                }
-            });
-            $(".tb-row").droppable({
-                tolerance : "fit",
-                cursor : "move",
-                out: function uiOut() {
-                    $('.tb-row.tb-h-success').removeClass('tb-h-success');
-                    $('.tb-row.tb-h-error').removeClass('tb-h-error');
-                },
-                over: function _uiOver(event, ui) {
-
-                    var to, from, toItem, item;
-                    to = $(this).attr("data-id");
-                    from = ui.draggable.attr("data-id");
-                    toItem = Indexes[to];
-                    item = Indexes[from];
-                    if (to !== from && self.options.movecheck(toItem, item) && self.canMove(toItem, item)) {
-                        $(this).addClass('tb-h-success');
+                    if (self.options.dragEvents.create) {
+                        self.options.dragEvents.create.call(self, event, ui);
                     } else {
-                        $(this).addClass('tb-h-error');
+                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
                 },
-                drop: function _uiDrop(event, ui) {
-
-                    var to, from, toItem, item;
-                    to = $(this).attr("data-id");
-                    from = ui.draggable.attr("data-id");
-
-                    toItem = Indexes[to];
-                    item = Indexes[from];
-                    if (to !== from) {
-                        if (self.options.movecheck.call(self, toItem, item) && self.canMove(toItem, item)) {
-                            item.move(to);
-                            self.flatten(self.treeData.children, self.visibleTop);
-                            if (self.options.onmove) {
-                                self.options.onmove(toItem, item);
-                            }
-                        } else {
-                            if (self.options.movefail) {
-                                self.options.movefail.call(self, toItem, item);
-                            } else {
-                                window.alert("You can't move your item here.");
-                            }
-                        }
+                create : function (event, ui) {
+                    if (self.options.dragEvents.create) {
+                        self.options.dragEvents.create.call(self, event, ui);
                     }
-                    $('.tb-row.tb-h-success').removeClass('tb-h-success');
-                    $('.tb-row.tb-h-error').removeClass('tb-h-error');
+                },
+                start : function (event, ui) {
+                    if (self.options.dragEvents.start) {
+                        self.options.dragEvents.start.call(self, event, ui);
+                    }
+                },
+                stop : function (event, ui) {
+                    if (self.options.dragEvents.stop) {
+                        self.options.dragEvents.stop.call(self, event, ui);
+                    }
                 }
-            });
+            };
+
+            droppableOptions = {
+                tolerance : 'pointer',
+                activate : function (event, ui) {
+                    if (self.options.dropEvents.activate) {
+                        self.options.dropEvents.activate.call(self, event, ui);
+                    }
+                },
+                create : function (event, ui) {
+                    if (self.options.dropEvents.create) {
+                        self.options.dropEvents.create.call(self, event, ui);
+                    }
+                },
+                deactivate : function (event, ui) {
+                    if (self.options.dropEvents.deactivate) {
+                        self.options.dropEvents.deactivate.call(self, event, ui);
+                    }
+                },
+                drop : function (event, ui) {
+                    if (self.options.dropEvents.drop) {
+                        self.options.dropEvents.drop.call(self, event, ui);
+                    }
+                },
+                out : function (event, ui) {
+                    if (self.options.dropEvents.out) {
+                        self.options.dropEvents.out.call(self, event, ui);
+                    }
+                },
+                over : function (event, ui) {
+                    if (self.options.dropEvents.over) {
+                        self.options.dropEvents.over.call(self, event, ui);
+                    }
+                }
+            };
+
+            drag = $.extend(draggableOptions, self.options.dragOptions);
+            drop = $.extend(droppableOptions, self.options.dropOptions);
+            $('.td-title').draggable(drag);
+            $('.tb-row').droppable(drop);
         }
         // Removes move related instances.
         function moveOff() {
@@ -677,7 +694,7 @@
                     var iconTemplate = self.options.resolveToggle.call(self, tree);
                     m.render(icon.get(0), iconTemplate);
                 }
-                moveOn();
+                self.moveOn();
                 if (self.options.ontogglefolder) {
                     self.options.ontogglefolder.call(self, tree);
                 }
@@ -1130,7 +1147,7 @@
                 }
             });
             if (self.options.allowMove) {
-                moveOn();
+                self.moveOn();
             }
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
@@ -1139,11 +1156,13 @@
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
-                    console.log("Pressed KEy", self.pressedKey);
+                    // $('.tb-row').addClass('tb-unselectable');
+                    console.log("Pressed Key", self.pressedKey);
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
-                    console.log("Pressed KEy", self.pressedKey);
+                    // $('.tb-row').removeClass('tb-unselectable');
+                    console.log("Pressed Key", self.pressedKey);
                 });
             }
         };
@@ -1493,6 +1512,10 @@
             title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
             allowMove : true,       // Turn moving on or off.
             sortButtonSelector : {}, // custom buttons for sort
+            dragOptions : {},
+            dropOptions : {},
+            dragEvents : {}, // users can override draggable options and events
+            dropEvents : {},// users can override droppable options and events
             onload : function () {
                 // this = treebeard object;
                 console.log("onload this", this);
@@ -1630,7 +1653,7 @@
             },
             resolvePagination : function (totalPages, currentPage) {
                 // this = treebeard object
-                window.console.log("resolvePAgination: totalPages: ", totalPages, " currentPage: ", currentPage);
+                window.console.log("resolvePagination: totalPages: ", totalPages, " currentPage: ", currentPage);
                 return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
             },
             resolveUploadUrl : function (item) {  // Allows the user to calculate the url of each individual row
@@ -1645,7 +1668,7 @@
                 window.console.log("resolveLazyloadUrl", this, item);
                 return false;
             },
-            lazyLoadError : function (item) {
+            lazyLoadError : function (item){
                 // this = treebeard object;
                 // Item = item acted on
             }

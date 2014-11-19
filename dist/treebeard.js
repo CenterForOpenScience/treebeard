@@ -401,20 +401,22 @@
             self.flatten(self.treeData.children, self.visibleTop);
         };
 
-        function moveOn() {
-            $(".td-title").draggable({
+        this.moveOn = function () {
+            $('.td-title').draggable({
                 helper: "clone",
                 delay : 300,
                 drag : function (event, ui) {
-                    $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                    $(ui.helper).css({ 'height' : '30px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 }
             });
-            $(".tb-row").droppable({
-                tolerance : "fit",
-                cursor : "move",
+
+            $('.tb-row').droppable({
+                tolerance : 'fit',
+                cursor : 'move',
                 out: function uiOut() {
                     $('.tb-row.tb-h-success').removeClass('tb-h-success');
                     $('.tb-row.tb-h-error').removeClass('tb-h-error');
+                    console.log('drop out');
                 },
                 over: function _uiOver(event, ui) {
 
@@ -677,7 +679,7 @@
                     var iconTemplate = self.options.resolveToggle.call(self, tree);
                     m.render(icon.get(0), iconTemplate);
                 }
-                moveOn();
+                self.moveOn();
                 if (self.options.ontogglefolder) {
                     self.options.ontogglefolder.call(self, tree);
                 }
@@ -1130,7 +1132,7 @@
                 }
             });
             if (self.options.allowMove) {
-                moveOn();
+                self.moveOn();
             }
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
@@ -1139,11 +1141,13 @@
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
-                    console.log("Pressed KEy", self.pressedKey);
+                    // $('.tb-row').addClass('tb-unselectable');
+                    console.log("Pressed Key", self.pressedKey);
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
-                    console.log("Pressed KEy", self.pressedKey);
+                    // $('.tb-row').removeClass('tb-unselectable');
+                    console.log("Pressed Key", self.pressedKey);
                 });
             }
         };
@@ -1645,7 +1649,7 @@
                 window.console.log("resolveLazyloadUrl", this, item);
                 return false;
             },
-            lazyLoadError : function (item) {
+            lazyLoadError : function (item){
                 // this = treebeard object;
                 // Item = item acted on
             }
