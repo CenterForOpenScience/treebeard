@@ -1335,13 +1335,7 @@
                                                         'class' : colcss,
                                                         style : "padding-left: " + padding + "px; width:" + colInfo.width
                                                     }, [
-                                                        m("span.tb-td-first", {
-                                                                onclick: function _folderToggleClick(event) {
-                                                                    if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                        ctrl.toggleFolder(item, event);
-                                                                    }
-                                                                }
-                                                            },
+                                                        m("span.tb-td-first",
                                                             (function _toggleView() {
                                                                 var set = [{
                                                                     'id' : 1,
@@ -1355,7 +1349,13 @@
                                                                 if (ctrl.filterOn) {
                                                                     return m('span.' + set[0].css, { key : set[0].id }, set[0].resolve);
                                                                 }
-                                                                return [m('span.' + set[1].css, { key : set[1].id }, set[1].resolve), m('span.' + set[0].css, { key : set[0].id }, set[0].resolve)];
+                                                                return [m('span.' + set[1].css, { key : set[1].id,
+                                                                    onclick: function _folderToggleClick(event) {
+                                                                        if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                            ctrl.toggleFolder(item, event);
+                                                                        }
+                                                                    }
+                                                                }, set[1].resolve), m('span.' + set[0].css, { key : set[0].id }, set[0].resolve)];
                                                             }())
                                                         ),
                                                         title
