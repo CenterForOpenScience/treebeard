@@ -2124,6 +2124,8 @@ if (typeof exports == "object") {
     Item.prototype.add = function _itemAdd(component, toTop) {
         component.parentID = this.id;
         component.depth = this.depth + 1;
+        component.open = false;
+        component.load = false;
         if (component.depth > 1 && component.children.length === 0) {
             component.open = false;
         }
@@ -2379,7 +2381,7 @@ if (typeof exports == "object") {
 
             drag = $.extend(draggableOptions, self.options.dragOptions);
             drop = $.extend(droppableOptions, self.options.dropOptions);
-            dragSelector = self.options.moveClass ? self.options.moveClass : '.td-title';
+            dragSelector = self.options.moveClass ? self.options.moveClass : 'td-title';
 
             $('.' + dragSelector).draggable(drag);
             $('.tb-row').droppable(drop);
@@ -2578,6 +2580,9 @@ if (typeof exports == "object") {
                         })
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
+                            if (self.options.lazyLoadOnLoad) {
+                                self.options.lazyLoadOnLoad.call(self, tree);
+                            }
                         });
 
                 } else {
@@ -2972,12 +2977,6 @@ if (typeof exports == "object") {
                 tree = new Item(data);
                 children = data.children;
                 tree.depth = parent.depth + 1;   // Going down the list the parent doesn't yet have depth information
-                if (!data.open) {
-                    if (parent.depth === 0) {
-                        tree.open = true;
-                        tree.load = true;
-                    }
-                }
             }
             if (children) {
                 len = children.length;
@@ -3162,7 +3161,7 @@ if (typeof exports == "object") {
                         m('.tb-tbody-inner', [
                             m('', { style : "margin-top:" + ctrl.rangeMargin + "px" }, [
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
-                                    var oddEvenClass = "tb-odd",
+                                    var oddEvenClass = ctrl.options.oddEvenClass.odd,
                                         indent = ctrl.flatData[item].depth,
                                         id = ctrl.flatData[item].id,
                                         tree = Indexes[id],
@@ -3171,7 +3170,7 @@ if (typeof exports == "object") {
                                         css = tree.css || "",
                                         rowCols = ctrl.options.resolveRows.call(ctrl, tree);
                                     if (index % 2 === 0) {
-                                        oddEvenClass = "tb-even";
+                                        oddEvenClass = ctrl.options.oddEvenClass.even;
                                     }
                                     if (ctrl.filterOn) {
                                         padding = 20;
@@ -3427,6 +3426,10 @@ if (typeof exports == "object") {
             dropOptions : {},
             dragEvents : {}, // users can override draggable options and events
             dropEvents : {},// users can override droppable options and events
+            oddEvenClass : {
+                odd : 'tb-odd',
+                even : 'tb-even'
+            },
             onload : function () {
                 // this = treebeard object;
                 console.log("onload this", this);
@@ -3582,7 +3585,12 @@ if (typeof exports == "object") {
             lazyLoadError : function (item){
                 // this = treebeard object;
                 // Item = item acted on
+            },
+            lazyLoadOnLoad : function (item) {
+                // this = treebeard object;
+                // Item = item acted on
             }
+
 
         }, options);
         return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
