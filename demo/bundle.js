@@ -2287,7 +2287,7 @@ if (typeof exports == "object") {
 
         m.redraw.strategy("all");
         // public variables
-        this.modal = new Modal;                                     // Box wide modal
+        this.modal = new Modal();                                     // Box wide modal
         this.flatData = [];                                     // Flat data, gets regenerated often
         this.treeData = {};                                     // The data in hierarchical form
         this.filterText = m.prop("");                           // value of the filtertext input
@@ -2322,24 +2322,24 @@ if (typeof exports == "object") {
                 cursor : 'move',
                 delay : 200,
                 drag : function (event, ui) {
-                    if(self.options.dragEvents.drag){
+                    if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
                         $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
                 },
                 create : function (event, ui) {
-                    if(self.options.dragEvents.create){
+                    if (self.options.dragEvents.create) {
                         self.options.dragEvents.create.call(self, event, ui);
                     }
                 },
                 start : function (event, ui) {
-                    if(self.options.dragEvents.start){
+                    if (self.options.dragEvents.start) {
                         self.options.dragEvents.start.call(self, event, ui);
                     }
                 },
                 stop : function (event, ui) {
-                    if(self.options.dragEvents.stop){
+                    if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
                 }
@@ -2348,32 +2348,32 @@ if (typeof exports == "object") {
             droppableOptions = {
                 tolerance : 'pointer',
                 activate : function (event, ui) {
-                    if(self.options.dropEvents.activate){
+                    if (self.options.dropEvents.activate) {
                         self.options.dropEvents.activate.call(self, event, ui);
                     }
                 },
                 create : function (event, ui) {
-                    if(self.options.dropEvents.create){
+                    if (self.options.dropEvents.create) {
                         self.options.dropEvents.create.call(self, event, ui);
                     }
                 },
                 deactivate : function (event, ui) {
-                    if(self.options.dropEvents.deactivate){
+                    if (self.options.dropEvents.deactivate) {
                         self.options.dropEvents.deactivate.call(self, event, ui);
                     }
                 },
                 drop : function (event, ui) {
-                    if(self.options.dropEvents.drop){
+                    if (self.options.dropEvents.drop) {
                         self.options.dropEvents.drop.call(self, event, ui);
                     }
                 },
                 out : function (event, ui) {
-                    if(self.options.dropEvents.out){
+                    if (self.options.dropEvents.out) {
                         self.options.dropEvents.out.call(self, event, ui);
                     }
                 },
                 over : function (event, ui) {
-                    if(self.options.dropEvents.over){
+                    if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
                     }
                 }
@@ -3432,66 +3432,55 @@ if (typeof exports == "object") {
             },
             onload : function () {
                 // this = treebeard object;
-                console.log("onload this", this);
             },
             togglecheck : function (item) {
                 // this = treebeard object;
                 // item = folder to toggle
                 return true;
-
             },
             onfilter : function (filterText) {   // Fires on keyup when filter text is changed.
                 // this = treebeard object;
                 // filterText = the value of the filtertext input box.
-                window.console.log("on filter: this", this, 'filterText', filterText);
             },
             onfilterreset : function (filterText) {   // Fires when filter text is cleared.
                 // this = treebeard object;
                 // filterText = the value of the filtertext input box.
-                window.console.log("on filter reset: this", this, 'filterText', filterText);
             },
             createcheck : function (item, parent) {
                 // this = treebeard object;
                 // item = Item to be added.  raw item, not _item object
                 // parent = parent to be added to = _item object
-                window.console.log("createcheck", this, item, parent);
                 return true;
             },
             oncreate : function (item, parent) {  // When row is deleted successfully
                 // this = treebeard object;
                 // item = Item to be added.  = _item object
                 // parent = parent to be added to = _item object
-                window.console.log("oncreate", this, item, parent);
             },
             deletecheck : function (item) {  // When user attempts to delete a row, allows for checking permissions etc.
                 // this = treebeard object;
                 // item = Item to be deleted.
-                window.console.log("deletecheck", this, item);
                 return true;
             },
             ondelete : function () {  // When row is deleted successfully
                 // this = treebeard object;
                 // item = a shallow copy of the item deleted, not a reference to the actual item
-                window.console.log("ondelete", this);
             },
             movecheck : function (to, from) { //This method gives the users an option to do checks and define their return
                 // this = treebeard object;
                 // from = item that is being moved
                 // to = the target location
-                window.console.log("movecheck: to", to, "from", from);
                 return true;
             },
             onmove : function (to, from) {  // After move happens
                 // this = treebeard object;
                 // to = actual tree object we are moving to
                 // from = actual tree object we are moving
-                window.console.log("onmove: to", to, "from", from);
             },
             movefail : function (to, from) { //This method gives the users an option to do checks and define their return
                 // this = treebeard object;
                 // from = item that is being moved
                 // to = the target location
-                window.console.log("moovefail: to", to, "from", from);
                 return true;
             },
             addcheck : function (treebeard, item, file) {
@@ -3499,7 +3488,6 @@ if (typeof exports == "object") {
                 // treebeard = treebeard object
                 // item = item to be added to
                 // file = info about the file being added
-                window.console.log("Add check", this, treebeard, item, file);
                 return true;
             },
             onadd : function (treebeard, item, file, response) {
@@ -3507,20 +3495,16 @@ if (typeof exports == "object") {
                 // item = item the file was added to
                 // file = file that was added
                 // response = what's returned from the server
-                window.console.log("On add", this, treebeard, item, file, response);
             },
             onselectrow : function (row, event) {
                 // this = treebeard object
                 // row = item selected
                 // event = mouse click event object
-                window.console.log("onselectrow", this, row, event);
             },
             onmultiselect : function (event, tree) {
                 // this = treebeard object
                 // tree = item currently clicked on
                 // event = mouse click event object
-                window.console.log("onmultiselect", this, tree, event);
-
             },
             onmouseoverrow : function (row, event) {
                 // this = treebeard object
@@ -3531,7 +3515,6 @@ if (typeof exports == "object") {
             ontogglefolder : function (item) {
                 // this = treebeard object
                 // item = toggled folder item
-                window.console.log("ontogglefolder", this, item);
             },
             dropzone : {                                           // All dropzone options.
                 url: "http://www.torrentplease.com/dropzone.php"  // When users provide single URL for all uploads
@@ -3567,22 +3550,19 @@ if (typeof exports == "object") {
             },
             resolvePagination : function (totalPages, currentPage) {
                 // this = treebeard object
-                window.console.log("resolvePagination: totalPages: ", totalPages, " currentPage: ", currentPage);
                 return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
             },
             resolveUploadUrl : function (item) {  // Allows the user to calculate the url of each individual row
                 // this = treebeard object;
                 // Item = item acted on return item.data.ursl.upload
-                window.console.log("resolveUploadUrl", this, item);
                 return "/upload";
             },
             resolveLazyloadUrl : function (item) {
                 // this = treebeard object;
                 // Item = item acted on
-                window.console.log("resolveLazyloadUrl", this, item);
                 return false;
             },
-            lazyLoadError : function (item){
+            lazyLoadError : function (item) {
                 // this = treebeard object;
                 // Item = item acted on
             },
@@ -3590,8 +3570,6 @@ if (typeof exports == "object") {
                 // this = treebeard object;
                 // Item = item acted on
             }
-
-
         }, options);
         return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
     };
