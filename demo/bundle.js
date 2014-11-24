@@ -2304,6 +2304,7 @@ if (typeof exports == "object") {
         this.filterOn = false;                                  // Filter state for use across the app
         this.multiselected = [];
         this.pressedKey = undefined;
+        this.dragOngoing = false;
 
         // Helper function to redraw if user makes changes to the item (like deleting through a hook)
         this.redraw = function _redraw() {
@@ -2337,11 +2338,16 @@ if (typeof exports == "object") {
                     if (self.options.dragEvents.start) {
                         self.options.dragEvents.start.call(self, event, ui);
                     }
+                    self.dragOngoing = true;
+                    $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
                 stop : function (event, ui) {
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
+                    self.dragOngoing = false;
+                    $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
+
                 }
             };
 
@@ -2551,7 +2557,7 @@ if (typeof exports == "object") {
                 t,
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
-            m.render(icon.get(0), m('i.icon-refresh.fangorn-spin'));
+            m.render(icon.get(0), m('i.icon-refresh.icon-spin'));
             $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
@@ -3206,7 +3212,7 @@ if (typeof exports == "object") {
                                             },
                                             onmouseover : function _rowMouseover(event) {
                                                 ctrl.mouseon = id;
-                                                if (ctrl.options.hoverClass) {
+                                                if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
                                                     $('.tb-row').removeClass(ctrl.options.hoverClass);
                                                     $(this).addClass(ctrl.options.hoverClass);
                                                 }
