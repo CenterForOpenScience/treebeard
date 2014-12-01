@@ -2281,7 +2281,8 @@ if (typeof exports == "object") {
     };
 
     // Treebeard methods
-    Treebeard.controller = function _treebeardController() {
+    Treebeard.controller = function _treebeardController(opts) {
+        console.log("========", this)
         // private variables
         var self = this,                                        // Treebard.controller
             _isSorted = { asc : false, desc : false, column : "" },  // Temporary variables for sorting
@@ -2296,7 +2297,7 @@ if (typeof exports == "object") {
         this.treeData = {};                                     // The data in hierarchical form
         this.filterText = m.prop("");                           // value of the filtertext input
         this.showRange = [];                                    // Array of indexes that the range shows
-        this.options = Treebeard.options;                       // User defined options
+        this.options = opts;                       // User defined options
         this.selected = undefined;                              // The row selected on click.
         this.mouseon = undefined;                              // The row the mouse is on for mouseover events.
         this.rangeMargin = 0;                                   // Top margin, required for proper scrolling
@@ -2384,6 +2385,20 @@ if (typeof exports == "object") {
                     }
                 },
                 over : function (event, ui) {
+                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'));
+                    var last = self.flatData[self.showRange[self.showRange.length-1]].id;
+                    var first = self.flatData[self.showRange[0]].id;
+                    console.log(id, last);
+                    if(id === last) {
+                        console.log('======= last');
+                        var currentScroll = $('#tb-tbody').scrollTop();
+                        $('#tb-tbody').scrollTop(currentScroll+35);
+
+
+                    }
+                    if(id === first) {
+                        console.log('======= first');
+                    }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
                     }
@@ -3075,6 +3090,7 @@ if (typeof exports == "object") {
                     _lastLocation = scrollTop;
                 }
             });
+            console.log("Uploads", self.options);
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
@@ -3367,228 +3383,238 @@ if (typeof exports == "object") {
         ];
     };
 
-    // Starts treebard with user options;
-    Treebeard.run = function _treebeardRun(options) {
-        Treebeard.options = $.extend({
-            divID : "myGrid",
-            filesData : "http://localhost:63342/mGrid/demo/small.json",
-            rowHeight : undefined,         // user can override or get from .tb-row height
-            paginate : false,       // Whether the applet starts with pagination or not.
-            paginateToggle : false, // Show the buttons that allow users to switch between scroll and paginate.
-            uploads : true,         // Turns dropzone on/off.
-            multiselect : false,
-            filterStyle : { float : 'right', width : '50%'},
-            columnTitles : function () {
-                return [
-                    {
-                        title: "Title",
-                        width: "50%",
-                        sortType : "text",
-                        sort : true
-                    },
-                    {
-                        title: "Author",
-                        width : "25%",
-                        sortType : "text"
-                    },
-                    {
-                        title: "Age",
-                        width : "10%",
-                        sortType : "number"
-                    },
-                    {
-                        title: "Actions",
-                        width : "15%"
+    var Options = function() {
+        this.divID = "myGrid";
+        this.filesData = "small.json";
+        this.rowHeight = undefined;         // user can override or get from .tb-row height
+        this.paginate = false;       // Whether the applet starts with pagination or not.
+        this.paginateToggle = false; // Show the buttons that allow users to switch between scroll and paginate.
+        this.uploads = false;         // Turns dropzone on/off.
+        this.multiselect = false;
+        this.filterStyle = { float : 'right', width : '50%'};
+        this.columnTitles = function () {
+            return [
+                {
+                    title: "Title",
+                    width: "50%",
+                    sortType : "text",
+                    sort : true
+                },
+                {
+                    title: "Author",
+                    width : "25%",
+                    sortType : "text"
+                },
+                {
+                    title: "Age",
+                    width : "10%",
+                    sortType : "number"
+                },
+                {
+                    title: "Actions",
+                    width : "15%"
+                }
+            ]};
+        this.resolveRows = function (item) {
+            return [            // Defines columns based on data
+                {
+                    data : "title",  // Data field name
+                    folderIcons : true,
+                    filter : true
+                },
+                {
+                    data : "person",
+                    filter : true
+                },
+                {
+                    data : "age",
+                    filter : false
+                },
+                {
+                    data : "action",
+                    sortInclude : false,
+                    custom : function (row, col) {
+                        var that = this;
+                        return m("button.btn.btn-danger.btn-xs", {
+                            onclick: function _deleteClick(e) {
+                                e.stopPropagation();
+                                that.deleteNode(row.parentID, row.id);
+                            }
+                        }, " X ");
                     }
-                ]},
-            resolveRows : function (item) {
-                return [            // Defines columns based on data
-                    {
-                        data : "title",  // Data field name
-                        folderIcons : true,
-                        filter : true
-                    },
-                    {
-                        data : "person",
-                        filter : true
-                    },
-                    {
-                        data : "age",
-                        filter : false
-                    },
-                    {
-                        data : "action",
-                        sortInclude : false,
-                        custom : function (row, col) {
-                            var that = this;
-                            return m("button.btn.btn-danger.btn-xs", {
-                                onclick: function _deleteClick(e) {
-                                    e.stopPropagation();
-                                    that.deleteNode(row.parentID, row.id);
-                                }
-                            }, " X ");
-                        }
-                    }
-                ];
-            },
-            hoverClass : undefined,
-            hoverClassMultiselect : 'tb-multiselect',
-            showFilter : true,     // Gives the option to filter by showing the filter box.
-            title : "Grid Title",          // Title of the grid, boolean, string OR function that returns a string.
-            allowMove : true,       // Turn moving on or off.
-            moveClass : undefined,
-            sortButtonSelector : {}, // custom buttons for sort
-            dragOptions : {},
-            dropOptions : {},
-            dragEvents : {}, // users can override draggable options and events
-            dropEvents : {},// users can override droppable options and events
-            oddEvenClass : {
-                odd : 'tb-odd',
-                even : 'tb-even'
-            },
-            onload : function () {
-                // this = treebeard object;
-            },
-            togglecheck : function (item) {
-                // this = treebeard object;
-                // item = folder to toggle
-                return true;
-            },
-            onfilter : function (filterText) {   // Fires on keyup when filter text is changed.
-                // this = treebeard object;
-                // filterText = the value of the filtertext input box.
-            },
-            onfilterreset : function (filterText) {   // Fires when filter text is cleared.
-                // this = treebeard object;
-                // filterText = the value of the filtertext input box.
-            },
-            createcheck : function (item, parent) {
-                // this = treebeard object;
-                // item = Item to be added.  raw item, not _item object
-                // parent = parent to be added to = _item object
-                return true;
-            },
-            oncreate : function (item, parent) {  // When row is deleted successfully
-                // this = treebeard object;
-                // item = Item to be added.  = _item object
-                // parent = parent to be added to = _item object
-            },
-            deletecheck : function (item) {  // When user attempts to delete a row, allows for checking permissions etc.
-                // this = treebeard object;
-                // item = Item to be deleted.
-                return true;
-            },
-            ondelete : function () {  // When row is deleted successfully
-                // this = treebeard object;
-                // item = a shallow copy of the item deleted, not a reference to the actual item
-            },
-            movecheck : function (to, from) { //This method gives the users an option to do checks and define their return
-                // this = treebeard object;
-                // from = item that is being moved
-                // to = the target location
-                return true;
-            },
-            onmove : function (to, from) {  // After move happens
-                // this = treebeard object;
-                // to = actual tree object we are moving to
-                // from = actual tree object we are moving
-            },
-            movefail : function (to, from) { //This method gives the users an option to do checks and define their return
-                // this = treebeard object;
-                // from = item that is being moved
-                // to = the target location
-                return true;
-            },
-            addcheck : function (treebeard, item, file) {
-                // this = dropzone object
-                // treebeard = treebeard object
-                // item = item to be added to
-                // file = info about the file being added
-                return true;
-            },
-            onadd : function (treebeard, item, file, response) {
-                // this = dropzone object;
-                // item = item the file was added to
-                // file = file that was added
-                // response = what's returned from the server
-            },
-            onselectrow : function (row, event) {
-                // this = treebeard object
-                // row = item selected
-                // event = mouse click event object
-            },
-            onmultiselect : function (event, tree) {
-                // this = treebeard object
-                // tree = item currently clicked on
-                // event = mouse click event object
-            },
-            onmouseoverrow : function (row, event) {
-                // this = treebeard object
-                // row = item selected
-                // event = mouse click event object
-                //window.console.log("onmouseoverrow", this, row, event);
-            },
-            ontogglefolder : function (item) {
-                // this = treebeard object
-                // item = toggled folder item
-            },
-            dropzone : {                                           // All dropzone options.
-                url: "http://www.torrentplease.com/dropzone.php"  // When users provide single URL for all uploads
-            },
-            dropzoneEvents : {},
-            resolveIcon : function (item) {     // Here the user can interject and add their own icons, uses m()
-                // this = treebeard object;
-                // Item = item acted on
-                if (item.kind === "folder") {
-                    if (item.open) {
+                }
+            ];
+        };
+        this.hoverClass = undefined;
+        this.hoverClassMultiselect = 'tb-multiselect';
+        this.showFilter = true;     // Gives the option to filter by showing the filter box.
+        this.title = "Grid Title";          // Title of the grid, boolean, string OR function that returns a string.
+        this.allowMove = true;      // Turn moving on or off.
+        this.moveClass = undefined;
+        this.sortButtonSelector = {}; // custom buttons for sort
+        this.dragOptions = {};
+        this.dropOptions = {};
+        this.dragEvents = {}; // users can override draggable options and events
+        this.dropEvents = {};// users can override droppable options and events
+        this.oddEvenClass = {
+            odd : 'tb-odd',
+            even : 'tb-even'
+        };
+        this.onload = function () {
+            // this = treebeard object;
+        };
+        this.togglecheck = function (item) {
+            // this = treebeard object;
+            // item = folder to toggle
+            return true;
+        };
+        this.onfilter = function (filterText) {   // Fires on keyup when filter text is changed.
+            // this = treebeard object;
+            // filterText = the value of the filtertext input box.
+        };
+        this.onfilterreset = function (filterText) {   // Fires when filter text is cleared.
+            // this = treebeard object;
+            // filterText = the value of the filtertext input box.
+        };
+        this.createcheck = function (item, parent) {
+            // this = treebeard object;
+            // item = Item to be added.  raw item, not _item object
+            // parent = parent to be added to = _item object
+            return true;
+        };
+        this.oncreate = function (item, parent) {  // When row is deleted successfully
+            // this = treebeard object;
+            // item = Item to be added.  = _item object
+            // parent = parent to be added to = _item object
+        };
+        this.deletecheck = function (item) {  // When user attempts to delete a row, allows for checking permissions etc.
+            // this = treebeard object;
+            // item = Item to be deleted.
+            return true;
+        };
+        this.ondelete = function () {  // When row is deleted successfully
+            // this = treebeard object;
+            // item = a shallow copy of the item deleted, not a reference to the actual item
+        };
+        this.movecheck = function (to, from) { //This method gives the users an option to do checks and define their return
+            // this = treebeard object;
+            // from = item that is being moved
+            // to = the target location
+            return true;
+        };
+        this.onmove = function (to, from) {  // After move happens
+            // this = treebeard object;
+            // to = actual tree object we are moving to
+            // from = actual tree object we are moving
+        };
+        this.movefail = function (to, from) { //This method gives the users an option to do checks and define their return
+            // this = treebeard object;
+            // from = item that is being moved
+            // to = the target location
+            return true;
+        };
+        this.addcheck = function (treebeard, item, file) {
+            // this = dropzone object
+            // treebeard = treebeard object
+            // item = item to be added to
+            // file = info about the file being added
+            return true;
+        };
+        this.onadd = function (treebeard, item, file, response) {
+            // this = dropzone object;
+            // item = item the file was added to
+            // file = file that was added
+            // response = what's returned from the server
+        };
+        this.onselectrow = function (row, event) {
+            // this = treebeard object
+            // row = item selected
+            // event = mouse click event object
+        };
+        this.onmultiselect = function (event, tree) {
+            // this = treebeard object
+            // tree = item currently clicked on
+            // event = mouse click event object
+        };
+        this.onmouseoverrow = function (row, event) {
+            // this = treebeard object
+            // row = item selected
+            // event = mouse click event object
+            //window.console.log("onmouseoverrow", this, row, event);
+        };
+        this.ontogglefolder = function (item) {
+            // this = treebeard object
+            // item = toggled folder item
+        };
+        this.dropzone = {                                           // All dropzone options.
+            url: "http://www.torrentplease.com/dropzone.php"  // When users provide single URL for all uploads
+        };
+        this.dropzoneEvents = {};
+        this.resolveIcon = function (item) {     // Here the user can interject and add their own icons, uses m()
+            // this = treebeard object;
+            // Item = item acted on
+            if (item.kind === "folder") {
+                if (item.open) {
 
-                        return m("i.fa.fa-folder-open-o", " ");
-                    }
-                    return m("i.fa.fa-folder-o", " ");
+                    return m("i.fa.fa-folder-open-o", " ");
                 }
-                if (item.data.icon) {
-                    return m("i.fa." + item.data.icon, " ");
-                }
-                return m("i.fa.fa-file ");
-            },
-            resolveToggle : function (item) {
-                var toggleMinus = m("i.fa.fa-minus-square-o", " "),
-                    togglePlus = m("i.fa.fa-plus-square-o", " ");
-                if (item.kind === "folder") {
-                    if (item.children.length > 0) {
-                        if (item.open) {
-                            return toggleMinus;
-                        }
-                        return togglePlus;
-                    }
-                }
-                return "";
-            },
-            resolvePagination : function (totalPages, currentPage) {
-                // this = treebeard object
-                return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
-            },
-            resolveUploadUrl : function (item) {  // Allows the user to calculate the url of each individual row
-                // this = treebeard object;
-                // Item = item acted on return item.data.ursl.upload
-                return "/upload";
-            },
-            resolveLazyloadUrl : function (item) {
-                // this = treebeard object;
-                // Item = item acted on
-                return false;
-            },
-            lazyLoadError : function (item) {
-                // this = treebeard object;
-                // Item = item acted on
-            },
-            lazyLoadOnLoad : function (item) {
-                // this = treebeard object;
-                // Item = item acted on
+                return m("i.fa.fa-folder-o", " ");
             }
-        }, options);
-        return m.module(document.getElementById(Treebeard.options.divID), Treebeard);
+            if (item.data.icon) {
+                return m("i.fa." + item.data.icon, " ");
+            }
+            return m("i.fa.fa-file ");
+        };
+        this.resolveToggle = function (item) {
+            var toggleMinus = m("i.fa.fa-minus-square-o", " "),
+                togglePlus = m("i.fa.fa-plus-square-o", " ");
+            if (item.kind === "folder") {
+                if (item.children.length > 0) {
+                    if (item.open) {
+                        return toggleMinus;
+                    }
+                    return togglePlus;
+                }
+            }
+            return "";
+        };
+        this.resolvePagination = function (totalPages, currentPage) {
+            // this = treebeard object
+            return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
+        };
+        this.resolveUploadUrl = function (item) {  // Allows the user to calculate the url of each individual row
+            // this = treebeard object;
+            // Item = item acted on return item.data.ursl.upload
+            return "/upload";
+        };
+        this.resolveLazyloadUrl = function (item) {
+            // this = treebeard object;
+            // Item = item acted on
+            return false;
+        };
+        this.lazyLoadError = function (item) {
+            // this = treebeard object;
+            // Item = item acted on
+        };
+        this.lazyLoadOnLoad = function (item) {
+            // this = treebeard object;
+            // Item = item acted on
+        };
+    }
+
+    // Starts treebard with user options;
+    var runTB = function _treebeardRun(options) {
+        var defaults = new Options();
+        var finalOptions = $.extend(defaults, options);
+        var tb = {};
+        tb.controller = function() {
+            this.tbController = new Treebeard.controller(finalOptions);
+        };
+        tb.view = function(ctrl) {
+            return Treebeard.view(ctrl.tbController);
+        }
+        return m.module(document.getElementById(finalOptions.divID), tb );
     };
 
-    return Treebeard;
+    return runTB;
 }));
