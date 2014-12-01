@@ -1542,7 +1542,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-h-error{background-color:rgba(255,4,0,.53)}
 .tb-expand-icon-holder,.tb-toggle-icon{width:20px;display:inline-block}
 .clearfix{display:table;content:" ";clear:both}
-.tb-notify{padding:5px 10px;text-align:center}
+.tb-notify{text-align:center}
 .tb-modal-shade{background:rgba(0,0,0,.61);position:absolute;padding:50px 100px;z-index:99}
 .tb-modal-inner{background:#FFF;border-radius:5px;box-shadow:0 0 5px #424242}
 .tb-modal-dismiss{float:right;color:gray;font-size:27px;margin-top:2px;margin-right:10px}
