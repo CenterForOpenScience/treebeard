@@ -2019,7 +2019,7 @@ if (typeof exports == "object") {
         this.type = type || "info";
         this.message =  message || 'Hello';
         this.on = false;
-        this.timeout = timeout || timeout;
+        this.timeout = timeout || 3000;
         this.css = '';
         this.toggle = function () {
             this.on = !this.on;
@@ -2247,6 +2247,7 @@ if (typeof exports == "object") {
 
     Item.prototype.isAncestor = function _isAncestor(item) {  // Is this item an ancestor of the passed in item?
         function _checkAncestor(a, b) {
+            console.log("is ancestor", a, b);
             if (a.id === b.id) {
                 return true;
             }
@@ -2255,7 +2256,10 @@ if (typeof exports == "object") {
             }
             return false;
         }
-        return _checkAncestor(item.parent(), this);
+        if(item.parent()){
+            return _checkAncestor(item.parent(), this);
+        }
+        return false;
     };
 
     Item.prototype.isDescendant = function (item) {    // Is this item a descendant of the passed in item?
@@ -2321,6 +2325,7 @@ if (typeof exports == "object") {
             draggableOptions = {
                 helper: "clone",
                 cursor : 'move',
+                containment : '.tb-tbody-inner',
                 delay : 200,
                 drag : function (event, ui) {
                     if (self.options.dragEvents.drag) {
@@ -2544,6 +2549,11 @@ if (typeof exports == "object") {
 
         // Toggles whether a folder is collapes or open
         this.toggleFolder = function _toggleFolder(index, event) {
+            if (index === undefined || index === null) {
+                self.redraw();
+                return;
+            }
+            console.log("Toggled");
             var len = self.flatData.length,
                 tree = Indexes[self.flatData[index].id],
                 item = self.flatData[index],
@@ -2617,7 +2627,7 @@ if (typeof exports == "object") {
                 }
                 self.moveOn();
                 if (self.options.ontogglefolder) {
-                    self.options.ontogglefolder.call(self, tree);
+                    self.options.ontogglefolder.call(self, tree, event);
                 }
             });
         };
@@ -3033,6 +3043,10 @@ if (typeof exports == "object") {
 
         // Initializes after the view
         this.init = function _init(el, isInit) {
+            if (self.options.allowMove) {
+                self.moveOn();
+            }
+
             if (isInit) { return; }
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight);
@@ -3061,9 +3075,6 @@ if (typeof exports == "object") {
                     _lastLocation = scrollTop;
                 }
             });
-            if (self.options.allowMove) {
-                self.moveOn();
-            }
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
@@ -3118,7 +3129,8 @@ if (typeof exports == "object") {
                         ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index) {
                             var sortView = "",
                                 up,
-                                down;
+                                down,
+                                padding = index === 0 ? '10px' : '0';
                             if (col.sort) {
                                 if (ctrl.options.sortButtonSelector.up) {
                                     up = ctrl.options.sortButtonSelector.up;
@@ -3135,19 +3147,17 @@ if (typeof exports == "object") {
                                     m(up + '.tb-sort-inactive.asc-btn.m-r-xs', {
                                         onclick: ctrl.sortToggle.bind(index),
                                         "data-direction": "asc",
-                                        //"data-field" : col.data,
                                         "data-sortType" : col.sortType
                                     }),
                                     m(down + '.tb-sort-inactive.desc-btn', {
                                         onclick: ctrl.sortToggle.bind(index),
                                         "data-direction": "desc",
-                                        //"data-field" : col.data,
                                         "data-sortType" : col.sortType
                                     })
                                 ];
                             }
-                            return m('.tb-th', { style : "width: " + col.width }, [
-                                m('span.padder-10.m-r-sm', col.title),
+                            return m('.tb-th', { style : "width: " + col.width + '; padding-left:' + padding }, [
+                                m('span.m-r-sm', col.title),
                                 sortView
                             ]);
                         })
