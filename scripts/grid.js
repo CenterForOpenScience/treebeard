@@ -20,6 +20,12 @@
 }(this, function () {
     "use strict";
 
+    function say () {
+        for(var i = 0; i < arguments.length; i++) {
+            console.log('==', arguments[i]);
+        }
+    }
+
     // Indexes by id, shortcuts to the tree objects. Use example: var item = Indexes[23];
     var Indexes = {},
     // Item constructor
@@ -403,6 +409,7 @@
         this.multiselected = [];
         this.pressedKey = undefined;
         this.dragOngoing = false;
+        this.draggedCache = null;                               // Caching the dragged ui helper when going beyond view scroll
 
         // Helper function to redraw if user makes changes to the item (like deleting through a hook)
         this.redraw = function _redraw() {
@@ -425,7 +432,11 @@
                     if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
-                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                        say('drag', ui);
+                        if (!self.draggedCache) {
+                            self.draggedCache = $(ui.helper).clone();
+                        }
+                        self.draggedCache.css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
                 },
                 create : function (event, ui) {
@@ -491,6 +502,8 @@
                     }
                     if(id === first) {
                         console.log('======= first');
+                        var currentScroll = $('#tb-tbody').scrollTop();
+                        $('#tb-tbody').scrollTop(currentScroll-35);
                     }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
@@ -968,16 +981,20 @@
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
             var options = $.extend({
                 clickable : false,
+                counter : 0,
                 accept : function _dropzoneAccept(file, done) {
                     if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache))
                             .then(function _resolveUploadUrlThen(newUrl) {
                                 if (newUrl) {
                                     self.dropzone.options.url = newUrl;
-                                    // self.dropzoneItemCache.open = true;
-                                    var index = self.returnIndex(self.dropzoneItemCache.id);
-                                    if (!self.dropzoneItemCache.open) {
-                                        self.toggleFolder(index, null);
+                                    self.dropzone.options.counter++;
+                                    if(self.dropzone.options.counter < 2 ) {
+                                        say('counter', self.dropzone.options.counter);
+                                        var index = self.returnIndex(self.dropzoneItemCache.id);
+                                        if (!self.dropzoneItemCache.open) {
+                                            self.toggleFolder(index, null);
+                                        }
                                     }
                                 }
                                 return newUrl;
@@ -1300,7 +1317,7 @@
                                     if (ctrl.filterOn) {
                                         padding = 20;
                                     } else {
-                                        padding = indent * 20;
+                                        padding = (indent-1) * 20;
                                     }
                                     if (tree.notify.on && !tree.notify.column) {
                                         return m(".tb-row", [

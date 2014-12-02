@@ -491,6 +491,8 @@
                     }
                     if(id === first) {
                         console.log('======= first');
+                        var currentScroll = $('#tb-tbody').scrollTop();
+                        $('#tb-tbody').scrollTop(currentScroll-35);
                     }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
@@ -1300,7 +1302,7 @@
                                     if (ctrl.filterOn) {
                                         padding = 20;
                                     } else {
-                                        padding = indent * 20;
+                                        padding = (indent-1) * 20;
                                     }
                                     if (tree.notify.on && !tree.notify.column) {
                                         return m(".tb-row", [
