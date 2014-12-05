@@ -491,6 +491,8 @@
         this.pressedKey = undefined;
         this.dragOngoing = false;
         this.draggedCache = null;                               // Caching the dragged ui helper when going beyond view scroll
+        this.initialized = false;                               // Treebeard's own initialization check, turns to true after page loads.
+
 
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
@@ -989,6 +991,9 @@
                 counter = 0,
                 i,
                 index;
+            if(!begin || begin > self.flatData.length) {
+                begin =  0;
+            }
             self.visibleTop = begin;
             for (i = begin; i < len; i++) {
                 if (range.length === self.options.showTotal) {break; }
@@ -1104,11 +1109,12 @@
         };
 
         /**
-         * Removes single item from the multiselected array
+         * Handles multiselect by adding items through shift or control key presses
          * @param {Number} id The unique id of the item.
-         * @returns {Boolean} result Whether the item removal was successful
+         * @param {Number} [index] The showRange index of the item
+         * @param {Event} [event] Click event on the item
          */
-        this.handleMultiselect = function (id, index) {
+        this.handleMultiselect = function (id, index, event) {
             var tree = Indexes[id],
                 originalIndex,
                 finalIndex,
@@ -1278,6 +1284,7 @@
                 }).done(function _buildTreeDone() {
                     self.calculateVisible();
                     self.calculateHeight();
+                    self.initialized = true;
                 });
             } else {
                 m.request({method: "GET", url: data})
@@ -1293,6 +1300,7 @@
                         //window.console.log("treeData", self.treeData);
                         self.calculateVisible();
                         self.calculateHeight();
+                        self.initialized = true;
                     });
             }
         }
@@ -1416,6 +1424,7 @@
         };
 
         // Check if options inclide filesData, this is required to run so throw error if not.
+        this.resetCounter();
         if (self.options.filesData) {
             _loadData(self.options.filesData);
         } else {
