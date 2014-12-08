@@ -1042,7 +1042,9 @@
             if (last > -1 && last + 1 < self.visibleIndexes.length) {
                 self.refreshRange(last + 1);
                 self.currentPage(self.currentPage() + 1);
+                return true;
             }
+            return false;
         };
 
         /**
@@ -1054,7 +1056,9 @@
             if (first && first > 0) {
                 self.refreshRange(first - self.options.showTotal);
                 self.currentPage(self.currentPage() - 1);
+                return true;
             }
+            return false;
         };
 
         /**
@@ -1066,7 +1070,9 @@
                 var index = (self.options.showTotal * (value - 1));
                 self.currentPage(value);
                 self.refreshRange(index);
+                return true;
             }
+            return false;
         };
 
         /**
@@ -1896,7 +1902,11 @@
         };
         this.resolvePagination = function (totalPages, currentPage) {
             // this = treebeard object
-            return m("span", "totalPages: " + totalPages + " currentPage: " + currentPage);
+            return m("span", [
+                m('span', 'Page: '),
+                m('span.tb-pageCount', currentPage),
+                m('span', ' / ' + totalPages)
+            ]);
         };
         this.resolveUploadUrl = function (item) {  // Allows the user to calculate the url of each individual row
             // this = treebeard object;

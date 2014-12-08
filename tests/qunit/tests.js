@@ -358,34 +358,6 @@ test('checks refreshRange works', function (assert) {
 
 });
 
-
-
-// Paginate page up
-
-// Paginate page down
-
-// Paginate go to page
-
-// Multiselect
-// add to multiselect - handlemultiselect
-// check if Id is multiselected
-// Remove multiselected
-// Clear Multiselect
-
-// Apply dropzone
-// destroy dropzone
-
-// dropzone callbacks
-
-// buildtree
-// - data is array vs data is object
-
-// flatten
-
-
-
-
-
 QUnit.module('Async tests', {
     setup : function () {
         this.server = sinon.fakeServer.create();
@@ -421,10 +393,64 @@ test('checks toggling view to scroll and paginate ', function (assert) {
     assert.ok(tb.options.paginate, 'Paginate state is true.');
 });
 
-//test('checks ', function (assert) {
-//    var item = tb.createItem({'kind': 'folder', name: 'rowfilterresult', 'title': 'title', person : 'Caner Uguz'}, 1);
-//
-//    tb.deleteNode(item.parentID, item.id);
-//});
+test('checks paginate up and down and gotopage', function (assert) {
+    var tb = reload.call(this, 'long', {paginateToggle : true, paginate: true});
+    tb.toggleFolder(0, null);
+    
+    var page1 = tb.currentPage();
+    assert.equal(page1, '1', 'Page number loads with 1.');
 
+    var pageUp1 = tb.pageUp();
+    // We are using tb.currentPage() here for view, because if this value changes then view update is left to mithril
+    var page2 = tb.currentPage(); //$('.tb-pageCount').text();
+    assert.ok(pageUp1, 'Page up returnes true when page exists');
+    assert.equal(page2, '2', 'Page up goes to next page in view');
 
+    var pageDown1 = tb.pageDown();
+    var page3 = tb.currentPage();
+    assert.ok(pageDown1, 'Page down returnes true when page exists');
+    assert.equal(page3, '1', 'Page down goes to previous page in view');
+
+    var toPage1 = tb.goToPage(2);
+    var page4 = tb.currentPage();
+    assert.ok(toPage1, 'gotoPage returns true when page found');
+    assert.equal(page4, '2', 'Go to page goes to page that exists in view');
+
+    var toPage2 = tb.goToPage(3);
+    var page5 = tb.currentPage();
+    assert.ok(!toPage2, 'gotoPage returns false when page one more than existing pages. ');
+    assert.equal(page5, '2', 'Go to page to non existing page (1 more than existing) did not change view.');
+
+    var toPage3 = tb.goToPage(12);
+    var page6 = tb.currentPage();
+    assert.ok(!toPage3, 'gotoPage returns false when page does not exist. ');
+    assert.equal(page6, '2', 'Go to page to non existing page (1 more than existing) did not change view.');
+
+    var pageUp2 = tb.pageUp();
+    var page7 = tb.currentPage();
+    assert.ok(!pageUp2, 'Page up returnes false when on last page');
+    assert.equal(page7, '2', 'Page up doesn\'t change view when on last page');
+
+    tb.pageDown();
+    var pageDown2 = tb.pageDown();
+    var page8 = tb.currentPage();
+    assert.ok(!pageDown2, 'Page down returnes false when on first page');
+    assert.equal(page8, '1', 'Page down doesn\'t change view when on first page');
+
+});
+
+// Multiselect
+// add to multiselect - handlemultiselect
+// check if Id is multiselected
+// Remove multiselected
+// Clear Multiselect
+
+// Apply dropzone
+// destroy dropzone
+
+// dropzone callbacks
+
+// buildtree
+// - data is array vs data is object
+
+// flatten
