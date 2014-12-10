@@ -8,17 +8,17 @@
     "use strict";
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define([], factory);
+        define(['jQuery', 'mithril'], factory);
     } else if (typeof exports === 'object') {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory();
+        module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
-        global.Treebeard = factory();
+        global.Treebeard = factory(jQuery, m);
     }
-}(this, function () {
+}(this, function (jQuery, m) {
     "use strict";
 
     // Indexes by id, shortcuts to the tree objects. Use example: var item = Indexes[23];
@@ -1277,6 +1277,15 @@
                     }
                 }
             }, self.options.dropzone);           // Extend default options
+            var Dropzone;
+            if (typeof module === 'object') {
+                Dropzone = require('dropzone');
+            } else {
+                Dropzone = window.Dropzone;
+            }
+            if (typeof Dropzone === 'undefined') {
+                throw new Error('To enable uploads Treebeard needs "Dropzone" to be installed.');
+            }
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
         }
 
