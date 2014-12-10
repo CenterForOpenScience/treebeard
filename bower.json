@@ -27,6 +27,7 @@
   "dependencies": {
     "bootstrap": ">=3.2.0",
     "jquery-ui": ">=1.10.4",
-    "mithril": ">=0.1.22"
+    "mithril": ">=0.1.22",
+    "jquery": "~1.11.0"
   }
 }

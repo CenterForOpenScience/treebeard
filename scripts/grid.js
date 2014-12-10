@@ -13,6 +13,7 @@
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
+        var m = require('mithril');
         module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
