@@ -2903,6 +2903,7 @@ if (typeof exports == "object") {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
+        var m = require('mithril');
         module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
@@ -2920,17 +2921,21 @@ if (typeof exports == "object") {
     // Modal for box-wide errors
         Modal,
     // Initialize and namespace Treebeard module
-        Treebeard = {},
+        Treebeard = {};
     // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
-        idCounter = -1;
+        // we are using globals here because of mithril views with unique keys for rows in case we have multiple
+        // instances of treebeard on the same page.
+    if (!window.treebeardCounter) {
+        window.treebeardCounter = -1;
+    }
 
     /**
      * Gets the incremented idCounter as a unique id
      * @returns {Number} idCounter The state of id counter after incementing
      */
     function getUID() {
-        idCounter = idCounter + 1;
-        return idCounter;
+        window.treebeardCounter = window.treebeardCounter  + 1;
+        return window.treebeardCounter ;
     }
 
     /**
@@ -3397,9 +3402,9 @@ if (typeof exports == "object") {
          */
         this.resetCounter = function _resetCounter(resetNum) {
             if (resetNum !== 0) {
-                idCounter = resetNum || -1;
+                window.treebeardCounter  = resetNum || -1;
             } else {
-                idCounter = 0;
+                window.treebeardCounter  = 0;
             }
         };
 
@@ -4329,7 +4334,7 @@ if (typeof exports == "object") {
         };
 
         // Check if options inclide filesData, this is required to run so throw error if not.
-        this.resetCounter();
+        //this.resetCounter();
         if (self.options.filesData) {
             _loadData(self.options.filesData);
         } else {
