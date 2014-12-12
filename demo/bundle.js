@@ -2907,7 +2907,6 @@ if (typeof exports == "object") {
         module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
-        var m = global.m;
         global.Treebeard = factory(jQuery, m);
     }
 }(this, function (jQuery, m) {
@@ -2924,8 +2923,8 @@ if (typeof exports == "object") {
     // Initialize and namespace Treebeard module
         Treebeard = {};
     // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
-        // we are using globals here because of mithril views with unique keys for rows in case we have multiple
-        // instances of treebeard on the same page.
+    // we are using globals here because of mithril views with unique keys for rows in case we have multiple
+    // instances of treebeard on the same page.
     if (!window.treebeardCounter) {
         window.treebeardCounter = -1;
     }
@@ -3412,7 +3411,7 @@ if (typeof exports == "object") {
         /**
          * Instantiates draggable and droppable on DOM elements with options passed from self.options
          */
-        this.moveOn = function () {
+        this.initializeMove = function () {
             var draggableOptions,
                 droppableOptions,
                 drag,
@@ -3422,21 +3421,24 @@ if (typeof exports == "object") {
                 helper: "clone",
                 cursor : 'move',
                 containment : '.tb-tbody-inner',
-                delay : 200,
+                delay : 100,
                 drag : function (event, ui) {
-                    var text;
+                    if (self.pressedKey == 27){
+                        return false;
+                    }
                     if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
+                        console.log('drag', ui);
                         if (!self.draggedCache) {
                             self.draggedCache = $(ui.helper).clone();
-                        }
-                        if (self.multiselected.length > 2) {
-                            text = $(event.target).text() + ' + ' + (self.multiselected.length - 1);
+                            if (self.options.multiselected.length > 1) {
+                                self.draggedCache.text('Sup!');
+                            }
                         }
                         self.draggedCache.css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
-                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'}).text(text);
                     }
+
                 },
                 create : function (event, ui) {
                     if (self.options.dragEvents.create) {
@@ -3510,18 +3512,29 @@ if (typeof exports == "object") {
                 }
             };
 
-            drag = $.extend(draggableOptions, self.options.dragOptions);
-            drop = $.extend(droppableOptions, self.options.dropOptions);
-            dragSelector = self.options.moveClass ? self.options.moveClass : 'td-title';
+            self.options.finalDragOptions = $.extend(draggableOptions, self.options.dragOptions);
+            self.options.finalDropOptions = $.extend(droppableOptions, self.options.dropOptions);
+            self.options.dragSelector = self.options.moveClass ? self.options.moveClass : 'td-title';
 
-            $('.' + dragSelector).draggable(drag);
-            $('.tb-row').droppable(drop);
+            self.moveOn(); // first time;
+
+        };
+
+        this.moveOn = function _moveOn(parent){
+            if(!parent) {
+                $('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
+                $('.tb-row').droppable(self.options.finalDropOptions);
+            } else {
+                $(parent).find('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
+                $(parent).droppable(self.options.finalDropOptions);
+            }
+
         };
 
         /**
          * Removes move related instances by destroying draggable and droppable.
          */
-        function moveOff() {
+        this.moveOff = function _moveOff() {
             $(".td-title").draggable("destroy");
             $(".tb-row").droppable("destroy");
         }
@@ -3737,7 +3750,9 @@ if (typeof exports == "object") {
                 t,
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
-            m.render(icon.get(0), m('i.icon-refresh.icon-spin'));
+            if(icon.get(0)) {
+                m.render(icon.get(0), m('i.icon-refresh.icon-spin'))
+            };
             $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
@@ -3758,8 +3773,9 @@ if (typeof exports == "object") {
                                 tree.open = true;
                                 tree.load = true;
                                 var iconTemplate = self.options.resolveToggle.call(self, tree);
-                                m.render(icon.get(0), iconTemplate);
-
+                                if(icon.get(0)) {
+                                    m.render(icon.get(0), iconTemplate);
+                                }
                             }
                         }, function (info) {
                             self.options.lazyLoadError.call(self, tree);
@@ -3793,9 +3809,13 @@ if (typeof exports == "object") {
                     self.calculateHeight();
                     m.redraw(true);
                     var iconTemplate = self.options.resolveToggle.call(self, tree);
-                    m.render(icon.get(0), iconTemplate);
+                    if(icon.get(0)) {
+                        m.render(icon.get(0), iconTemplate);
+                    }
                 }
-                self.moveOn();
+                if (self.options.allowMove) {
+                    self.moveOn();
+                }
                 if (self.options.ontogglefolder) {
                     self.options.ontogglefolder.call(self, tree, event);
                 }
@@ -4282,9 +4302,6 @@ if (typeof exports == "object") {
 
         // Initializes after the view
         this.init = function _init(el, isInit) {
-            if (self.options.allowMove) {
-                self.moveOn();
-            }
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight);
 
@@ -4323,13 +4340,14 @@ if (typeof exports == "object") {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
                     // $('.tb-row').addClass('tb-unselectable');
-                    console.log("Pressed Key", self.pressedKey);
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
                     // $('.tb-row').removeClass('tb-unselectable');
-                    console.log("Pressed Key", self.pressedKey);
                 });
+            }
+            if (self.options.allowMove) {
+                self.initializeMove();
             }
         };
 
@@ -4349,7 +4367,7 @@ if (typeof exports == "object") {
 
     Treebeard.view = function treebeardView(ctrl) {
         return [
-            m('.gridWrapper', {config : ctrl.init},  [
+            m('.gridWrapper', [
                 m(".tb-table", [
                     (function showHeadA() {
                         if (ctrl.options.showFilter || ctrl.options.title) {
@@ -4408,7 +4426,7 @@ if (typeof exports == "object") {
                             ]);
                         })
                     ]),
-                    m("#tb-tbody", [
+                    m("#tb-tbody", {config : ctrl.init},  [
                         (function showModal() {
 
                             if (ctrl.modal.on) {
@@ -4446,7 +4464,7 @@ if (typeof exports == "object") {
                                             ])
                                         ]);
                                     } else {
-                                        return m(".tb-row", {
+                                        return m(".tb-row",  {
                                             "key" : id,
                                             "class" : css + " " + oddEvenClass,
                                             "data-id" : id,
