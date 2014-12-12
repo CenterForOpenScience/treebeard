@@ -2907,6 +2907,7 @@ if (typeof exports == "object") {
         module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
+        var m = global.m;
         global.Treebeard = factory(jQuery, m);
     }
 }(this, function (jQuery, m) {
@@ -3423,14 +3424,18 @@ if (typeof exports == "object") {
                 containment : '.tb-tbody-inner',
                 delay : 200,
                 drag : function (event, ui) {
+                    var text;
                     if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
-                        console.log('drag', ui);
                         if (!self.draggedCache) {
                             self.draggedCache = $(ui.helper).clone();
                         }
+                        if (self.multiselected.length > 2) {
+                            text = $(event.target).text() + ' + ' + (self.multiselected.length - 1);
+                        }
                         self.draggedCache.css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'}).text(text);
                     }
                 },
                 create : function (event, ui) {
