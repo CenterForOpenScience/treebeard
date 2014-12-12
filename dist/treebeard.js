@@ -17,6 +17,7 @@
         module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
+        var m = global.m;
         global.Treebeard = factory(jQuery, m);
     }
 }(this, function (jQuery, m) {
@@ -1419,6 +1420,91 @@
                     _lastLocation = scrollTop;
                 }
             });
+            $('.tb-th.tb-resizable').resizable({
+                containment : 'parent',
+                delay : 200,
+                handles : 'e',
+                minWidth : 60,
+                create : function(event, ui) {
+                    console.log(event, ui);
+                    // change curso
+                    $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
+                    // revise all widths from percentage into pixels
+                    $('.tb-th, .tb-td').each(function(){
+                        var w = $(this).outerWidth();
+                        $(this).css({width : w + 'px'});
+                    });
+                    // This adjustment is required because of rounding of percentages
+                    $('.tb-th:last-of-type').each(function(){
+                        var w = $(this).outerWidth();
+                        $(this).css({width : (w-2) + 'px'});
+                    });
+                    $('.tb-td:last-of-type').each(function(){
+                        var w = $(this).outerWidth();
+                        $(this).css({width : (w-2) + 'px'});
+                    });
+                    $('.tb-th').each(function(){
+                        $(this).attr('data-tb-size', $(this).outerWidth());
+                    })
+                },
+                resize : function(event, ui) {
+                    var diff = ui.originalSize.width - ui.size.width;
+                    var siblingOriginalWidth = parseInt($(ui.element).next().attr('data-tb-size'));
+                    var siblingCurrentWidth = $(ui.element).next().outerWidth();
+                    if(siblingCurrentWidth > 40) {
+                        $(ui.element).next().css({ width : (siblingOriginalWidth + diff) + 'px'});
+                    }
+                    // if the overall size is getting bigger than home size, make other items smaller
+                    var parentWidth = $('.tb-row-titles').width();
+                    var childrenWidth = 0;
+                    $('.tb-th').each(function(){
+                        childrenWidth = childrenWidth + $(this).outerWidth();
+                        $(this).css({ height : '35px'});
+                    })
+                    console.log(parentWidth, childrenWidth);
+                    console.log();
+                    if(childrenWidth > parentWidth){
+                        var diff2 = childrenWidth - parentWidth;
+                        // number of children other than the current element with widths bigger than 40
+                        var nextBigThing = $('.tb-th').not(ui.element).filter(function () {
+                            return $(this).outerWidth() > 40; }).first();
+                        console.log("nextbigthing", nextBigThing.length);
+                        if(nextBigThing.length > 0){
+                            var w2 = nextBigThing.outerWidth();
+                            nextBigThing.css({ width : (w2 - diff2) + 'px' })
+                        } else {
+                            $(ui.element).css({ width : $(ui.element).attr('data-tb-currentSize') + 'px'});
+                            return;
+                        }
+                    }
+                    if(childrenWidth < parentWidth) {
+                        var diff3 = parentWidth - childrenWidth;
+                        // number of children other than the current element with widths bigger than 40
+                        var lastBigThing = $('.tb-th').not(ui.element).filter(function () {
+                            return $(this).outerWidth() < parseInt($(this).attr('data-tb-size')); }).last();
+                        console.log("nextbigthing", lastBigThing.length);
+                        if(lastBigThing.length > 0){
+                            var w3 = lastBigThing.outerWidth();
+                            lastBigThing.css({ width : (w3 + diff3) + 'px' })
+                        }
+                    }
+                    $(ui.element).attr('data-tb-currentSize', $(ui.element).outerWidth());
+                    // change corresponding columns in the table
+                    $('.tb-th').each(function(index) {
+                        console.log(index, $(this), ui.element);
+                        if($(this) == ui.element){
+                            console.log("This", index);
+                        }
+                    })
+
+
+                },
+                stop : function(event, ui){
+                    $('.tb-th').each(function(){
+                        $(this).attr('data-tb-size', $(this).outerWidth());
+                    })
+                }
+            })
             console.log("Uploads", self.options);
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
@@ -1477,11 +1563,14 @@
                         }
                     }()),
                     m(".tb-row-titles", [
-                        ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index) {
+                        ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
                             var sortView = "",
                                 up,
                                 down,
-                                padding = index === 0 ? '10px' : '0';
+                                resizable = '.tb-resizable';
+                            if(index === arr.length-1){
+                                resizable = '';
+                            }
                             if (col.sort) {
                                 if (ctrl.options.sortButtonSelector.up) {
                                     up = ctrl.options.sortButtonSelector.up;
@@ -1507,7 +1596,7 @@
                                     })
                                 ];
                             }
-                            return m('.tb-th', { style : "width: " + col.width + '; padding-left:' + padding }, [
+                            return m('.tb-th'+resizable, { style : "width: " + col.width}, [
                                 m('span.m-r-sm', col.title),
                                 sortView
                             ]);
