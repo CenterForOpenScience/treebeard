@@ -3424,6 +3424,8 @@ if (typeof exports == "object") {
                 containment : '.tb-tbody-inner',
                 delay : 200,
                 drag : function (event, ui) {
+                    console.log("Drag", event, ui);
+
                     var text;
                     if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
@@ -3481,6 +3483,7 @@ if (typeof exports == "object") {
                     if (self.options.dropEvents.drop) {
                         self.options.dropEvents.drop.call(self, event, ui);
                     }
+                    console.log("Drop", event, ui);
                 },
                 out : function (event, ui) {
                     if (self.options.dropEvents.out) {
