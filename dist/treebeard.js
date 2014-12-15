@@ -1427,7 +1427,7 @@
                 minWidth : 60,
                 create : function(event, ui) {
                     console.log(event, ui);
-                    // change curso
+                    // change cursor
                     $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
                     // revise all widths from percentage into pixels
                     $('.tb-th, .tb-td').each(function(){
@@ -1439,20 +1439,23 @@
                         var w = $(this).outerWidth();
                         $(this).css({width : (w-2) + 'px'});
                     });
-                    $('.tb-td:last-of-type').each(function(){
-                        var w = $(this).outerWidth();
-                        $(this).css({width : (w-2) + 'px'});
-                    });
+
+                    // update beginning sizes
                     $('.tb-th').each(function(){
                         $(this).attr('data-tb-size', $(this).outerWidth());
                     })
                 },
                 resize : function(event, ui) {
+                    var thisCol = $(ui.element).attr('data-tb-th-col');
+                    console.log("Thiscol", thisCol);
                     var diff = ui.originalSize.width - ui.size.width;
-                    var siblingOriginalWidth = parseInt($(ui.element).next().attr('data-tb-size'));
-                    var siblingCurrentWidth = $(ui.element).next().outerWidth();
+                    var sibling = $(ui.element).next();
+                    var siblingOriginalWidth = parseInt(sibling.attr('data-tb-size'));
+                    var siblingCurrentWidth = sibling.outerWidth();
                     if(siblingCurrentWidth > 40) {
                         $(ui.element).next().css({ width : (siblingOriginalWidth + diff) + 'px'});
+                        var siblingIndex = $(ui.element).next().attr('data-tb-th-col');
+                        $('.tb-col-'+siblingIndex).css({width : (siblingOriginalWidth + diff) + 'px'});
                     }
                     // if the overall size is getting bigger than home size, make other items smaller
                     var parentWidth = $('.tb-row-titles').width();
@@ -1462,7 +1465,6 @@
                         $(this).css({ height : '35px'});
                     })
                     console.log(parentWidth, childrenWidth);
-                    console.log();
                     if(childrenWidth > parentWidth){
                         var diff2 = childrenWidth - parentWidth;
                         // number of children other than the current element with widths bigger than 40
@@ -1472,6 +1474,8 @@
                         if(nextBigThing.length > 0){
                             var w2 = nextBigThing.outerWidth();
                             nextBigThing.css({ width : (w2 - diff2) + 'px' })
+                            var nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
+                            $('.tb-col-'+nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
                         } else {
                             $(ui.element).css({ width : $(ui.element).attr('data-tb-currentSize') + 'px'});
                             return;
@@ -1485,18 +1489,16 @@
                         console.log("nextbigthing", lastBigThing.length);
                         if(lastBigThing.length > 0){
                             var w3 = lastBigThing.outerWidth();
-                            lastBigThing.css({ width : (w3 + diff3) + 'px' })
+                            lastBigThing.css({ width : (w3 + diff3) + 'px' });
+                            var lastBigThingIndex = lastBigThing.attr('data-tb-th-col');
+                            $('.tb-col-'+lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
                         }
                     }
                     $(ui.element).attr('data-tb-currentSize', $(ui.element).outerWidth());
                     // change corresponding columns in the table
-                    $('.tb-th').each(function(index) {
-                        console.log(index, $(this), ui.element);
-                        if($(this) == ui.element){
-                            console.log("This", index);
-                        }
-                    })
-
+                    var index = $(this).attr('data-tb-th-col');
+                    var colWidth = $(this).outerWidth();
+                    $('.tb-col-'+index).css({width : colWidth + 'px'});
 
                 },
                 stop : function(event, ui){
@@ -1596,7 +1598,7 @@
                                     })
                                 ];
                             }
-                            return m('.tb-th'+resizable, { style : "width: " + col.width}, [
+                            return m('.tb-th'+resizable, { style : "width: " + col.width, 'data-tb-th-col' : index }, [
                                 m('span.m-r-sm', col.title),
                                 sortView
                             ]);
