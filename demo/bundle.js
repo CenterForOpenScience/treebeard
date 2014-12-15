@@ -2907,6 +2907,7 @@ if (typeof exports == "object") {
         module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
+        var m = global.m;
         global.Treebeard = factory(jQuery, m);
     }
 }(this, function (jQuery, m) {
@@ -3387,7 +3388,7 @@ if (typeof exports == "object") {
         this.dragOngoing = false;
         this.draggedCache = null;                               // Caching the dragged ui helper when going beyond view scroll
         this.initialized = false;                               // Treebeard's own initialization check, turns to true after page loads.
-
+        this.colsizes = {};                                     // Storing column sizes across the app.
 
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
@@ -4309,6 +4310,110 @@ if (typeof exports == "object") {
                     _lastLocation = scrollTop;
                 }
             });
+            $('.tb-th.tb-resizable').resizable({
+                containment : 'parent',
+                delay : 200,
+                handles : 'e',
+                minWidth : 60,
+                create : function(event, ui) {
+                    console.log(event, ui);
+                    // change cursor
+                    $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
+                    // revise all widths from percentage into pixels
+                    $('.tb-th, .tb-td').each(function(){
+                        var w = $(this).outerWidth();
+                        $(this).css({width : w + 'px'});
+                    });
+                    // This adjustment is required because of rounding of percentages == these are not the same below
+                    $('.tb-th:last-of-type').each(function(){
+                        var w = $(this).outerWidth();
+                        $(this).css({width : (w-2) + 'px'});
+                    });
+                    $('.tb-td:last-of-type').each(function(){
+                        var w = $(this).outerWidth();
+                        $(this).css({width : (w-2) + 'px'});
+                    });
+
+                    // update beginning sizes
+                    $('.tb-th').each(function(){
+                        $(this).attr('data-tb-size', $(this).outerWidth());
+                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth();
+                    })
+                },
+                resize : function(event, ui) {
+                    var thisCol = $(ui.element).attr('data-tb-th-col');
+                    console.log("Thiscol", thisCol);
+                    var diff = ui.originalSize.width - ui.size.width;
+                    var sibling = $(ui.element).next();
+                    var siblingOriginalWidth = parseInt(sibling.attr('data-tb-size'));
+                    var siblingCurrentWidth = sibling.outerWidth();
+                    if(siblingCurrentWidth > 40) {
+                        $(ui.element).next().css({ width : (siblingOriginalWidth + diff) + 'px'});
+                        var siblingIndex = $(ui.element).next().attr('data-tb-th-col');
+                        $('.tb-col-'+siblingIndex).css({width : (siblingOriginalWidth + diff) + 'px'});
+                    }
+                    // if the overall size is getting bigger than home size, make other items smaller
+                    var parentWidth = $('.tb-row-titles').width();
+                    var childrenWidth = 0;
+                    $('.tb-th').each(function(){
+                        childrenWidth = childrenWidth + $(this).outerWidth();
+                        $(this).css({ height : '35px'});
+                    })
+                    console.log(parentWidth, childrenWidth);
+                    if(childrenWidth > parentWidth){
+                        var diff2 = childrenWidth - parentWidth;
+                        // number of children other than the current element with widths bigger than 40
+                        //var nextBigThing = $(ui.element).next();
+
+                        var nextBigThing = $('.tb-th').not(ui.element).filter(function () {
+                            var colElement = parseInt($(ui.element).attr('data-tb-th-col'));
+                            var colThis = parseInt($(this).attr('data-tb-th-col'));
+                            if(colThis > colElement) {
+                                return $(this).outerWidth() > 40;
+                            }
+                            return false;
+                        }).first();
+                        console.log("nextbigthing", nextBigThing);
+                        if(nextBigThing.length > 0){
+                            var w2 = nextBigThing.outerWidth();
+                            nextBigThing.css({ width : (w2 - diff2) + 'px' })
+                            var nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
+                            $('.tb-col-'+nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
+                        } else {
+                            $(ui.element).css({ width : $(ui.element).attr('data-tb-currentSize') + 'px'});
+                            return;
+                        }
+                    }
+                    if(childrenWidth < parentWidth) {
+                        var diff3 = parentWidth - childrenWidth;
+                        // number of children other than the current element with widths bigger than 40
+                        var lastBigThing = $('.tb-th').not(ui.element).filter(function () {
+                            return $(this).outerWidth() < parseInt($(this).attr('data-tb-size')); }).last();
+                        console.log("nextbigthing", lastBigThing.length);
+                        if(lastBigThing.length > 0){
+                            var w3 = lastBigThing.outerWidth();
+                            lastBigThing.css({ width : (w3 + diff3) + 'px' });
+                            var lastBigThingIndex = lastBigThing.attr('data-tb-th-col');
+                            $('.tb-col-'+lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
+                        }
+                    }
+                    $(ui.element).attr('data-tb-currentSize', $(ui.element).outerWidth());
+                    // change corresponding columns in the table
+                    var index = $(this).attr('data-tb-th-col');
+                    var colWidth = $(this).outerWidth();
+                    $('.tb-col-'+index).css({width : colWidth + 'px'});
+
+                },
+                stop : function(event, ui){
+                    $('.tb-th').each(function(){
+                        $(this).attr('data-tb-size', $(this).outerWidth());
+                    })
+                    $('.tb-th').each(function(){
+                        $(this).attr('data-tb-size', $(this).outerWidth());
+                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth();
+                    })
+                }
+            })
             console.log("Uploads", self.options);
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
@@ -4367,11 +4472,14 @@ if (typeof exports == "object") {
                         }
                     }()),
                     m(".tb-row-titles", [
-                        ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index) {
+                        ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
                             var sortView = "",
                                 up,
                                 down,
-                                padding = index === 0 ? '10px' : '0';
+                                resizable = '.tb-resizable';
+                            if(index === arr.length-1){
+                                resizable = '';
+                            }
                             if (col.sort) {
                                 if (ctrl.options.sortButtonSelector.up) {
                                     up = ctrl.options.sortButtonSelector.up;
@@ -4397,7 +4505,7 @@ if (typeof exports == "object") {
                                     })
                                 ];
                             }
-                            return m('.tb-th', { style : "width: " + col.width + '; padding-left:' + padding }, [
+                            return m('.tb-th'+resizable, { style : "width: " + col.width, 'data-tb-th-col' : index }, [
                                 m('span.m-r-sm', col.title),
                                 sortView
                             ]);
@@ -4477,11 +4585,13 @@ if (typeof exports == "object") {
                                                     title,
                                                     colInfo = ctrl.options.columnTitles.call(ctrl)[index],
                                                     colcss = col.css ? col.css : '';
-                                                cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + colInfo.width }, [
+                                                var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + 'px' :  colInfo.width;
+                                                console.log("Colsizes", ctrl.colsizes);
+                                                cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + width }, [
                                                     m('span', row[col.data])
                                                 ]);
                                                 if (tree.notify.on && tree.notify.column === index) {
-                                                    return m('.tb-td.tb-col-' + index, { style : "width:" + colInfo.width },  [
+                                                    return m('.tb-td.tb-col-' + index, { style : "width:" + width },  [
                                                         m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
                                                             m('span', tree.notify.message)
                                                         ])
@@ -4496,7 +4606,7 @@ if (typeof exports == "object") {
                                                     cell = m('.tb-td.td-title.tb-col-' + index, {
                                                         "data-id" : id,
                                                         'class' : colcss,
-                                                        style : "padding-left: " + padding + "px; width:" + colInfo.width
+                                                        style : "padding-left: " + padding + "px; width:" + width
                                                     }, [
                                                         m("span.tb-td-first",
                                                             (function _toggleView() {
@@ -4525,7 +4635,7 @@ if (typeof exports == "object") {
                                                     ]);
                                                 }
                                                 if (!col.folderIcons && col.custom) {
-                                                    cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + colInfo.width }, [
+                                                    cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + width }, [
                                                         col.custom.call(ctrl, tree, col)
                                                     ]);
                                                 }
