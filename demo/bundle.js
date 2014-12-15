@@ -4068,6 +4068,28 @@ if (typeof exports == "object") {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
             self.multiselected = [];
         };
+
+        self.resizeColumns = function _resizeColumns () {
+            // get
+            // get data-tb-size
+            var parentWidth = $('.tb-row-titles').width();
+            var childrenWidth = 0;
+            $('.tb-th').each(function(){
+                childrenWidth = childrenWidth + $(this).outerWidth();
+                $(this).css({ height : '35px'});
+            })
+            console.log("Parent", parentWidth, 'children', childrenWidth);
+            var diff = parentWidth - childrenWidth;
+            if (parentWidth > childrenWidth ){
+
+            }
+
+            if ( parentWidth < childrenWidth){
+
+            }
+        }
+
+
         // Remove dropzone from grid
         function _destroyDropzone() {
             self.dropzone.destroy();
@@ -4276,6 +4298,7 @@ if (typeof exports == "object") {
             return value;
         };
 
+
         // Initializes after the view
         this.init = function _init(el, isInit) {
             if (self.options.allowMove) {
@@ -4309,6 +4332,9 @@ if (typeof exports == "object") {
                     m.redraw(true);
                     _lastLocation = scrollTop;
                 }
+            });
+            $(window).resize(function () {
+                self.resizeColumns();
             });
             $('.tb-th.tb-resizable').resizable({
                 containment : 'parent',
@@ -4477,6 +4503,9 @@ if (typeof exports == "object") {
                                 up,
                                 down,
                                 resizable = '.tb-resizable';
+                            if(!ctrl.options.resizeColumns){
+                                resizable = '';
+                            }
                             if(index === arr.length-1){
                                 resizable = '';
                             }
@@ -4586,7 +4615,6 @@ if (typeof exports == "object") {
                                                     colInfo = ctrl.options.columnTitles.call(ctrl)[index],
                                                     colcss = col.css ? col.css : '';
                                                 var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + 'px' :  colInfo.width;
-                                                console.log("Colsizes", ctrl.colsizes);
                                                 cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + width }, [
                                                     m('span', row[col.data])
                                                 ]);
@@ -4781,6 +4809,7 @@ if (typeof exports == "object") {
                 }
             ];
         };
+        this.resizeColumns = true;
         this.hoverClass = undefined;
         this.hoverClassMultiselect = 'tb-multiselect';
         this.showFilter = true;     // Gives the option to filter by showing the filter box.
