@@ -1534,10 +1534,11 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .f-6{font-weight:600}
 #tb-tbody{border:1px solid #ccc;height:500px;overflow:auto;background:#fff}
 .tb-tbody-inner{overflow:hidden}
-.tb-row-titles{background:#EEE;padding:10px 0 5px 16px;border:1px solid #CCC;border-bottom:none}
+.tb-row-titles{background:#EEE;border:1px solid #CCC;border-bottom:none;height:35px}
 .td-title{cursor:pointer}
-.tb-td,.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:35px}
-.tb-th{font-weight:700}
+.tb-td{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:5px}
+.tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;border-left:1px solid #CCC;padding:7px 0 7px 5px}
+.tb-th:first-of-type{border-left:none}
 .tb-details{background:#ADD8E6;height:623px;border:1px solid #EEE;padding:20px}
 .tb-td-first{padding:5px}
 .tb-row-active{background:#ADD8E6}
@@ -1548,7 +1549,7 @@ td.visible-print,th.visible-print{display:table-cell!important}}
 .tb-sort-inactive{color:#999}
 .tb-sort-active{color:#222}
 .form-comp{margin:0 16px}
-.tb-h-success{background-color:rgba(255,255,0,.53)}
+.tb-h-success{background-color:rgba(57,255,17,.53)}
 .tb-h-error{background-color:rgba(255,4,0,.53)}
 .tb-expand-icon-holder,.tb-toggle-icon{width:20px;display:inline-block}
 .clearfix{display:table;content:" ";clear:both}
