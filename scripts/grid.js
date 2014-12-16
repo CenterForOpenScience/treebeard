@@ -34,8 +34,8 @@
     // Initialize and namespace Treebeard module
         Treebeard = {};
     // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
-        // we are using globals here because of mithril views with unique keys for rows in case we have multiple
-        // instances of treebeard on the same page.
+    // we are using globals here because of mithril views with unique keys for rows in case we have multiple
+    // instances of treebeard on the same page.
     if (!window.treebeardCounter) {
         window.treebeardCounter = -1;
     }
@@ -522,27 +522,32 @@
         /**
          * Instantiates draggable and droppable on DOM elements with options passed from self.options
          */
-        this.moveOn = function () {
+        this.initializeMove = function () {
             var draggableOptions,
-                droppableOptions,
-                drag,
-                drop,
-                dragSelector;
+                droppableOptions;
+
             draggableOptions = {
                 helper: "clone",
                 cursor : 'move',
                 containment : '.tb-tbody-inner',
-                delay : 200,
+                delay : 100,
                 drag : function (event, ui) {
+                    if (self.pressedKey === 27) {
+                        return false;
+                    }
                     if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
-                        console.log('drag', ui);
-                        if (!self.draggedCache) {
-                            self.draggedCache = $(ui.helper).clone();
+                        if (self.dragText === "") {
+                            if (self.multiselected.length > 1) {
+                                var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
+                                self.dragText = newHTML;
+                                $(ui.helper).html(newHTML);
+                            }
                         }
-                        self.draggedCache.css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
+
                 },
                 create : function (event, ui) {
                     if (self.options.dragEvents.create) {
@@ -550,6 +555,7 @@
                     }
                 },
                 start : function (event, ui) {
+                    self.dragText = "";
                     if (self.options.dragEvents.start) {
                         self.options.dragEvents.start.call(self, event, ui);
                     }
@@ -594,21 +600,17 @@
                     }
                 },
                 over : function (event, ui) {
-                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'));
-                    var last = self.flatData[self.showRange[self.showRange.length-1]].id;
-                    var first = self.flatData[self.showRange[0]].id;
-                    console.log(id, last);
-                    if(id === last) {
-                        console.log('======= last');
-                        var currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll+35);
-
-
+                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id')),
+                        last = self.flatData[self.showRange[self.showRange.length-1]].id,
+                        first = self.flatData[self.showRange[0]].id,
+                        currentScroll;
+                    if (id === last) {
+                        currentScroll = $('#tb-tbody').scrollTop();
+                        $('#tb-tbody').scrollTop(currentScroll + 35);
                     }
-                    if(id === first) {
-                        console.log('======= first');
-                        var currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll-35);
+                    if (id === first) {
+                        currentScroll = $('#tb-tbody').scrollTop();
+                        $('#tb-tbody').scrollTop(currentScroll - 35);
                     }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
@@ -616,18 +618,27 @@
                 }
             };
 
-            drag = $.extend(draggableOptions, self.options.dragOptions);
-            drop = $.extend(droppableOptions, self.options.dropOptions);
-            dragSelector = self.options.moveClass ? self.options.moveClass : 'td-title';
+            self.options.finalDragOptions = $.extend(draggableOptions, self.options.dragOptions);
+            self.options.finalDropOptions = $.extend(droppableOptions, self.options.dropOptions);
+            self.options.dragSelector = self.options.moveClass ? self.options.moveClass : 'td-title';
+            self.moveOn(); // first time;
 
-            $('.' + dragSelector).draggable(drag);
-            $('.tb-row').droppable(drop);
+        };
+
+        this.moveOn = function _moveOn(parent){
+            if (!parent) {
+                $('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
+                $('.tb-row').droppable(self.options.finalDropOptions);
+            } else {
+                $(parent).find('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
+                $(parent).droppable(self.options.finalDropOptions);
+            }
         };
 
         /**
          * Removes move related instances by destroying draggable and droppable.
          */
-        function moveOff() {
+        this.moveOff = function _moveOff() {
             $(".td-title").draggable("destroy");
             $(".tb-row").droppable("destroy");
         }
@@ -843,7 +854,9 @@
                 t,
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
-            m.render(icon.get(0), m('i.icon-refresh.icon-spin'));
+            if(icon.get(0)) {
+                m.render(icon.get(0), m('i.icon-refresh.icon-spin'))
+            };
             $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
@@ -864,8 +877,9 @@
                                 tree.open = true;
                                 tree.load = true;
                                 var iconTemplate = self.options.resolveToggle.call(self, tree);
-                                m.render(icon.get(0), iconTemplate);
-
+                                if(icon.get(0)) {
+                                    m.render(icon.get(0), iconTemplate);
+                                }
                             }
                         }, function (info) {
                             self.options.lazyLoadError.call(self, tree);
@@ -899,9 +913,13 @@
                     self.calculateHeight();
                     m.redraw(true);
                     var iconTemplate = self.options.resolveToggle.call(self, tree);
-                    m.render(icon.get(0), iconTemplate);
+                    if(icon.get(0)) {
+                        m.render(icon.get(0), iconTemplate);
+                    }
                 }
-                self.moveOn();
+                if (self.options.allowMove) {
+                    self.moveOn();
+                }
                 if (self.options.ontogglefolder) {
                     self.options.ontogglefolder.call(self, tree, event);
                 }
@@ -1419,9 +1437,6 @@
 
         // Initializes after the view
         this.init = function _init(el, isInit) {
-            if (self.options.allowMove) {
-                self.moveOn();
-            }
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight);
 
@@ -1568,13 +1583,14 @@
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
                     // $('.tb-row').addClass('tb-unselectable');
-                    console.log("Pressed Key", self.pressedKey);
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
                     // $('.tb-row').removeClass('tb-unselectable');
-                    console.log("Pressed Key", self.pressedKey);
                 });
+            }
+            if (self.options.allowMove) {
+                self.initializeMove();
             }
         };
 
@@ -1594,7 +1610,7 @@
 
     Treebeard.view = function treebeardView(ctrl) {
         return [
-            m('.gridWrapper', {config : ctrl.init},  [
+            m('.gridWrapper', [
                 m(".tb-table", [
                     (function showHeadA() {
                         if (ctrl.options.showFilter || ctrl.options.title) {
@@ -1660,7 +1676,7 @@
                             ]);
                         })
                     ]),
-                    m("#tb-tbody", [
+                    m("#tb-tbody", {config : ctrl.init},  [
                         (function showModal() {
 
                             if (ctrl.modal.on) {
@@ -1698,7 +1714,7 @@
                                             ])
                                         ]);
                                     } else {
-                                        return m(".tb-row", {
+                                        return m(".tb-row",  {
                                             "key" : id,
                                             "class" : css + " " + oddEvenClass,
                                             "data-id" : id,
