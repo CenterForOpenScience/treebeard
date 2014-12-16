@@ -1189,6 +1189,7 @@
                 $(this).css({ height : '35px'});
             })
             console.log("Parent", parentWidth, 'children', childrenWidth);
+            var diff = parentWidth - childrenWidth;
             if (parentWidth > childrenWidth ){
 
             }
@@ -1612,6 +1613,9 @@
                                 up,
                                 down,
                                 resizable = '.tb-resizable';
+                            if(!ctrl.options.resizeColumns){
+                                resizable = '';
+                            }
                             if(index === arr.length-1){
                                 resizable = '';
                             }
@@ -1915,6 +1919,7 @@
                 }
             ];
         };
+        this.resizeColumns = true;
         this.hoverClass = undefined;
         this.hoverClassMultiselect = 'tb-multiselect';
         this.showFilter = true;     // Gives the option to filter by showing the filter box.
