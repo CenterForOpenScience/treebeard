@@ -4058,6 +4058,12 @@ if (typeof exports == "object") {
                 }
             }
 
+            // if there is no key add the one.
+            if (!self.pressedKey){
+                self.clearMultiselect();
+                self.multiselected.push(tree);
+            }
+
             if (self.options.onmultiselect) {
                 self.options.onmultiselect.call(self, event, tree);
             }
@@ -4591,13 +4597,10 @@ if (typeof exports == "object") {
                                             "data-rIndex": index,
                                             style : "height: " + ctrl.options.rowHeight + "px;",
                                             onclick : function _rowClick(event) {
-                                                if (ctrl.pressedKey && ctrl.options.multiselect) {
+                                                if (ctrl.options.multiselect) {
                                                     ctrl.handleMultiselect(id, index, event);
                                                 }
-                                                if (!ctrl.pressedKey) {
-                                                    ctrl.selected = id;
-                                                    ctrl.clearMultiselect();
-                                                }
+                                                ctrl.selected = id;
                                                 if (ctrl.options.onselectrow) {
                                                     ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }

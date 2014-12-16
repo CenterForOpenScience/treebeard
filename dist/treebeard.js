@@ -1182,21 +1182,23 @@
         self.resizeColumns = function _resizeColumns () {
             // get
             // get data-tb-size
-            var parentWidth = $('.tb-row-titles').width();
-            var childrenWidth = 0;
-            $('.tb-th').each(function(){
-                childrenWidth = childrenWidth + $(this).outerWidth();
-                $(this).css({ height : '35px'});
-            })
-            console.log("Parent", parentWidth, 'children', childrenWidth);
-            var diff = parentWidth - childrenWidth;
-            if (parentWidth > childrenWidth ){
+            //var parentWidth = $('.tb-row-titles').width();
+            //var childrenWidth = 0;
+            //$('.tb-th').each(function(){
+            //    childrenWidth = childrenWidth + $(this).outerWidth();
+            //    $(this).css({ height : '35px'});
+            //})
+            //console.log("Parent", parentWidth, 'children', childrenWidth);
+            //var diff = parentWidth - childrenWidth;
+            //if (parentWidth > childrenWidth ){
+            //
+            //}
+            //
+            //if ( parentWidth < childrenWidth){
+            //
+            //}
 
-            }
-
-            if ( parentWidth < childrenWidth){
-
-            }
+            console.log(self.colsizes);
         }
 
 
@@ -1471,10 +1473,13 @@
                     });
 
                     // update beginning sizes
+                    var parentWidth = $('.tb-row-titles').width();
                     $('.tb-th').each(function(){
                         $(this).attr('data-tb-size', $(this).outerWidth());
-                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth();
+                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth()/parentWidth*100;
                     })
+
+
                 },
                 resize : function(event, ui) {
                     var thisCol = $(ui.element).attr('data-tb-th-col');
@@ -1541,12 +1546,10 @@
 
                 },
                 stop : function(event, ui){
+                    var parentWidth = $('.tb-row-titles').width();
                     $('.tb-th').each(function(){
                         $(this).attr('data-tb-size', $(this).outerWidth());
-                    })
-                    $('.tb-th').each(function(){
-                        $(this).attr('data-tb-size', $(this).outerWidth());
-                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth();
+                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth()/parentWidth*100;
                     })
                 }
             })
@@ -1613,6 +1616,7 @@
                                 up,
                                 down,
                                 resizable = '.tb-resizable';
+                            var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' :  col.width;
                             if(!ctrl.options.resizeColumns){
                                 resizable = '';
                             }
@@ -1644,7 +1648,7 @@
                                     })
                                 ];
                             }
-                            return m('.tb-th'+resizable, { style : "width: " + col.width, 'data-tb-th-col' : index }, [
+                            return m('.tb-th'+resizable, { style : "width: " +width, 'data-tb-th-col' : index }, [
                                 m('span.m-r-sm', col.title),
                                 sortView
                             ]);
@@ -1724,7 +1728,7 @@
                                                     title,
                                                     colInfo = ctrl.options.columnTitles.call(ctrl)[index],
                                                     colcss = col.css ? col.css : '';
-                                                var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + 'px' :  colInfo.width;
+                                                var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' :  colInfo.width;
                                                 cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + width }, [
                                                     m('span', row[col.data])
                                                 ]);
