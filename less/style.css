@@ -562,23 +562,32 @@
 }
 .tb-row-titles {
   background: #EEE;
-  padding: 10px 0px 5px 16px;
   border: 1px solid #CCC;
   border-bottom: none;
+  height: 35px;
 }
 .td-title {
   cursor: pointer;
 }
-.tb-th,
 .tb-td {
   display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 35px;
+  padding-left: 5px;
 }
 .tb-th {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 5px;
   font-weight: bold;
+  border-left: 1px solid #CCC;
+  padding: 7px 0px 7px 5px;
+}
+.tb-th:first-of-type {
+  border-left: none;
 }
 .tb-details {
   background: #ADD8E6;
@@ -623,7 +632,7 @@
   margin: 0 16px;
 }
 .tb-h-success {
-  background-color: rgba(255, 255, 0, 0.53);
+  background-color: rgba(57, 255, 17, 0.53);
 }
 .tb-h-error {
   background-color: rgba(255, 4, 0, 0.53);
