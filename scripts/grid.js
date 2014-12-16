@@ -547,15 +547,22 @@
                         }
                         $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
-
+                    // keep copy of the element and attach it to the mouse location
+                    var x = event.clientX > 100 ? event.clientX : 100;
+                    var y = event.clientY-10;
+                    $('.ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 },
                 create : function (event, ui) {
+                    ;
                     if (self.options.dragEvents.create) {
                         self.options.dragEvents.create.call(self, event, ui);
                     }
                 },
                 start : function (event, ui) {
                     self.dragText = "";
+                    var ghost = $(ui.helper).clone();
+                    ghost.addClass('ghost');
+                    $('body').append(ghost)
                     if (self.options.dragEvents.start) {
                         self.options.dragEvents.start.call(self, event, ui);
                     }
@@ -563,6 +570,8 @@
                     $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
                 stop : function (event, ui) {
+                    $('.ghost').remove();
+
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
@@ -600,10 +609,11 @@
                     }
                 },
                 over : function (event, ui) {
-                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id')),
-                        last = self.flatData[self.showRange[self.showRange.length-1]].id,
+                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'), 10),
+                        last = self.flatData[self.showRange[self.showRange.length - 1]].id,
                         first = self.flatData[self.showRange[0]].id,
                         currentScroll;
+                    console.log(id, last, first, event, ui);
                     if (id === last) {
                         currentScroll = $('#tb-tbody').scrollTop();
                         $('#tb-tbody').scrollTop(currentScroll + 35);
@@ -620,12 +630,12 @@
 
             self.options.finalDragOptions = $.extend(draggableOptions, self.options.dragOptions);
             self.options.finalDropOptions = $.extend(droppableOptions, self.options.dropOptions);
-            self.options.dragSelector = self.options.moveClass ? self.options.moveClass : 'td-title';
+            self.options.dragSelector = self.options.moveClass ||  'td-title';
             self.moveOn(); // first time;
 
         };
 
-        this.moveOn = function _moveOn(parent){
+        this.moveOn = function _moveOn(parent) {
             if (!parent) {
                 $('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
                 $('.tb-row').droppable(self.options.finalDropOptions);
@@ -1439,8 +1449,11 @@
         this.init = function _init(el, isInit) {
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight);
-
+            if (self.options.allowMove) {
+                self.moveOn();
+            }
             if (isInit) { return; }
+            self.initializeMove();
             if (!self.options.rowHeight) {
                 self.options.rowHeight = $('.tb-row').height();
             }
@@ -1589,9 +1602,7 @@
                     // $('.tb-row').removeClass('tb-unselectable');
                 });
             }
-            if (self.options.allowMove) {
-                self.initializeMove();
-            }
+
         };
 
         this.destroy = function _destroy () {
@@ -1676,7 +1687,7 @@
                             ]);
                         })
                     ]),
-                    m("#tb-tbody", {config : ctrl.init},  [
+                    m("#tb-tbody", { config : ctrl.init },  [
                         (function showModal() {
 
                             if (ctrl.modal.on) {
@@ -1746,9 +1757,9 @@
                                                 var cell,
                                                     title,
                                                     colInfo = ctrl.options.columnTitles.call(ctrl)[index],
-                                                    colcss = col.css ? col.css : '';
+                                                    colcss = col.css || '';
                                                 var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' :  colInfo.width;
-                                                cell = m('.tb-td.tb-col-' + index, { 'class' : col.css, style : "width:" + width }, [
+                                                cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + width }, [
                                                     m('span', row[col.data])
                                                 ]);
                                                 if (tree.notify.on && tree.notify.column === index) {
@@ -1882,10 +1893,10 @@
     var Options = function() {
         this.divID = "myGrid";
         this.filesData = "small.json";
-        this.rowHeight = undefined;         // user can override or get from .tb-row height
-        this.paginate = false;       // Whether the applet starts with pagination or not.
-        this.paginateToggle = false; // Show the buttons that allow users to switch between scroll and paginate.
-        this.uploads = false;         // Turns dropzone on/off.
+        this.rowHeight = undefined;     // user can override or get from .tb-row height
+        this.paginate = false;          // Whether the applet starts with pagination or not.
+        this.paginateToggle = false;    // Show the buttons that allow users to switch between scroll and paginate.
+        this.uploads = false;           // Turns dropzone on/off.
         this.multiselect = false;
         this.filterStyle = { float : 'right', width : '50%'};
         this.columnTitles = function () {
@@ -1912,33 +1923,11 @@
                 }
             ]};
         this.resolveRows = function (item) {
-            return [            // Defines columns based on data
+            return [   // Defines columns based on data
                 {
                     data : "title",  // Data field name
                     folderIcons : true,
                     filter : true
-                },
-                {
-                    data : "person",
-                    filter : true
-                },
-                {
-                    data : "age",
-                    filter : false
-                },
-                {
-                    data : "action",
-                    sortInclude : false,
-                    filter : false,
-                    custom : function (row, col) {
-                        var that = this;
-                        return m("button.btn.btn-danger.btn-xs", {
-                            onclick: function _deleteClick(e) {
-                                e.stopPropagation();
-                                that.deleteNode(row.parentID, row.id);
-                            }
-                        }, " X ");
-                    }
                 }
             ];
         };

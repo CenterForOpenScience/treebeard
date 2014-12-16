@@ -13,6 +13,7 @@
         "show": true,
         "date": "2014-10-08T13:57:13.387Z",
         "icon": "fa-file-excel-o",
+        "kind" : "folder",
         "children": [
             {
                 "id": 2,
