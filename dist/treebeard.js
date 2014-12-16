@@ -534,20 +534,21 @@
                 containment : '.tb-tbody-inner',
                 delay : 100,
                 drag : function (event, ui) {
-                    if (self.pressedKey == 27){
+                    if (self.pressedKey === 27) {
                         return false;
                     }
                     if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
-                        console.log('drag', ui);
-                        if (!self.draggedCache) {
+                        console.log("multiselected", self.multiselected);
+                        //if (!self.draggedCache) {
                             self.draggedCache = $(ui.helper).clone();
-                            if (self.options.multiselected.length > 1) {
-                                self.draggedCache.text('Sup!');
+                            if (self.multiselected.length > 1) {
+                                var newText = $(ui.helper).text() + ' + ' + self.multiselected.length + ' more';
+                                $(ui.helper).text(newText);
                             }
-                        }
-                        self.draggedCache.css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                        //}
+                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
 
                 },
