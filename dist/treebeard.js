@@ -524,10 +524,8 @@
          */
         this.initializeMove = function () {
             var draggableOptions,
-                droppableOptions,
-                drag,
-                drop,
-                dragSelector;
+                droppableOptions;
+
             draggableOptions = {
                 helper: "clone",
                 cursor : 'move',
@@ -540,14 +538,13 @@
                     if (self.options.dragEvents.drag) {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
-                        console.log("multiselected", self.multiselected);
-                        //if (!self.draggedCache) {
-                            self.draggedCache = $(ui.helper).clone();
+                        if (self.dragText === "") {
                             if (self.multiselected.length > 1) {
-                                var newText = $(ui.helper).text() + ' + ' + self.multiselected.length + ' more';
-                                $(ui.helper).text(newText);
+                                var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
+                                self.dragText = newHTML;
+                                $(ui.helper).html(newHTML);
                             }
-                        //}
+                        }
                         $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
 
@@ -558,6 +555,7 @@
                     }
                 },
                 start : function (event, ui) {
+                    self.dragText = "";
                     if (self.options.dragEvents.start) {
                         self.options.dragEvents.start.call(self, event, ui);
                     }
@@ -602,21 +600,17 @@
                     }
                 },
                 over : function (event, ui) {
-                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'));
-                    var last = self.flatData[self.showRange[self.showRange.length-1]].id;
-                    var first = self.flatData[self.showRange[0]].id;
-                    console.log(id, last);
-                    if(id === last) {
-                        console.log('======= last');
-                        var currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll+35);
-
-
+                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id')),
+                        last = self.flatData[self.showRange[self.showRange.length-1]].id,
+                        first = self.flatData[self.showRange[0]].id,
+                        currentScroll;
+                    if (id === last) {
+                        currentScroll = $('#tb-tbody').scrollTop();
+                        $('#tb-tbody').scrollTop(currentScroll + 35);
                     }
-                    if(id === first) {
-                        console.log('======= first');
-                        var currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll-35);
+                    if (id === first) {
+                        currentScroll = $('#tb-tbody').scrollTop();
+                        $('#tb-tbody').scrollTop(currentScroll - 35);
                     }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
@@ -627,20 +621,18 @@
             self.options.finalDragOptions = $.extend(draggableOptions, self.options.dragOptions);
             self.options.finalDropOptions = $.extend(droppableOptions, self.options.dropOptions);
             self.options.dragSelector = self.options.moveClass ? self.options.moveClass : 'td-title';
-
             self.moveOn(); // first time;
 
         };
 
         this.moveOn = function _moveOn(parent){
-            if(!parent) {
+            if (!parent) {
                 $('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
                 $('.tb-row').droppable(self.options.finalDropOptions);
             } else {
                 $(parent).find('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
                 $(parent).droppable(self.options.finalDropOptions);
             }
-
         };
 
         /**
