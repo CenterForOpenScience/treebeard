@@ -860,7 +860,7 @@
             if(icon.get(0)) {
                 m.render(icon.get(0), m('i.icon-refresh.icon-spin'))
             };
-            $.when(self.options.resolveLazyloadUrl(self, tree)).done(function _resolveLazyloadDone(url) {
+            $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
                     tree.children = [];

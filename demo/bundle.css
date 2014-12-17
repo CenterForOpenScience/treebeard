@@ -144,7 +144,7 @@
 .f-4{font-weight:400}
 .f-5{font-weight:500}
 .f-6{font-weight:600}
-*{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
+*,.box-sizing,:after,:before{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
 #tb-tbody{border:1px solid #ccc;height:500px;overflow:auto;background:#fff}
 .tb-tbody-inner{overflow:hidden}
 .tb-row-titles{background:#EEE;border:1px solid #CCC;border-bottom:none;height:35px}
