@@ -3451,7 +3451,6 @@ if (typeof exports == "object") {
                     $('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 },
                 create : function (event, ui) {
-                    ;
                     if (self.options.dragEvents.create) {
                         self.options.dragEvents.create.call(self, event, ui);
                     }
@@ -4112,29 +4111,6 @@ if (typeof exports == "object") {
             self.multiselected = [];
         };
 
-        self.resizeColumns = function _resizeColumns () {
-            // get
-            // get data-tb-size
-            //var parentWidth = $('.tb-row-titles').width();
-            //var childrenWidth = 0;
-            //$('.tb-th').each(function(){
-            //    childrenWidth = childrenWidth + $(this).outerWidth();
-            //    $(this).css({ height : '35px'});
-            //})
-            //console.log("Parent", parentWidth, 'children', childrenWidth);
-            //var diff = parentWidth - childrenWidth;
-            //if (parentWidth > childrenWidth ){
-            //
-            //}
-            //
-            //if ( parentWidth < childrenWidth){
-            //
-            //}
-
-            console.log(self.colsizes);
-        }
-
-
         // Remove dropzone from grid
         function _destroyDropzone() {
             self.dropzone.destroy();
@@ -4378,32 +4354,14 @@ if (typeof exports == "object") {
                     _lastLocation = scrollTop;
                 }
             });
-            $(window).resize(function () {
-                self.resizeColumns();
-            });
             $('.tb-th.tb-resizable').resizable({
                 containment : 'parent',
                 delay : 200,
                 handles : 'e',
                 minWidth : 60,
                 create : function(event, ui) {
-                    console.log(event, ui);
                     // change cursor
                     $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
-                    // revise all widths from percentage into pixels
-                    $('.tb-th, .tb-td').each(function(){
-                        var w = $(this).outerWidth();
-                        $(this).css({width : w + 'px'});
-                    });
-                    // This adjustment is required because of rounding of percentages == these are not the same below
-                    $('.tb-th:last-of-type').each(function(){
-                        var w = $(this).outerWidth();
-                        $(this).css({width : (w-2) + 'px'});
-                    });
-                    $('.tb-td:last-of-type').each(function(){
-                        var w = $(this).outerWidth();
-                        $(this).css({width : (w-2) + 'px'});
-                    });
 
                     // update beginning sizes
                     var parentWidth = $('.tb-row-titles').width();
@@ -4411,12 +4369,9 @@ if (typeof exports == "object") {
                         $(this).attr('data-tb-size', $(this).outerWidth());
                         self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth()/parentWidth*100;
                     })
-
-
                 },
                 resize : function(event, ui) {
                     var thisCol = $(ui.element).attr('data-tb-th-col');
-                    console.log("Thiscol", thisCol);
                     var diff = ui.originalSize.width - ui.size.width;
                     var sibling = $(ui.element).next();
                     var siblingOriginalWidth = parseInt(sibling.attr('data-tb-size'));
@@ -4433,12 +4388,8 @@ if (typeof exports == "object") {
                         childrenWidth = childrenWidth + $(this).outerWidth();
                         $(this).css({ height : '35px'});
                     })
-                    console.log(parentWidth, childrenWidth);
                     if(childrenWidth > parentWidth){
                         var diff2 = childrenWidth - parentWidth;
-                        // number of children other than the current element with widths bigger than 40
-                        //var nextBigThing = $(ui.element).next();
-
                         var nextBigThing = $('.tb-th').not(ui.element).filter(function () {
                             var colElement = parseInt($(ui.element).attr('data-tb-th-col'));
                             var colThis = parseInt($(this).attr('data-tb-th-col'));
@@ -4486,7 +4437,6 @@ if (typeof exports == "object") {
                     })
                 }
             })
-            console.log("Uploads", self.options);
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);

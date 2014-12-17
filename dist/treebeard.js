@@ -548,12 +548,11 @@
                         $(ui.helper).css({ 'display' : 'none'}); //, 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
                     // keep copy of the element and attach it to the mouse location
-                    var x = event.clientX > 100 ? event.clientX : 100;
+                    var x = event.clientX > 50 ? event.clientX - 50 : 50;
                     var y = event.clientY - 10;
                     $('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 },
                 create : function (event, ui) {
-                    ;
                     if (self.options.dragEvents.create) {
                         self.options.dragEvents.create.call(self, event, ui);
                     }
@@ -571,7 +570,7 @@
                     $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
                 stop : function (event, ui) {
-                    $('.ghost').remove();
+                    $('.tb-drag-ghost').remove();
 
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
@@ -1492,20 +1491,20 @@
                     console.log(event, ui);
                     // change cursor
                     $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
-                    // revise all widths from percentage into pixels
-                    $('.tb-th, .tb-td').each(function(){
-                        var w = $(this).outerWidth();
-                        $(this).css({width : w + 'px'});
-                    });
-                    // This adjustment is required because of rounding of percentages == these are not the same below
-                    $('.tb-th:last-of-type').each(function(){
-                        var w = $(this).outerWidth();
-                        $(this).css({width : (w-2) + 'px'});
-                    });
-                    $('.tb-td:last-of-type').each(function(){
-                        var w = $(this).outerWidth();
-                        $(this).css({width : (w-2) + 'px'});
-                    });
+                    //// revise all widths from percentage into pixels
+                    //$('.tb-th, .tb-td').each(function(){
+                    //    var w = $(this).outerWidth();
+                    //    $(this).css({width : w + 'px'});
+                    //});
+                    //// This adjustment is required because of rounding of percentages == these are not the same below
+                    //$('.tb-th:last-of-type').each(function(){
+                    //    var w = $(this).outerWidth();
+                    //    $(this).css({width : (w-2) + 'px'});
+                    //});
+                    //$('.tb-td:last-of-type').each(function(){
+                    //    var w = $(this).outerWidth();
+                    //    $(this).css({width : (w-2) + 'px'});
+                    //});
 
                     // update beginning sizes
                     var parentWidth = $('.tb-row-titles').width();
