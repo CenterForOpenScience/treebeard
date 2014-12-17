@@ -1482,12 +1482,19 @@
                 create : function(event, ui) {
                     // change cursor
                     $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
-
                     // update beginning sizes
                     var parentWidth = $('.tb-row-titles').width();
-                    $('.tb-th').each(function(){
-                        $(this).attr('data-tb-size', $(this).outerWidth());
-                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth()/parentWidth*100;
+                    var percentageTotal = 0, p;
+                    $('.tb-th').each(function(index){
+                        $(this).attr('data-tb-size', $(this).width());
+                        p = Math.floor($(this).width()/parentWidth*100);
+                        self.colsizes[$(this).attr('data-tb-th-col')] = p;
+                        if(index === $('.tb-th').length - 1 ) {
+                            var rounded = Math.floor(100 - percentageTotal);
+                            self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
+                        }
+                        percentageTotal += p;
+                        console.log(parentWidth, percentageTotal, p, rounded);
                     })
                 },
                 resize : function(event, ui) {
@@ -1545,7 +1552,6 @@
                     var index = $(this).attr('data-tb-th-col');
                     var colWidth = $(this).outerWidth();
                     $('.tb-col-'+index).css({width : colWidth + 'px'});
-
                 },
                 stop : function(event, ui){
                     var parentWidth = $('.tb-row-titles').width();
@@ -1827,10 +1833,10 @@
                                                     activeScroll = "active";
                                                 }
                                                 return m('.btn-group.padder-10', [
-                                                    m("button.btn.btn-default.btn-sm.tb-scroll",
+                                                    m("button.tb-button.tb-scroll",
                                                         { onclick : ctrl.toggleScroll, "class" : activeScroll},
                                                         "Scroll"),
-                                                    m("button.btn.btn-default.btn-sm.tb-paginate",
+                                                    m("button.tb-button.tb-paginate",
                                                         { onclick : ctrl.togglePaginate, "class" : activePaginate },
                                                         "Paginate")
                                                 ]);
@@ -1846,7 +1852,7 @@
                                                     return ctrl.options.resolvePagination.call(ctrl, total, ctrl.currentPage());
                                                 }
                                                 return m('.tb-pagination.pull-right', [
-                                                    m('button.tb-pagination-prev.btn.btn-default.btn-sm.m-r-sm',
+                                                    m('button.tb-pagination-prev.tb-button.m-r-sm',
                                                         { onclick : ctrl.pageDown},
                                                         [ m('i.fa.fa-chevron-left')]),
                                                     m('input.tb-pagination-input.m-r-sm',
@@ -1861,7 +1867,7 @@
                                                         }
                                                     ),
                                                     m('span.tb-pagination-span', "/ " + total + " "),
-                                                    m('button.tb-pagination-next.btn.btn-default.btn-sm',
+                                                    m('button.tb-pagination-next.tb-button',
                                                         { onclick : ctrl.pageUp},
                                                         [ m('i.fa.fa-chevron-right')
                                                         ])

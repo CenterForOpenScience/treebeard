@@ -8,7 +8,7 @@ var uglify = require('gulp-uglify');
 
 var paths = {
     cssfiles : [
-        "./bower_components/bootstrap/dist/css/*.min.css",
+        //"./bower_components/bootstrap/dist/css/*.min.css",
         "./less/*.css",
         "./css/*.css"
     ],

@@ -11,6 +11,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
         <link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/all.css">
+
+
         <link rel="stylesheet" href="bundle.css">
         <style>
             body {
@@ -104,7 +106,7 @@
                         filter : false,
                         custom : function (row, col) {
                             var that = this;
-                            return m("button.btn.btn-danger.btn-xs", {
+                            return m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
                                     e.stopPropagation();
                                     that.deleteNode(row.parentID, row.id);
