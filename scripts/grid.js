@@ -6,6 +6,7 @@
 ;
 (function (global, factory) {
     "use strict";
+    var m;
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(['jQuery', 'mithril'], factory);
@@ -13,11 +14,11 @@
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        var m = require('mithril');
+        m = require('mithril');
         module.exports = factory(jQuery, m);
     } else {
         // Browser globals (root is window)
-        var m = global.m;
+        m = global.m;
         global.Treebeard = factory(jQuery, m);
     }
 }(this, function (jQuery, m) {
@@ -46,7 +47,7 @@
      */
     function getUID() {
         window.treebeardCounter = window.treebeardCounter  + 1;
-        return window.treebeardCounter ;
+        return window.treebeardCounter;
     }
 
     /**
@@ -185,7 +186,6 @@
      * Implementation of a modal system, currently used once sitewide
      * @constructor
      */
-
     Modal = function _modal() {
         var el = $('#tb-tbody'),
             self = this;
@@ -429,7 +429,6 @@
      */
     Item.prototype.isAncestor = function _isAncestor(item) {
         function _checkAncestor(a, b) {
-            console.log("is ancestor", a, b);
             if (a.id === b.id) {
                 return true;
             }
@@ -438,7 +437,7 @@
             }
             return false;
         }
-        if(item.parent()){
+        if (item.parent()) {
             return _checkAncestor(item.parent(), this);
         }
         return false;
@@ -474,8 +473,6 @@
             _isSorted = { asc : false, desc : false, column : "" },  // Temporary variables for sorting
             _lastLocation = 0,                                  // The last scrollTop location, updates on every scroll.
             _lastNonFilterLocation = 0;                         // The last scrolltop location before filter was used.
-
-
         m.redraw.strategy("all");
         // public variables
         this.modal = new Modal();                                     // Box wide modal
@@ -485,7 +482,6 @@
         this.showRange = [];                                    // Array of indexes that the range shows
         this.options = opts;                       // User defined options
         this.selected = undefined;                              // The row selected on click.
-        this.mouseon = undefined;                              // The row the mouse is on for mouseover events.
         this.rangeMargin = 0;                                   // Top margin, required for proper scrolling
         this.visibleIndexes = [];                               // List of items viewable as a result of an operation like filter.
         this.visibleTop = undefined;                            // The first visible item.
@@ -496,7 +492,6 @@
         this.multiselected = [];
         this.pressedKey = undefined;
         this.dragOngoing = false;
-        this.draggedCache = null;                               // Caching the dragged ui helper when going beyond view scroll
         this.initialized = false;                               // Treebeard's own initialization check, turns to true after page loads.
         this.colsizes = {};                                     // Storing column sizes across the app.
 
@@ -524,8 +519,9 @@
          */
         this.initializeMove = function () {
             var draggableOptions,
-                droppableOptions;
-
+                droppableOptions,
+                x,
+                y;
             draggableOptions = {
                 helper: "clone",
                 cursor : 'move',
@@ -545,11 +541,11 @@
                                 $('.tb-drag-ghost').html(newHTML);
                             }
                         }
-                        $(ui.helper).css({ 'display' : 'none'}); //, 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                        $(ui.helper).css({ 'display' : 'none'});
                     }
                     // keep copy of the element and attach it to the mouse location
-                    var x = event.clientX > 50 ? event.clientX - 50 : 50;
-                    var y = event.clientY - 10;
+                    x = event.clientX > 50 ? event.clientX - 50 : 50;
+                    y = event.clientY - 10;
                     $('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 },
                 create : function (event, ui) {
@@ -561,8 +557,7 @@
                     self.dragText = "";
                     var ghost = $(ui.helper).clone();
                     ghost.addClass('tb-drag-ghost');
-
-                    $('body').append(ghost)
+                    $('body').append(ghost);
                     if (self.options.dragEvents.start) {
                         self.options.dragEvents.start.call(self, event, ui);
                     }
@@ -571,13 +566,11 @@
                 },
                 stop : function (event, ui) {
                     $('.tb-drag-ghost').remove();
-
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
                     self.dragOngoing = false;
                     $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
-
                 }
             };
 
@@ -613,7 +606,6 @@
                         last = self.flatData[self.showRange[self.showRange.length - 1]].id,
                         first = self.flatData[self.showRange[0]].id,
                         currentScroll;
-                    console.log(id, last, first, event, ui);
                     if (id === last) {
                         currentScroll = $('#tb-tbody').scrollTop();
                         $('#tb-tbody').scrollTop(currentScroll + 35);
@@ -627,14 +619,16 @@
                     }
                 }
             };
-
             self.options.finalDragOptions = $.extend(draggableOptions, self.options.dragOptions);
             self.options.finalDropOptions = $.extend(droppableOptions, self.options.dropOptions);
             self.options.dragSelector = self.options.moveClass ||  'td-title';
-            self.moveOn(); // first time;
-
+            self.moveOn();
         };
 
+        /**
+         * Turns move on for all elements or elements within a parent container
+         * @param parent DOM element for parent
+         */
         this.moveOn = function _moveOn(parent) {
             if (!parent) {
                 $('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
@@ -850,7 +844,6 @@
                 self.redraw();
                 return;
             }
-            console.log("Toggled");
             var len = self.flatData.length,
                 tree = Indexes[self.flatData[index].id],
                 item = self.flatData[index],
@@ -1213,12 +1206,16 @@
             self.multiselected = [];
         };
 
-        // Remove dropzone from grid
+        /**
+         * Remove dropzone from grid
+         */
         function _destroyDropzone() {
             self.dropzone.destroy();
         }
 
-        // Apply dropzone to grid
+        /**
+         * Apply dropzone to grid with the optional hooks
+         */
         function _applyDropzone() {
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
             var options = $.extend({
@@ -1232,7 +1229,6 @@
                                     self.dropzone.options.url = newUrl;
                                     self.dropzone.options.counter++;
                                     if(self.dropzone.options.counter < 2 ) {
-                                        console.log('counter', self.dropzone.options.counter);
                                         var index = self.returnIndex(self.dropzoneItemCache.id);
                                         if (!self.dropzoneItemCache.open) {
                                             self.toggleFolder(index, null);
@@ -1318,6 +1314,7 @@
                     }
                 }
             }, self.options.dropzone);           // Extend default options
+            // Add Dropzone with different scenarios of library inclusion, should work for most installations
             var Dropzone;
             if (typeof module === 'object') {
                 Dropzone = require('dropzone');
@@ -1327,10 +1324,16 @@
             if (typeof Dropzone === 'undefined') {
                 throw new Error('To enable uploads Treebeard needs "Dropzone" to be installed.');
             }
+            // apply dropzone to the Treebeard object
             self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
         }
 
+        /**
+         * Loads the data pushed in to Treebeard and handles it to comply with treebeard data structure.
+         * @param {Array, String} data Data sent in as an array of objects or a url in string form
+         */
         function _loadData(data) {
+            // Order of operations: Gewt data -> build tree -> flatten for view -> calculations for view: visible, height
             if ($.isArray(data)) {
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
@@ -1343,6 +1346,8 @@
                     self.initialized = true;
                 });
             } else {
+                // then we assume it's a sring with a valiud url
+                // I took out url validation because it does more harm than good here.
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
                         self.treeData = self.buildTree(value);
@@ -1352,8 +1357,6 @@
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
-                        //window.console.log("FlatData", self.flatData);
-                        //window.console.log("treeData", self.treeData);
                         self.calculateVisible();
                         self.calculateHeight();
                         self.initialized = true;
@@ -1381,7 +1384,12 @@
             return tree;
         };
 
-        // Turns the tree structure into a flat index of nodes
+        /**
+         * Turns the tree structure into a flat index of nodes
+         * @param {Array} value Array of hierarchical objects
+         * @param {Number} visibleTop Passes through the beginning point so that refreshes can work, default is 0.
+         * @return {Array} value Returns a flat version of the hierarchical objects in an array.
+         */
         this.flatten = function _flatten(value, visibleTop) {
             self.flatData = [];
             var openLevel,
@@ -1421,41 +1429,51 @@
             return value;
         };
 
+        /**
+         * Update view on scrolling the table
+         */
+        this.onScroll = function _scrollHook() {
+            if (!self.options.paginate) {
+                var scrollTop, diff, itemsHeight, innerHeight, location, index;
+                scrollTop = $(this).scrollTop();                    // get current scroll top
+                diff = scrollTop - _lastLocation;                    //Compare to last scroll location
+                if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
+                    $(this).scrollTop(_lastLocation + self.options.rowHeight);
+                }
+                if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
+                    $(this).scrollTop(_lastLocation - self.options.rowHeight);
+                }
+                itemsHeight = self.calculateHeight();
+                innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
+                scrollTop = $(this).scrollTop();
+                location = scrollTop / innerHeight * 100;
+                index = Math.round(location / 100 * self.visibleIndexes.length);
+                self.rangeMargin = Math.round(itemsHeight * (scrollTop / innerHeight));
+                self.refreshRange(index);
+                m.redraw(true);
+                _lastLocation = scrollTop;
+            }
+        };
 
-        // Initializes after the view
+        /**
+         * Initialization functions after the main body of the table is loaded
+         * @param {Object} el The DOM element that config is run on
+         * @param {Boolean} isInit Whether this function ran once after page load.
+         */
         this.init = function _init(el, isInit) {
             var containerHeight = $('#tb-tbody').height();
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight);
+            // reapply move on view change.
             if (self.options.allowMove) {
                 self.moveOn();
             }
             if (isInit) { return; }
-            self.initializeMove();
-            if (!self.options.rowHeight) {
+            self.initializeMove();                              // Needed to run once to establish drag and drop options
+            if (!self.options.rowHeight) {                      // If row height is not set get it from CSS
                 self.options.rowHeight = $('.tb-row').height();
             }
-            $('#tb-tbody').scroll(function _scrollHook() {
-                if (!self.options.paginate) {
-                    var scrollTop, diff, itemsHeight, innerHeight, location, index;
-                    scrollTop = $(this).scrollTop();                    // get current scroll top
-                    diff = scrollTop - _lastLocation;                    //Compare to last scroll location
-                    if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
-                        $(this).scrollTop(_lastLocation + self.options.rowHeight);
-                    }
-                    if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
-                        $(this).scrollTop(_lastLocation - self.options.rowHeight);
-                    }
-                    itemsHeight = self.calculateHeight();
-                    innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
-                    scrollTop = $(this).scrollTop();
-                    location = scrollTop / innerHeight * 100;
-                    index = Math.round(location / 100 * self.visibleIndexes.length);
-                    self.rangeMargin = Math.round(itemsHeight * (scrollTop / innerHeight));
-                    self.refreshRange(index);
-                    m.redraw(true);
-                    _lastLocation = scrollTop;
-                }
-            });
+            // Main scrolling functionality
+            $('#tb-tbody').scroll(self.onScroll);
             $('.tb-th.tb-resizable').resizable({
                 containment : 'parent',
                 delay : 200,
@@ -1500,7 +1518,6 @@
                             }
                             return false;
                         }).first();
-                        console.log("nextbigthing", nextBigThing);
                         if(nextBigThing.length > 0){
                             var w2 = nextBigThing.outerWidth();
                             nextBigThing.css({ width : (w2 - diff2) + 'px' })
@@ -1516,7 +1533,6 @@
                         // number of children other than the current element with widths bigger than 40
                         var lastBigThing = $('.tb-th').not(ui.element).filter(function () {
                             return $(this).outerWidth() < parseInt($(this).attr('data-tb-size')); }).last();
-                        console.log("nextbigthing", lastBigThing.length);
                         if(lastBigThing.length > 0){
                             var w3 = lastBigThing.outerWidth();
                             lastBigThing.css({ width : (w3 + diff3) + 'px' });
@@ -1546,23 +1562,25 @@
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
-                    // $('.tb-row').addClass('tb-unselectable');
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
-                    // $('.tb-row').removeClass('tb-unselectable');
                 });
             }
-
         };
 
+        /**
+         * Destroys Treebeard by emptying the DOM object and removing dropzone
+         * Because DOM objects are removed their events are going to be cleaned up.
+         */
         this.destroy = function _destroy () {
             $('#' + self.options.divID).html(''); // Empty HTML
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
         };
 
-        // Check if options inclide filesData, this is required to run so throw error if not.
-        //this.resetCounter();
+        /**
+         * Checks if there is filesData option, fails if there isn't, initiates the entire app if it does.
+         */
         if (self.options.filesData) {
             _loadData(self.options.filesData);
         } else {
@@ -1570,10 +1588,17 @@
         }
     };
 
+    /**
+     * Mithril View. Documentation is here: (http://lhorie.github.io/mithril/mithril.html) Use m() for templating.
+     * @param {Object} ctrl The entire Treebeard.controller object with its values and methods. Refer to as ctrl.
+     */
     Treebeard.view = function treebeardView(ctrl) {
         return [
             m('.gridWrapper', [
                 m(".tb-table", [
+                /**
+                 * Template for the head row, includes whether filter or title should be shown.
+                 */
                     (function showHeadA() {
                         if (ctrl.options.showFilter || ctrl.options.title) {
                             return m('.tb-head.clearfix', [
@@ -1595,19 +1620,22 @@
                         }
                     }()),
                     m(".tb-row-titles", [
+                    /**
+                     * Render column titles based on the columnTitles option.
+                     */
                         ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
                             var sortView = "",
                                 up,
                                 down,
                                 resizable = '.tb-resizable';
                             var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' :  col.width;
-                            if(!ctrl.options.resizeColumns){
+                            if(!ctrl.options.resizeColumns){    // Check if columns can be resized.
                                 resizable = '';
                             }
-                            if(index === arr.length-1){
+                            if(index === arr.length-1){// Last column itself is not resizable because you don't need to
                                 resizable = '';
                             }
-                            if (col.sort) {
+                            if (col.sort) {     // Add sort buttons with their onclick functions
                                 if (ctrl.options.sortButtonSelector.up) {
                                     up = ctrl.options.sortButtonSelector.up;
                                 } else {
@@ -1639,8 +1667,10 @@
                         })
                     ]),
                     m("#tb-tbody", { config : ctrl.init },  [
+                    /**
+                     * In case a modal needs to be shown, check Modal object
+                     */
                         (function showModal() {
-
                             if (ctrl.modal.on) {
                                 return m('.tb-modal-shade', { style : 'width:' + ctrl.modal.width + 'px; position : absolute; height:' + ctrl.modal.height + 'px;'}, [
                                     m('.tb-modal-inner', { 'class' : ctrl.modal.css }, [
@@ -1652,6 +1682,10 @@
                         }()),
                         m('.tb-tbody-inner', [
                             m('', { style : "margin-top:" + ctrl.rangeMargin + "px" }, [
+                            /**
+                             * showRange has the several items that get shown at a time. It's key to view optimization
+                             * showRange values change with scroll, filter, folder toggling etc.
+                             */
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
                                     var oddEvenClass = ctrl.options.oddEvenClass.odd,
                                         indent = ctrl.flatData[item].depth,
@@ -1669,14 +1703,14 @@
                                     } else {
                                         padding = (indent-1) * 20;
                                     }
-                                    if (tree.notify.on && !tree.notify.column) {
+                                    if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
                                         return m(".tb-row", [
                                             m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
                                                 m('span', tree.notify.message)
                                             ])
                                         ]);
                                     } else {
-                                        return m(".tb-row",  {
+                                        return m(".tb-row",  {  // Events and attribtues for entire row
                                             "key" : id,
                                             "class" : css + " " + oddEvenClass,
                                             "data-id" : id,
@@ -1704,6 +1738,9 @@
                                                 }
                                             }
                                         }, [
+                                        /**
+                                         * Build individual columns depending on the resolveRows
+                                         */
                                             rowCols.map(function _mapColumnsContent(col, index) {
                                                 var cell,
                                                     title,
@@ -1731,7 +1768,7 @@
                                                         'class' : colcss,
                                                         style : "padding-left: " + padding + "px; width:" + width
                                                     }, [
-                                                        m("span.tb-td-first",
+                                                        m("span.tb-td-first", // Where toggling and folder icons are
                                                             (function _toggleView() {
                                                                 var set = [{
                                                                     'id' : 1,
@@ -1757,7 +1794,7 @@
                                                         title
                                                     ]);
                                                 }
-                                                if (!col.folderIcons && col.custom) {
+                                                if (!col.folderIcons && col.custom) { // If there is a custom call.
                                                     cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + width }, [
                                                         col.custom.call(ctrl, tree, col)
                                                     ]);
@@ -1771,10 +1808,10 @@
                             ])
 
                         ])
-
-
-
                     ]),
+                /**
+                 * Footer, scroll/paginate toggle, page numbers.
+                 */
                     (function _footer() {
                         if (ctrl.options.paginate || ctrl.options.paginateToggle) {
                             return m('.tb-footer', [
@@ -1841,16 +1878,20 @@
         ];
     };
 
+    /**
+     * Treebeard default options as a constructor so multiple different types of options can be established.
+     * Implementations have to declare their own "filesData", "columnTitles", "resolveRows", all others are optional
+     */
     var Options = function() {
-        this.divID = "myGrid";
-        this.filesData = "small.json";
+        this.divID = "myGrid";          // This div must be in the html already or added as an option
+        this.filesData = "small.json";  // REQUIRED: Data in Array or string url
         this.rowHeight = undefined;     // user can override or get from .tb-row height
         this.paginate = false;          // Whether the applet starts with pagination or not.
         this.paginateToggle = false;    // Show the buttons that allow users to switch between scroll and paginate.
         this.uploads = false;           // Turns dropzone on/off.
-        this.multiselect = false;
-        this.filterStyle = { float : 'right', width : '50%'};
-        this.columnTitles = function () {
+        this.multiselect = false;       // turns ability to multiselect with shift or command keys
+        this.filterStyle = { float : 'right', width : '50%'}; // Adds style control to the filter box.
+        this.columnTitles = function () {   // REQUIRED: Adjust this array based on data needs.
             return [
                 {
                     title: "Title",
@@ -1873,8 +1914,8 @@
                     width : "15%"
                 }
             ]};
-        this.resolveRows = function (item) {
-            return [   // Defines columns based on data
+        this.resolveRows = function (item) { // REQUIRED: How rows should be displayed based on data.
+            return [
                 {
                     data : "title",  // Data field name
                     folderIcons : true,
@@ -1882,18 +1923,18 @@
                 }
             ];
         };
-        this.resizeColumns = true;
-        this.hoverClass = undefined;
-        this.hoverClassMultiselect = 'tb-multiselect';
-        this.showFilter = true;     // Gives the option to filter by showing the filter box.
-        this.title = "Grid Title";          // Title of the grid, boolean, string OR function that returns a string.
-        this.allowMove = true;      // Turn moving on or off.
-        this.moveClass = undefined;
-        this.sortButtonSelector = {}; // custom buttons for sort
-        this.dragOptions = {};
-        this.dropOptions = {};
-        this.dragEvents = {}; // users can override draggable options and events
-        this.dropEvents = {};// users can override droppable options and events
+        this.resizeColumns = true;      // whether the table columns can be resized.
+        this.hoverClass = undefined;    // Css class for hovering over rows
+        this.hoverClassMultiselect = 'tb-multiselect'; // Css class for hover on multiselect
+        this.showFilter = true;         // Gives the option to filter by showing the filter box.
+        this.title = "Grid Title";      // Title of the grid, boolean, string OR function that returns a string.
+        this.allowMove = true;          // Turn moving on or off.
+        this.moveClass = undefined;     // Css class for which elements can be moved. Your login needs to add these to appropriate elements.
+        this.sortButtonSelector = {};   // custom buttons for sort, needed because not everyone uses FontAwesome
+        this.dragOptions = {};          // jQuery UI draggable options without the methods
+        this.dropOptions = {};          // jQuery UI droppable options without the methods
+        this.dragEvents = {};           // users can override draggable options and events
+        this.dropEvents = {};           // users can override droppable options and events
         this.oddEvenClass = {
             odd : 'tb-odd',
             even : 'tb-even'
@@ -2044,7 +2085,12 @@
         };
     }
 
-    // Starts treebard with user options;
+    /**
+     * Starts treebard with user options
+     * This may seem convoluted but is useful to encapsulate Treebeard instances.
+     * @param {Object} options The options user passes in; will be expanded with defaults.
+     * @returns {*}
+     */
     var runTB = function _treebeardRun(options) {
         var defaults = new Options();
         var finalOptions = $.extend(defaults, options);
