@@ -3440,15 +3440,15 @@ if (typeof exports == "object") {
                             if (self.multiselected.length > 1) {
                                 var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
                                 self.dragText = newHTML;
-                                $(ui.helper).html(newHTML);
+                                $('.tb-drag-ghost').html(newHTML);
                             }
                         }
-                        $(ui.helper).css({ 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                        $(ui.helper).css({ 'display' : 'none'}); //, 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                     }
                     // keep copy of the element and attach it to the mouse location
-                    var x = event.clientX > 100 ? event.clientX : 100;
-                    var y = event.clientY-10;
-                    $('.ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                    var x = event.clientX > 50 ? event.clientX - 50 : 50;
+                    var y = event.clientY - 10;
+                    $('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 },
                 create : function (event, ui) {
                     ;
@@ -3459,7 +3459,8 @@ if (typeof exports == "object") {
                 start : function (event, ui) {
                     self.dragText = "";
                     var ghost = $(ui.helper).clone();
-                    ghost.addClass('ghost');
+                    ghost.addClass('tb-drag-ghost');
+
                     $('body').append(ghost)
                     if (self.options.dragEvents.start) {
                         self.options.dragEvents.start.call(self, event, ui);
@@ -3468,7 +3469,7 @@ if (typeof exports == "object") {
                     $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
                 stop : function (event, ui) {
-                    $('.ghost').remove();
+                    $('.tb-drag-ghost').remove();
 
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
