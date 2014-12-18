@@ -1494,7 +1494,6 @@
                             self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
                         }
                         percentageTotal += p;
-                        console.log(parentWidth, percentageTotal, p, rounded);
                     })
                 },
                 resize : function(event, ui) {
@@ -2025,7 +2024,6 @@
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
-            //window.console.log("onmouseoverrow", this, row, event);
         };
         this.ontogglefolder = function (item) {
             // this = treebeard object
