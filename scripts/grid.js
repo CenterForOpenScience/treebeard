@@ -1126,6 +1126,9 @@
             self.multiselected.map(function (item, index, arr) {
                 if (item.id === id) {
                     arr.splice(index, 1);
+                    // remove highlight
+                    $('.tb-row[data-id="' + item.id + '"]').removeClass(self.options.hoverClassMultiselect);
+
                 }
             });
             return false;
@@ -1579,6 +1582,7 @@
          * Because DOM objects are removed their events are going to be cleaned up.
          */
         this.destroy = function _destroy () {
+            window.treebeardCounter = -1;
             $('#' + self.options.divID).html(''); // Empty HTML
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
         };
