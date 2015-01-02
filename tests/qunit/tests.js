@@ -7,7 +7,6 @@ function reload (type, options) {
     stop();
     this.server.respondWith("GET", "small.json", [200, { "Content-Type": "application/json" }, mockData[type]]);
     var finalOptions = $.extend({}, {filesData : 'small.json', redrawComplete : function () {
-        console.log(this.initialized);
         if (!this.initialized) { start();} }
     }, options);
     var _treebeard = Treebeard(finalOptions);
@@ -25,10 +24,29 @@ QUnit.module("Load Tests", {
     }
 });
 
-test('Treebeard is loaded with options', function(assert) {
+test('Treebeard is loaded with options and destroyed properly', function(assert) {
     var tb = reload.call(this, 'long');
     assert.ok(typeof tb === 'object', 'Treebeard is loaded as an object');
     assert.ok(typeof tb.options === 'object', 'Treebeard has default options');
+    tb.destroy();
+    assert.equal(window.treebeardCounter, -1, 'Destroy resets treebeard counter');
+    assert.equal($('#' + tb.options.divID).html(), '', 'Destroy empties the container div');
+    assert.equal(tb.dropzone, undefined, 'Destroy clears dropzone');
+
+});
+test('Buildtree function converts to item data', function (assert) {
+    var tb = reload.call(this, 'short');
+    assert.equal(tb.treeData.children.length, 4, 'Buildtree built data with children.');
+    assert.equal(tb.treeData.parentID, null, 'treeData top item does not have parent.');
+    assert.equal(tb.treeData.id, 0, 'treeData top item id is 0.');
+
+    tb.destroy();
+});
+test('Flatten function gives flat data', function (assert) {
+    var tb = reload.call(this, 'short');
+    assert.equal(tb.flatData.length, 4, 'Flatten built flat array.');
+    assert.ok($.isArray(tb.flatData), 'Flatten built an array.');
+
     tb.destroy();
 });
 
@@ -67,7 +85,6 @@ test('ITEM Find ', function (assert) {
     var tb = reload.call(this, 'short');
     var item = tb.createItem({'kind': 'folder', 'name': 'Item API test folder'}, 1);
     var foundItem = tb.find(item.id);
-    console.log(item, foundItem);
     assert.equal(foundItem.data.name, 'Item API test folder', 'Finding item by id works');
     //tb.deleteNode(item.parentID, item.id);
     tb.destroy();
@@ -283,7 +300,6 @@ test('checks folder Toggle actually toggles view and data ', function (assert) {
 
     tb.toggleFolder(0, null);
     var openCount = $('.tb-row').length;
-    console.log("Opencount", openCount);
     assert.equal(openCount, 14, 'The view refreshes to show 16 open items. ');
     assert.equal(tb.showRange.length, 14, 'The showRange data refreshes to show 16 open items. ');
     var item = tb.find(1);
@@ -661,11 +677,9 @@ test('checks onmultiselect hook', function (assert) {
 
 test('checks folder Toggle runs "lazyload", "ontoggle" and "togglecheck" callbacks ', function (assert) {
     var check = function (item){
-        console.log("Togglecheck", this, item);
         return true;
     };
     var load = function(item){
-        console.log("item", item.id);
         if(item.id === 1) {
             return 'small.json';
         }
@@ -800,7 +814,6 @@ test(' onmultiselect hook ran', function (assert) {
 
 test('resolveicon hook ran', function (assert) {
     var func = function() {
-        console.log("Resolve icon");
         return m("i.fa.fa-file ");
     }
     var resolveicon = sinon.spy(func);
