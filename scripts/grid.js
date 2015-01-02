@@ -1224,6 +1224,7 @@
                 clickable : false,
                 counter : 0,
                 accept : function _dropzoneAccept(file, done) {
+                    console.log(file);
                     if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache, file))
                             .then(function _resolveUploadUrlThen(newUrl) {
@@ -1476,6 +1477,21 @@
             }
             // Main scrolling functionality
             $('#tb-tbody').scroll(self.onScroll);
+            function _resizeCols () {
+                var parentWidth = $('.tb-row-titles').width();
+                var percentageTotal = 0, p;
+                $('.tb-th').each(function(index){                   // calculate percentages for each column
+                    $(this).attr('data-tb-size', $(this).outerWidth());
+                    if(index === $('.tb-th').length - 1 ) {         // last column gets the remainder
+                        var rounded = Math.floor(100 - percentageTotal);
+                        self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
+                    } else {
+                        p = $(this).outerWidth()/parentWidth*100;
+                        self.colsizes[$(this).attr('data-tb-th-col')] = p;
+                    }
+                    percentageTotal += p;
+                })
+            }
             $('.tb-th.tb-resizable').resizable({
                 containment : 'parent',
                 delay : 200,
@@ -1485,29 +1501,18 @@
                     // change cursor
                     $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
                     // update beginning sizes
-                    var parentWidth = $('.tb-row-titles').width();
-                    var percentageTotal = 0, p;
-                    $('.tb-th').each(function(index){
-                        $(this).attr('data-tb-size', $(this).width());
-                        p = Math.floor($(this).width()/parentWidth*100);
-                        self.colsizes[$(this).attr('data-tb-th-col')] = p;
-                        if(index === $('.tb-th').length - 1 ) {
-                            var rounded = Math.floor(100 - percentageTotal);
-                            self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
-                        }
-                        percentageTotal += p;
-                    })
+                    _resizeCols();
                 },
                 resize : function(event, ui) {
                     var thisCol = $(ui.element).attr('data-tb-th-col');
-                    var diff = ui.originalSize.width - ui.size.width;
-                    var sibling = $(ui.element).next();
-                    var siblingOriginalWidth = parseInt(sibling.attr('data-tb-size'));
-                    var siblingCurrentWidth = sibling.outerWidth();
-                    if(siblingCurrentWidth > 40) {
-                        $(ui.element).next().css({ width : (siblingOriginalWidth + diff) + 'px'});
-                        var siblingIndex = $(ui.element).next().attr('data-tb-th-col');
-                        $('.tb-col-'+siblingIndex).css({width : (siblingOriginalWidth + diff) + 'px'});
+                    var diff = ui.originalSize.width - ui.size.width;           // change in size on column acted on
+                    var next = $(ui.element).next();                         // column to the right
+                    var nextOriginalWidth = parseInt(next.attr('data-tb-size'));
+                    var nextCurrentWidth = next.outerWidth();
+                    if(nextCurrentWidth > 60) {
+                        next.css({ width : (nextOriginalWidth + diff) + 'px'});
+                        var siblingIndex = next.attr('data-tb-th-col');
+                        $('.tb-col-'+siblingIndex).css({width : (nextOriginalWidth + diff) + 'px'});
                     }
                     // if the overall size is getting bigger than home size, make other items smaller
                     var parentWidth = $('.tb-row-titles').width();
@@ -1555,11 +1560,8 @@
                     $('.tb-col-'+index).css({width : colWidth + 'px'});
                 },
                 stop : function(event, ui){
-                    var parentWidth = $('.tb-row-titles').width();
-                    $('.tb-th').each(function(){
-                        $(this).attr('data-tb-size', $(this).outerWidth());
-                        self.colsizes[$(this).attr('data-tb-th-col')] = $(this).outerWidth()/parentWidth*100;
-                    })
+                    _resizeCols();
+                    m.redraw();
                 }
             })
             if (self.options.uploads) { _applyDropzone(); }

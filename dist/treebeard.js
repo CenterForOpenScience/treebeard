@@ -858,7 +858,7 @@
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
             if(icon.get(0)) {
-                m.render(icon.get(0), m('i.icon-refresh.icon-spin'))
+                m.render(icon.get(0), self.options.resolveRefreshIcon());
             };
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
@@ -876,7 +876,6 @@
                                     child = self.buildTree(value[i], tree);
                                     tree.add(child);
                                 }
-
                                 tree.open = true;
                                 tree.load = true;
                                 var iconTemplate = self.options.resolveToggle.call(self, tree);
@@ -1225,6 +1224,7 @@
                 clickable : false,
                 counter : 0,
                 accept : function _dropzoneAccept(file, done) {
+                    console.log(file);
                     if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache, file))
                             .then(function _resolveUploadUrlThen(newUrl) {
@@ -1488,13 +1488,14 @@
                     // update beginning sizes
                     var parentWidth = $('.tb-row-titles').width();
                     var percentageTotal = 0, p;
-                    $('.tb-th').each(function(index){
-                        $(this).attr('data-tb-size', $(this).width());
-                        p = Math.floor($(this).width()/parentWidth*100);
-                        self.colsizes[$(this).attr('data-tb-th-col')] = p;
-                        if(index === $('.tb-th').length - 1 ) {
+                    $('.tb-th').each(function(index){       // calculate percentages for each column
+                        $(this).attr('data-tb-size', $(this).outerWidth());
+                        if(index === $('.tb-th').length - 1 ) { // last column gets the remainder
                             var rounded = Math.floor(100 - percentageTotal);
                             self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
+                        } else {
+                            p = Math.floor($(this).outerWidth()/parentWidth*100);
+                            self.colsizes[$(this).attr('data-tb-th-col')] = p;
                         }
                         percentageTotal += p;
                     })
@@ -1505,7 +1506,7 @@
                     var sibling = $(ui.element).next();
                     var siblingOriginalWidth = parseInt(sibling.attr('data-tb-size'));
                     var siblingCurrentWidth = sibling.outerWidth();
-                    if(siblingCurrentWidth > 40) {
+                    if(siblingCurrentWidth > 60) {
                         $(ui.element).next().css({ width : (siblingOriginalWidth + diff) + 'px'});
                         var siblingIndex = $(ui.element).next().attr('data-tb-th-col');
                         $('.tb-col-'+siblingIndex).css({width : (siblingOriginalWidth + diff) + 'px'});
@@ -1971,7 +1972,7 @@
             // parent = parent to be added to = _item object
             return true;
         };
-        this.oncreate = function (item, parent) {  // When row is deleted successfully
+        this.oncreate = function (item, parent) {  // When new row is added
             // this = treebeard object;
             // item = Item to be added.  = _item object
             // parent = parent to be added to = _item object
@@ -1985,24 +1986,7 @@
             // this = treebeard object;
             // item = a shallow copy of the item deleted, not a reference to the actual item
         };
-        this.movecheck = function (to, from) { //This method gives the users an option to do checks and define their return
-            // this = treebeard object;
-            // from = item that is being moved
-            // to = the target location
-            return true;
-        };
-        this.onmove = function (to, from) {  // After move happens
-            // this = treebeard object;
-            // to = actual tree object we are moving to
-            // from = actual tree object we are moving
-        };
-        this.movefail = function (to, from) { //This method gives the users an option to do checks and define their return
-            // this = treebeard object;
-            // from = item that is being moved
-            // to = the target location
-            return true;
-        };
-        this.addcheck = function (treebeard, item, file) {
+        this.addcheck = function (treebeard, item, file) {  // check is a file can be added to this item
             // this = dropzone object
             // treebeard = treebeard object
             // item = item to be added to
@@ -2033,7 +2017,6 @@
         this.ontogglefolder = function (item) {
             // this = treebeard object
             // item = toggled folder item
-
         };
         this.dropzone = {                                           // All dropzone options.
             url: "http://www.torrentplease.com/dropzone.php"  // When users provide single URL for all uploads
@@ -2054,6 +2037,9 @@
             }
             return m("i.fa.fa-file ");
         };
+        this.resolveRefreshIcon = function(){
+            return m('i.icon-refresh.icon-spin');
+        }
         this.resolveToggle = function (item) {
             var toggleMinus = m("i.fa.fa-minus-square-o", " "),
                 togglePlus = m("i.fa.fa-plus-square-o", " ");

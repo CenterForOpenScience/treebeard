@@ -899,9 +899,37 @@ test('Dropzone file event hooks', function (assert) {
     tb.dropzone.options.sending();
     assert.ok(sending.called, "sending callback called.");
     tb.dropzone.options.complete();
-    assert.ok(sending.complete, "complete callback called.");
+    assert.ok(complete.called, "complete callback called.");
     tb.dropzone.options.addedfile();
-    assert.ok(sending.addedfile, "addedfile callback called.");
+    assert.ok(addedfile.called, "addedfile callback called.");
+
+    tb.destroy();
+});
+
+test('Dropzone accept, and related event hooks', function (assert) {
+    var check = function() {
+        return true;
+    }
+    var method = function(){
+        return "POST";
+    }
+    var addcheck = sinon.spy(check);
+    var resolveuploadurl = sinon.spy();
+    var resolveuploadmethod = sinon.spy(method);
+
+    var tb = reload.call(this, 'short', {
+        uploads: true,
+        addcheck : addcheck,
+        resolveUploadUrl : resolveuploadurl,
+        resolveUploadMethod : resolveuploadmethod
+    });
+
+    tb.dropzoneItemCache = tb.find(1);
+    var f = new File([""], "filename");
+    tb.dropzone.options.accept(f, function(){});
+    assert.equal(addcheck.callCount, 1, "addcheck callback called once .");
+    assert.equal(resolveuploadurl.callCount, 1, "resolveuploadurl callback called once .");
+    assert.equal(resolveuploadmethod.callCount, 1, "resolveuploadmethod callback called once .");
 
     tb.destroy();
 });
