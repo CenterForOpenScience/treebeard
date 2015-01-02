@@ -80,8 +80,7 @@ test('ITEM find child by ID', function (assert) {
     var childItem =  tb.createItem({'kind': 'item', 'name': 'Item API test child'}, item.id);
     var foundItem = item.child(childItem.id);
     assert.equal(foundItem.data.name, 'Item API test child', 'Item child found with child()');
-    tb.deleteNode(item.parentID, item.id);
-
+    //tb.deleteNode(item.parentID, item.id);
     tb.destroy();
 });
 
@@ -660,28 +659,249 @@ test('checks onmultiselect hook', function (assert) {
     tb.destroy();
 });
 
-test('checks folder Toggle runs "lazyload" and "ontoggle" callbacks ', function (assert) {
-    var tb = reload.call(this, 'long');
+test('checks folder Toggle runs "lazyload", "ontoggle" and "togglecheck" callbacks ', function (assert) {
+    var check = function (item){
+        console.log("Togglecheck", this, item);
+        return true;
+    };
+    var load = function(item){
+        console.log("item", item.id);
+        if(item.id === 1) {
+            return 'small.json';
+        }
+        return false;
+    }
 
-    var lazyload = sinon.spy();
+    var lazyload = sinon.spy(load);
     var ontoggle = sinon.spy();
-    tb.options.resolveLazyloadUrl = lazyload;
-    tb.options.ontogglefolder = ontoggle;
+    var togglecheck = sinon.spy(check);
+    var lazyloadonload = sinon.spy();
+
+    var tb = reload.call(this, 'long', {
+        resolveRefreshIcon : function(){
+            return m('i.fa.fa-refresh.fa-spin');
+        },
+        resolveLazyloadUrl : lazyload,
+        ontogglefolder : ontoggle,
+        togglecheck : togglecheck,
+        lazyLoadOnLoad : lazyloadonload
+    });
+
     tb.toggleFolder(0, null);
     assert.equal(lazyload.callCount, 1, "Lazyload callback called once .");
     assert.equal(ontoggle.callCount, 1, "Ontoggle callback called once .");
-    tb.toggleFolder(0, null);
+    //assert.equal(lazyloadonload.callCount, 1, "Lazyloadonload callback called once .");
+
+
+    $('.tb-row[data-id="1"]').find('.tb-toggle-icon').trigger('click');
+    assert.equal(togglecheck.callCount, 1, "Togglecheck callback called once .");
+
     tb.destroy();
 
 });
 
 
-// Apply dropzone
-// destroy dropzone
+test('onload hook function runs', function (assert) {
+    var onload = sinon.spy();
+    var tb = reload.call(this, 'long', {onload : onload});
+    assert.equal(onload.callCount, 1, "Onload callback called once.");
+    tb.destroy();
+});
 
-// dropzone callbacks
 
-// buildtree
-// - data is array vs data is object
+test('onfilter and onfilterreset hooks run', function (assert) {
+    var onfilter = sinon.spy();
+    var onfilterreset = sinon.spy();
 
-// flatten
+    var tb = reload.call(this, 'long',{
+        onfilter : onfilter,
+        onfilterreset : onfilterreset
+    });
+
+    var event = jQuery.Event( "keyup" );
+    event.currentTarget = $('.tb-head-filter input').get(0);
+
+    $('.tb-head-filter input').trigger('focus').val('vehicula').trigger(event);
+    assert.equal(onfilter.callCount, 1, "Onfilter callback called once .");
+
+    $('.tb-head-filter input').trigger('focus').val('').trigger(event);
+    assert.equal(onfilterreset.callCount, 1, "Onfilterreset callback called once .");
+
+    tb.destroy();
+
+});
+
+test('oncreate and oncreatecheck hooks ran', function (assert) {
+    var check = function () {
+        return true;
+    }
+    var oncreate = sinon.spy();
+    var createcheck = sinon.spy(check);
+
+    var tb = reload.call(this, 'short', {
+        oncreate: oncreate,
+        createcheck : createcheck
+    });
+    var item = tb.createItem({'kind': 'folder', 'name': 'Item API test folder'}, 1);
+    assert.equal(createcheck.callCount, 1, "createcheck callback called once .");
+    assert.equal(oncreate.callCount, 1, "Oncreate callback called once .");
+    tb.destroy();
+});
+
+test('deletecheck and ondelete hooks ran', function (assert) {
+    var check = function () {
+        return true;
+    }
+    var ondelete = sinon.spy();
+    var deletecheck = sinon.spy(check);
+
+    var tb = reload.call(this, 'short', {
+        ondelete: ondelete,
+        deletecheck : deletecheck
+    });
+
+    tb.deleteNode(0, 2);
+    assert.equal(deletecheck.callCount, 1, "deletecheck callback called once .");
+    assert.equal(ondelete.callCount, 1, "ondelete callback called once .");
+    tb.destroy();
+});
+
+test('onselectrow and mouseoverrow hooks ran ', function (assert) {
+    var onselectrow = sinon.spy();
+    var onmouseoverrow = sinon.spy();
+
+    var tb = reload.call(this, 'long', {
+        onselectrow : onselectrow,
+        onmouseoverrow : onmouseoverrow
+    });
+
+    $('.tb-row[data-id="1"]').trigger('click');
+    assert.equal(onselectrow.callCount, 1, "Onselectrow callback called once .");
+
+    $('.tb-row[data-id="1"]').trigger('onmouseover');
+    assert.ok(onmouseoverrow.called, "Onmouseoverrow callback called .");
+
+    tb.destroy();
+
+});
+
+test(' onmultiselect hook ran', function (assert) {
+    var onmultiselect = sinon.spy();
+
+    var tb = reload.call(this, 'short', {
+        onmultiselect : onmultiselect
+    });
+    // add single item to multiselect,
+    tb.handleMultiselect(2, 1, null);
+    assert.equal(onmultiselect.callCount, 1, "onmultiselect callback called once .");
+
+    tb.destroy();
+});
+
+test('resolveicon hook ran', function (assert) {
+    var func = function() {
+        console.log("Resolve icon");
+        return m("i.fa.fa-file ");
+    }
+    var resolveicon = sinon.spy(func);
+
+    var tb = reload.call(this, 'short', {
+        resolveIcon : resolveicon
+    });
+    assert.ok(resolveicon.called, "resolveicon callback called.");
+
+    tb.destroy();
+});
+
+QUnit.module('Dropzone', {
+    setup : function () {
+        this.server = sinon.fakeServer.create();
+    },
+    teardown : function ( ){
+        this.server.restore();
+    }
+})
+test('Dropzone applied with default url', function (assert) {
+
+    var tb = reload.call(this, 'short', {
+        uploads : true
+    });
+    assert.ok(tb.dropzone, "Dropzone object exists");
+    assert.equal(tb.dropzone.options.url, "http://www.torrentplease.com/dropzone.php", "Dropzone object hs the default url in its options");
+
+    tb.destroy();
+});
+
+test('Dropzone drag event hooks', function (assert) {
+
+    var dragstart = sinon.spy();
+    var dragend = sinon.spy();
+    var dragenter = sinon.spy();
+    var dragover = sinon.spy();
+    var dragleave = sinon.spy();
+
+    var tb = reload.call(this, 'short', {
+        uploads: true,
+        dropzoneEvents : {
+            dragstart : dragstart,
+            dragend : dragend,
+            dragenter : dragenter,
+            dragover : dragover,
+            dragleave : dragleave
+        }
+    });
+    tb.dropzone.options.dragstart();
+    assert.equal(dragstart.callCount, 1, "dragstart callback called once .");
+    tb.dropzone.options.dragend();
+    assert.equal(dragend.callCount, 1, "dragend callback called once .");
+    tb.dropzone.options.dragenter();
+    assert.ok(dragenter.called, "dragenter callback called.");
+    tb.dropzone.options.dragover();
+    assert.ok(dragover.called, "dragover callback called.");
+    tb.dropzone.options.dragleave();
+    assert.ok(dragleave.called, "dragleave callback called.");
+
+    tb.destroy();
+});
+
+test('Dropzone file event hooks', function (assert) {
+
+    var drop = sinon.spy();
+    var success = sinon.spy();
+    var error = sinon.spy();
+    var uploadprogress = sinon.spy();
+    var sending = sinon.spy();
+    var complete = sinon.spy();
+    var addedfile = sinon.spy();
+
+    var tb = reload.call(this, 'short', {
+        uploads: true,
+        dropzoneEvents : {
+            drop : drop,
+            success : success,
+            error : error,
+            uploadprogress : uploadprogress,
+            sending : sending,
+            complete : complete,
+            addedfile : addedfile
+        }
+    });
+    var event = jQuery.Event( "mouseover" );
+    event.target = $('.tb-row[data-id="1"]').get(0);
+    tb.dropzone.options.drop(event);
+    assert.equal(drop.callCount, 1, "drop callback called once .");
+    tb.dropzone.options.success();
+    assert.equal(success.callCount, 1, "success callback called once .");
+    tb.dropzone.options.error();
+    assert.ok(error.called, "error callback called.");
+    tb.dropzone.options.uploadprogress();
+    assert.ok(uploadprogress.called, "uploadprogress callback called.");
+    tb.dropzone.options.sending();
+    assert.ok(sending.called, "sending callback called.");
+    tb.dropzone.options.complete();
+    assert.ok(sending.complete, "complete callback called.");
+    tb.dropzone.options.addedfile();
+    assert.ok(sending.addedfile, "addedfile callback called.");
+
+    tb.destroy();
+});

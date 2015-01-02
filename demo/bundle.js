@@ -3749,7 +3749,7 @@ if (typeof exports == "object") {
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
             if(icon.get(0)) {
-                m.render(icon.get(0), m('i.icon-refresh.icon-spin'))
+                m.render(icon.get(0), self.options.resolveRefreshIcon());
             };
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
@@ -3767,7 +3767,6 @@ if (typeof exports == "object") {
                                     child = self.buildTree(value[i], tree);
                                     tree.add(child);
                                 }
-
                                 tree.open = true;
                                 tree.load = true;
                                 var iconTemplate = self.options.resolveToggle.call(self, tree);
@@ -4017,6 +4016,9 @@ if (typeof exports == "object") {
             self.multiselected.map(function (item, index, arr) {
                 if (item.id === id) {
                     arr.splice(index, 1);
+                    // remove highlight
+                    $('.tb-row[data-id="' + item.id + '"]').removeClass(self.options.hoverClassMultiselect);
+
                 }
             });
             return false;
@@ -4385,7 +4387,6 @@ if (typeof exports == "object") {
                             self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
                         }
                         percentageTotal += p;
-                        console.log(parentWidth, percentageTotal, p, rounded);
                     })
                 },
                 resize : function(event, ui) {
@@ -4471,6 +4472,7 @@ if (typeof exports == "object") {
          * Because DOM objects are removed their events are going to be cleaned up.
          */
         this.destroy = function _destroy () {
+            window.treebeardCounter = -1;
             $('#' + self.options.divID).html(''); // Empty HTML
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
         };
@@ -4842,6 +4844,7 @@ if (typeof exports == "object") {
         this.togglecheck = function (item) {
             // this = treebeard object;
             // item = folder to toggle
+            console.log("Togglecheck", this, item);
             return true;
         };
         this.onfilter = function (filterText) {   // Fires on keyup when filter text is changed.
@@ -4858,7 +4861,7 @@ if (typeof exports == "object") {
             // parent = parent to be added to = _item object
             return true;
         };
-        this.oncreate = function (item, parent) {  // When row is deleted successfully
+        this.oncreate = function (item, parent) {  // When new row is added
             // this = treebeard object;
             // item = Item to be added.  = _item object
             // parent = parent to be added to = _item object
@@ -4872,24 +4875,7 @@ if (typeof exports == "object") {
             // this = treebeard object;
             // item = a shallow copy of the item deleted, not a reference to the actual item
         };
-        this.movecheck = function (to, from) { //This method gives the users an option to do checks and define their return
-            // this = treebeard object;
-            // from = item that is being moved
-            // to = the target location
-            return true;
-        };
-        this.onmove = function (to, from) {  // After move happens
-            // this = treebeard object;
-            // to = actual tree object we are moving to
-            // from = actual tree object we are moving
-        };
-        this.movefail = function (to, from) { //This method gives the users an option to do checks and define their return
-            // this = treebeard object;
-            // from = item that is being moved
-            // to = the target location
-            return true;
-        };
-        this.addcheck = function (treebeard, item, file) {
+        this.addcheck = function (treebeard, item, file) {  // check is a file can be added to this item
             // this = dropzone object
             // treebeard = treebeard object
             // item = item to be added to
@@ -4916,7 +4902,6 @@ if (typeof exports == "object") {
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
-            //window.console.log("onmouseoverrow", this, row, event);
         };
         this.ontogglefolder = function (item) {
             // this = treebeard object
@@ -4941,6 +4926,9 @@ if (typeof exports == "object") {
             }
             return m("i.fa.fa-file ");
         };
+        this.resolveRefreshIcon = function(){
+            return m('i.icon-refresh.icon-spin');
+        }
         this.resolveToggle = function (item) {
             var toggleMinus = m("i.fa.fa-minus-square-o", " "),
                 togglePlus = m("i.fa.fa-plus-square-o", " ");

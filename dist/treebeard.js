@@ -1126,6 +1126,9 @@
             self.multiselected.map(function (item, index, arr) {
                 if (item.id === id) {
                     arr.splice(index, 1);
+                    // remove highlight
+                    $('.tb-row[data-id="' + item.id + '"]').removeClass(self.options.hoverClassMultiselect);
+
                 }
             });
             return false;
@@ -1494,7 +1497,6 @@
                             self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
                         }
                         percentageTotal += p;
-                        console.log(parentWidth, percentageTotal, p, rounded);
                     })
                 },
                 resize : function(event, ui) {
@@ -1580,6 +1582,7 @@
          * Because DOM objects are removed their events are going to be cleaned up.
          */
         this.destroy = function _destroy () {
+            window.treebeardCounter = -1;
             $('#' + self.options.divID).html(''); // Empty HTML
             if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
         };
@@ -1951,6 +1954,7 @@
         this.togglecheck = function (item) {
             // this = treebeard object;
             // item = folder to toggle
+            console.log("Togglecheck", this, item);
             return true;
         };
         this.onfilter = function (filterText) {   // Fires on keyup when filter text is changed.
@@ -2025,11 +2029,11 @@
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
-            //window.console.log("onmouseoverrow", this, row, event);
         };
         this.ontogglefolder = function (item) {
             // this = treebeard object
             // item = toggled folder item
+
         };
         this.dropzone = {                                           // All dropzone options.
             url: "http://www.torrentplease.com/dropzone.php"  // When users provide single URL for all uploads
