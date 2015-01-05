@@ -1183,7 +1183,11 @@
                 }
             }
             // if key is cmd
-            if (self.pressedKey === 91) {
+            var cmdkey = 91; // works with mac
+            if( window.navigator.userAgent.indexOf('MSIE')){
+                cmdkey = 17; // works with windows
+            }
+            if (self.pressedKey === cmdkey) {
                 if (!self.isMultiselected(tree.id)) {
                     self.multiselected.push(tree);
                 } else {
