@@ -1719,7 +1719,7 @@
                                     }
                                     if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
                                         return m(".tb-row", [
-                                            m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
+                                            m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css, 'style' : "height: " + ctrl.options.rowHeight + "px;padding-top:4px;" }, [
                                                 m('span', tree.notify.message)
                                             ])
                                         ]);
