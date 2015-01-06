@@ -608,11 +608,11 @@
                         currentScroll;
                     if (id === last) {
                         currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll + 35);
+                        $('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
                     }
                     if (id === first) {
                         currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll - 35);
+                        $('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
                     }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
@@ -1523,7 +1523,7 @@
                     var childrenWidth = 0;
                     $('.tb-th').each(function(){
                         childrenWidth = childrenWidth + $(this).outerWidth();
-                        $(this).css({ height : '35px'});
+                        //$(this).css({ height : self.options.rowHeight + 'px'});
                     })
                     if(childrenWidth > parentWidth){
                         var diff2 = childrenWidth - parentWidth;
