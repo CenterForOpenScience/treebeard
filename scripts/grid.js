@@ -245,7 +245,7 @@
             this.open = true;
         } else {
             this.data = data;
-            this.kind = data.kind || "item";
+            this.kind = data.kind || "file";
             this.open = data.open;
         }
         if (this.kind === 'folder') {
