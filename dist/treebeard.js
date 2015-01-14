@@ -245,7 +245,7 @@
             this.open = true;
         } else {
             this.data = data;
-            this.kind = data.kind || "item";
+            this.kind = data.kind || "file";
             this.open = data.open;
         }
         if (this.kind === 'folder') {
@@ -608,11 +608,11 @@
                         currentScroll;
                     if (id === last) {
                         currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll + 35);
+                        $('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
                     }
                     if (id === first) {
                         currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll - 35);
+                        $('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
                     }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
@@ -1183,7 +1183,11 @@
                 }
             }
             // if key is cmd
-            if (self.pressedKey === 91) {
+            var cmdkey = 91; // works with mac
+            if( window.navigator.userAgent.indexOf('MSIE')){
+                cmdkey = 17; // works with windows
+            }
+            if (self.pressedKey === cmdkey) {
                 if (!self.isMultiselected(tree.id)) {
                     self.multiselected.push(tree);
                 } else {
@@ -1519,7 +1523,7 @@
                     var childrenWidth = 0;
                     $('.tb-th').each(function(){
                         childrenWidth = childrenWidth + $(this).outerWidth();
-                        $(this).css({ height : '35px'});
+                        //$(this).css({ height : self.options.rowHeight + 'px'});
                     })
                     if(childrenWidth > parentWidth){
                         var diff2 = childrenWidth - parentWidth;
@@ -1715,7 +1719,7 @@
                                     }
                                     if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
                                         return m(".tb-row", [
-                                            m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
+                                            m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css, 'style' : "height: " + ctrl.options.rowHeight + "px;padding-top:4px;" }, [
                                                 m('span', tree.notify.message)
                                             ])
                                         ]);
@@ -2096,6 +2100,10 @@
         };
         tb.view = function(ctrl) {
             return Treebeard.view(ctrl.tbController);
+        }
+        // Weird fix for IE 9, does not harm regular load
+        if( window.navigator.userAgent.indexOf('MSIE')){
+            setTimeout(function(){ m.redraw();}, 1000);
         }
         return m.module(document.getElementById(finalOptions.divID), tb );
     };
