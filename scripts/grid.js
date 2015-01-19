@@ -156,7 +156,7 @@
         this.show = function () {
             this.on = true;
             var self = this;
-            if (self.timeout) {
+            if (self.timeout && self.timeout > 1) {                     // set timeout to 1 to stay forever
                 setTimeout(function () { self.hide(); }, self.timeout);
             }
             m.redraw(true);
@@ -223,8 +223,8 @@
             m.redraw(true);
         };
         this.updateSize = function () {
-            this.height = el.height();
-            this.width = el.width();
+            this.height = $('#tb-tbody').height();
+            this.width = $('#tb-tbody').width();
             m.redraw(true);
         };
         $(window).resize(function () {
