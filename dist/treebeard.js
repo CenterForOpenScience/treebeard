@@ -1575,6 +1575,8 @@
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
+                    console.log("key", self.pressedKey);
+
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;

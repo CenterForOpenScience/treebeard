@@ -4075,7 +4075,7 @@ if (typeof exports == "object") {
             }
             // if key is cmd
             var cmdkey = 91; // works with mac
-            if( window.navigator.userAgent.indexOf('MSIE')){
+            if( window.navigator.userAgent.indexOf('MSIE') > -1){
                 cmdkey = 17; // works with windows
             }
             if (self.pressedKey === cmdkey) {
@@ -4466,6 +4466,8 @@ if (typeof exports == "object") {
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
+                    console.log("key", self.pressedKey);
+
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
