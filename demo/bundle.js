@@ -3361,9 +3361,9 @@ if (typeof exports == "object") {
     Treebeard.controller = function _treebeardController(opts) {
         // private variables
         var self = this,                                        // Treebard.controller
-            _isSorted = { asc : false, desc : false, column : "" },  // Temporary variables for sorting
             _lastLocation = 0,                                  // The last scrollTop location, updates on every scroll.
             _lastNonFilterLocation = 0;                         // The last scrolltop location before filter was used.
+        this.isSorted = {};                                       // Temporary variables for sorting
         m.redraw.strategy("all");
         // public variables
         this.modal = new Modal();                                     // Box wide modal
@@ -3827,14 +3827,15 @@ if (typeof exports == "object") {
             var element = $(ev.target),
                 type = element.attr('data-direction'),
                 index = this,
+                col = element.parent('.tb-th').attr('data-tb-th-col'),
                 sortType = element.attr('data-sortType'),
                 parent = element.parent(),
                 counter = 0,
                 redo;
             $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');  // turn all styles off
-            _isSorted.asc = false;
-            _isSorted.desc = false;
-            if (!_isSorted[type]) {
+            self.isSorted[col].asc = false;
+            self.isSorted[col].desc = false;
+            if (!self.isSorted[col][type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
                         item.sortChildren(self, type, sortType, index);
@@ -3845,7 +3846,7 @@ if (typeof exports == "object") {
                 self.treeData.sortChildren(self, type, sortType, index);           // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
-                _isSorted[type] = true;
+                self.isSorted[col][type] = true;
                 self.flatten(self.treeData.children, 0);
             }
         };
@@ -4550,6 +4551,7 @@ if (typeof exports == "object") {
                                 resizable = '';
                             }
                             if (col.sort) {     // Add sort buttons with their onclick functions
+                                ctrl.isSorted[index] = { asc : false, desc : false };
                                 if (ctrl.options.sortButtonSelector.up) {
                                     up = ctrl.options.sortButtonSelector.up;
                                 } else {
@@ -4816,7 +4818,8 @@ if (typeof exports == "object") {
                 {
                     title: "Author",
                     width : "25%",
-                    sortType : "text"
+                    sortType : "text",
+                    sort : true
                 },
                 {
                     title: "Age",
