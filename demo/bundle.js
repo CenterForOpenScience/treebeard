@@ -4149,6 +4149,7 @@ if (typeof exports == "object") {
                     var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                         item  = Indexes[rowID];
                     self.dropzoneItemCache = item;
+                    this.updateFolder(null, item);
                     if ($.isFunction(self.options.dropzoneEvents.drop)) {
                         self.options.dropzoneEvents.drop.call(this, self, event);
                     }
