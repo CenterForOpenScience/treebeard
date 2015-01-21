@@ -494,7 +494,6 @@
         this.dragOngoing = false;
         this.initialized = false;                               // Treebeard's own initialization check, turns to true after page loads.
         this.colsizes = {};                                     // Storing column sizes across the app.
-
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
          */
@@ -1631,7 +1630,7 @@
                                 }, [
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
-                                            return m("input.form-control[placeholder='filter'][type='text']", {
+                                            return m("input.form-control[placeholder='"+ ctrl.options.filterPlaceholder + "'][type='text']", {
                                                     style: "width:100%;display:inline;",
                                                     onkeyup: ctrl.filter,
                                                     value : ctrl.filterText()
@@ -1949,6 +1948,7 @@
                 }
             ];
         };
+        this.filterPlaceholder = 'Search';
         this.resizeColumns = true;      // whether the table columns can be resized.
         this.hoverClass = undefined;    // Css class for hovering over rows
         this.hoverClassMultiselect = 'tb-multiselect'; // Css class for hover on multiselect
