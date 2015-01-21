@@ -4378,8 +4378,8 @@ if (typeof exports == "object") {
                 $('.tb-th').each(function(index){                   // calculate percentages for each column
                     $(this).attr('data-tb-size', $(this).outerWidth());
                     if(index === $('.tb-th').length - 1 ) {         // last column gets the remainder
-                        var rounded = Math.floor(100 - percentageTotal);
-                        self.colsizes[$(this).attr('data-tb-th-col')] = rounded;
+                        //var rounded = Math.floor(100 - percentageTotal);
+                        self.colsizes[$(this).attr('data-tb-th-col')] = 100 - percentageTotal;
                     } else {
                         p = $(this).outerWidth()/parentWidth*100;
                         self.colsizes[$(this).attr('data-tb-th-col')] = p;
@@ -4438,14 +4438,18 @@ if (typeof exports == "object") {
                     }
                     if(childrenWidth < parentWidth) {
                         var diff3 = parentWidth - childrenWidth;
+                        var w3;
                         // number of children other than the current element with widths bigger than 40
                         var lastBigThing = $('.tb-th').not(ui.element).filter(function () {
                             return $(this).outerWidth() < parseInt($(this).attr('data-tb-size')); }).last();
                         if(lastBigThing.length > 0){
-                            var w3 = lastBigThing.outerWidth();
+                            w3 = lastBigThing.outerWidth();
                             lastBigThing.css({ width : (w3 + diff3) + 'px' });
                             var lastBigThingIndex = lastBigThing.attr('data-tb-th-col');
                             $('.tb-col-'+lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
+                        } else {
+                            w3 = $('.tb-th').last().outerWidth();
+                            $('.tb-th').last().css({width : (w3 + diff3) + 'px'}).attr('data-tb-size', w3 + diff3);
                         }
                     }
                     $(ui.element).attr('data-tb-currentSize', $(ui.element).outerWidth());
