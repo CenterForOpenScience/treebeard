@@ -1462,6 +1462,9 @@
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
+                if(self.options.onscrollcomplete){
+                    self.options.onscrollcomplete.call(self);
+                }
             }
         };
 
