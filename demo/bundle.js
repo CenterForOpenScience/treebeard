@@ -4473,13 +4473,21 @@ if (typeof exports == "object") {
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
-                    console.log("key", self.pressedKey);
-
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
                 });
             }
+            $(window).keydown(function (event) {
+                // if escape cancel modal - 27
+                if(self.modal.on && event.keyCode === 27){
+                    self.modal.dismiss();
+                }
+                // if enter then run the modal - 13
+                if(self.modal.on && event.keyCode === 13){
+                    $('.tb-modal-footer .btn-success').trigger('click');
+                }
+            });
         };
 
         /**
