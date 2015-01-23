@@ -4240,14 +4240,14 @@ if (typeof exports == "object") {
                     self.treeData = value;
                     Indexes[0] = value;
                     self.flatten(self.treeData.children);
-                    if ($.isFunction(self.options.ondataload)) {
-                        self.options.ondataload.call(self);
-                    }
                     return value;
                 }).done(function _buildTreeDone() {
                     self.calculateVisible();
                     self.calculateHeight();
                     self.initialized = true;
+                    if ($.isFunction(self.options.ondataload)) {
+                        self.options.ondataload.call(self);
+                    }
                 });
             } else {
                 // then we assume it's a sring with a valiud url
@@ -4264,6 +4264,9 @@ if (typeof exports == "object") {
                         self.calculateVisible();
                         self.calculateHeight();
                         self.initialized = true;
+                        if ($.isFunction(self.options.ondataload)) {
+                            self.options.ondataload.call(self);
+                        }
                     });
             }
         }
