@@ -1230,15 +1230,16 @@
                 counter : 0,
                 accept : function _dropzoneAccept(file, done) {
                     console.log(file);
-                    if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
-                        $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache, file))
+                    var parent = file.treebeardParent = self.dropzoneItemCache;
+                    if (self.options.addcheck.call(this, self, parent, file)) {
+                        $.when(self.options.resolveUploadUrl.call(self, parent, file))
                             .then(function _resolveUploadUrlThen(newUrl) {
                                 if (newUrl) {
                                     self.dropzone.options.url = newUrl;
                                     self.dropzone.options.counter++;
                                     if(self.dropzone.options.counter < 2 ) {
-                                        var index = self.returnIndex(self.dropzoneItemCache.id);
-                                        if (!self.dropzoneItemCache.open) {
+                                        var index = self.returnIndex(parent.id);
+                                        if (!parent.open) {
                                             self.toggleFolder(index, null);
                                         }
                                     }
@@ -1247,7 +1248,7 @@
                             })
                             .then(function _resolveUploadMethodThen() {
                                 if ($.isFunction(self.options.resolveUploadMethod)) {
-                                    self.dropzone.options.method  = self.options.resolveUploadMethod.call(self, self.dropzoneItemCache);
+                                    self.dropzone.options.method  = self.options.resolveUploadMethod.call(self, parent);
                                 }
                             })
                             .done(function _resolveUploadUrlDone() {
@@ -1258,7 +1259,9 @@
                 drop : function _dropzoneDrop(event) {
                     var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                         item  = Indexes[rowID];
-                    self.dropzoneItemCache = item;
+                    $.each(event.dataTransfer.files, function(file) {
+                        file.treebeardParent = item;
+                    });
                     if(!item.open){
                         this.updateFolder(null, item);
                     }
@@ -1296,7 +1299,7 @@
                         self.options.dropzoneEvents.success.call(this, self, file, response);
                     }
                     if ($.isFunction(self.options.onadd)) {
-                        self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
+                        self.options.onadd.call(this, self, file.treebeardParent, file, response);
                     }
                 },
                 error : function _dropzoneError(file, message, xhr) {
