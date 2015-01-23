@@ -946,3 +946,13 @@ test('Dropzone accept, and related event hooks', function (assert) {
 
     tb.destroy();
 });
+
+QUnit.module("Notify tests", {});
+
+test('Notify timeout', function(assert) {
+    var notify = new Treebeard.Notify();
+    assert.equal(notify.timeout, 3000, 'defaults to 3000');
+
+    var notify2 = new Treebeard.Notify('foo', 'info', 42, 0);
+    assert.equal(notify2.timeout, 0, 'can be set to 0');
+});
