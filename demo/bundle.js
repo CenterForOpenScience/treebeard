@@ -3029,7 +3029,7 @@ if (typeof exports == "object") {
     /**
      * Implementation of a notification system, added to each row
      * @param {String} [message] Notification message
-     * @param {String} [tpe] One of the bootstrap alert types (info, danger, warning, success, primary, default)
+     * @param {String} [type] One of the bootstrap alert types (info, danger, warning, success, primary, default)
      * @param {Number} [column] Which column the message should replace, if empty the entire row will be used
      * @param {Number} [timeout] Milliseconds that takes for message to be removed.
      * @constructor
@@ -3039,7 +3039,7 @@ if (typeof exports == "object") {
         this.type = type || "info";
         this.message =  message || 'Hello';
         this.on = false;
-        this.timeout = timeout || 3000;
+        this.timeout = timeout === undefined ? 3000 : timeout;
         this.css = '';
         this.toggle = function () {
             this.on = !this.on;
@@ -3535,7 +3535,7 @@ if (typeof exports == "object") {
         this.moveOff = function _moveOff() {
             $(".td-title").draggable("destroy");
             $(".tb-row").droppable("destroy");
-        }
+        };
 
         /**
          * Deletes item from tree and refreshes view
@@ -3665,7 +3665,7 @@ if (typeof exports == "object") {
                 }
             }
             return titleResult;
-        }
+        };
 
         /**
          * Runs filter functions and resets depending on whether there is a filter word
@@ -3749,7 +3749,7 @@ if (typeof exports == "object") {
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
             if(icon.get(0)) {
                 m.render(icon.get(0), self.options.resolveRefreshIcon());
-            };
+            }
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
@@ -3866,7 +3866,7 @@ if (typeof exports == "object") {
             }
             $('.tb-tbody-inner').height(itemsHeight);
             return itemsHeight;
-        }
+        };
 
         /**
          * Calculates total number of visible items to return a row height
@@ -3897,7 +3897,7 @@ if (typeof exports == "object") {
             }
             self.refreshRange(rangeIndex);
             return total;
-        }
+        };
 
         /**
          * Refreshes the view to start the the location where begin is the starting index
@@ -4120,7 +4120,6 @@ if (typeof exports == "object") {
                 clickable : false,
                 counter : 0,
                 accept : function _dropzoneAccept(file, done) {
-                    console.log(file);
                     if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache, file))
                             .then(function _resolveUploadUrlThen(newUrl) {
@@ -4395,7 +4394,7 @@ if (typeof exports == "object") {
                         self.colsizes[$(this).attr('data-tb-th-col')] = p;
                     }
                     percentageTotal += p;
-                })
+                });
             }
             $('.tb-th.tb-resizable').resizable({
                 containment : 'parent',
@@ -4425,7 +4424,7 @@ if (typeof exports == "object") {
                     $('.tb-th').each(function(){
                         childrenWidth = childrenWidth + $(this).outerWidth();
                         //$(this).css({ height : self.options.rowHeight + 'px'});
-                    })
+                    });
                     if(childrenWidth > parentWidth){
                         var diff2 = childrenWidth - parentWidth;
                         var nextBigThing = $('.tb-th').not(ui.element).filter(function () {
@@ -4438,7 +4437,7 @@ if (typeof exports == "object") {
                         }).first();
                         if(nextBigThing.length > 0){
                             var w2 = nextBigThing.outerWidth();
-                            nextBigThing.css({ width : (w2 - diff2) + 'px' })
+                            nextBigThing.css({ width : (w2 - diff2) + 'px' });
                             var nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
                             $('.tb-col-'+nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
                         } else {
@@ -4472,7 +4471,7 @@ if (typeof exports == "object") {
                     _resizeCols();
                     m.redraw();
                 }
-            })
+            });
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
@@ -4844,7 +4843,8 @@ if (typeof exports == "object") {
                     title: "Actions",
                     width : "15%"
                 }
-            ]};
+            ];
+        };
         this.resolveRows = function (item) { // REQUIRED: How rows should be displayed based on data.
             return [
                 {
@@ -4877,7 +4877,6 @@ if (typeof exports == "object") {
         this.togglecheck = function (item) {
             // this = treebeard object;
             // item = folder to toggle
-            console.log("Togglecheck", this, item);
             return true;
         };
         this.onfilter = function (filterText) {   // Fires on keyup when filter text is changed.
@@ -4961,7 +4960,7 @@ if (typeof exports == "object") {
         };
         this.resolveRefreshIcon = function(){
             return m('i.icon-refresh.icon-spin');
-        }
+        };
         this.resolveToggle = function (item) {
             var toggleMinus = m("i.fa.fa-minus-square-o", " "),
                 togglePlus = m("i.fa.fa-plus-square-o", " ");
@@ -5004,7 +5003,7 @@ if (typeof exports == "object") {
         this.ondataload = function (item) {
             // this = treebeard object;
         };
-    }
+    };
 
     /**
      * Starts treebard with user options
@@ -5021,13 +5020,16 @@ if (typeof exports == "object") {
         };
         tb.view = function(ctrl) {
             return Treebeard.view(ctrl.tbController);
-        }
+        };
         // Weird fix for IE 9, does not harm regular load
         if( window.navigator.userAgent.indexOf('MSIE')){
             setTimeout(function(){ m.redraw();}, 1000);
         }
         return m.module(document.getElementById(finalOptions.divID), tb );
     };
+
+    // Expose some internal classes to the public
+    runTB.Notify = Notify;
 
     return runTB;
 }));
