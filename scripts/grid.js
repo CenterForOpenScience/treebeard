@@ -1350,6 +1350,9 @@
                     self.treeData = value;
                     Indexes[0] = value;
                     self.flatten(self.treeData.children);
+                    if ($.isFunction(self.options.ondataload)) {
+                        self.options.ondataload.call(self);
+                    }
                     return value;
                 }).done(function _buildTreeDone() {
                     self.calculateVisible();
@@ -2106,6 +2109,9 @@
         this.lazyLoadOnLoad = function (item) {
             // this = treebeard object;
             // Item = item acted on
+        };
+        this.ondataload = function (item) {
+            // this = treebeard object;
         };
     }
 
