@@ -644,7 +644,7 @@
         this.moveOff = function _moveOff() {
             $(".td-title").draggable("destroy");
             $(".tb-row").droppable("destroy");
-        }
+        };
 
         /**
          * Deletes item from tree and refreshes view
@@ -774,7 +774,7 @@
                 }
             }
             return titleResult;
-        }
+        };
 
         /**
          * Runs filter functions and resets depending on whether there is a filter word
@@ -858,7 +858,7 @@
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
             if(icon.get(0)) {
                 m.render(icon.get(0), self.options.resolveRefreshIcon());
-            };
+            }
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
@@ -975,7 +975,7 @@
             }
             $('.tb-tbody-inner').height(itemsHeight);
             return itemsHeight;
-        }
+        };
 
         /**
          * Calculates total number of visible items to return a row height
@@ -1006,7 +1006,7 @@
             }
             self.refreshRange(rangeIndex);
             return total;
-        }
+        };
 
         /**
          * Refreshes the view to start the the location where begin is the starting index
@@ -1229,7 +1229,6 @@
                 clickable : false,
                 counter : 0,
                 accept : function _dropzoneAccept(file, done) {
-                    console.log(file);
                     if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache, file))
                             .then(function _resolveUploadUrlThen(newUrl) {
@@ -1504,7 +1503,7 @@
                         self.colsizes[$(this).attr('data-tb-th-col')] = p;
                     }
                     percentageTotal += p;
-                })
+                });
             }
             $('.tb-th.tb-resizable').resizable({
                 containment : 'parent',
@@ -1534,7 +1533,7 @@
                     $('.tb-th').each(function(){
                         childrenWidth = childrenWidth + $(this).outerWidth();
                         //$(this).css({ height : self.options.rowHeight + 'px'});
-                    })
+                    });
                     if(childrenWidth > parentWidth){
                         var diff2 = childrenWidth - parentWidth;
                         var nextBigThing = $('.tb-th').not(ui.element).filter(function () {
@@ -1547,7 +1546,7 @@
                         }).first();
                         if(nextBigThing.length > 0){
                             var w2 = nextBigThing.outerWidth();
-                            nextBigThing.css({ width : (w2 - diff2) + 'px' })
+                            nextBigThing.css({ width : (w2 - diff2) + 'px' });
                             var nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
                             $('.tb-col-'+nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
                         } else {
@@ -1581,7 +1580,7 @@
                     _resizeCols();
                     m.redraw();
                 }
-            })
+            });
             if (self.options.uploads) { _applyDropzone(); }
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
@@ -1953,7 +1952,8 @@
                     title: "Actions",
                     width : "15%"
                 }
-            ]};
+            ];
+        };
         this.resolveRows = function (item) { // REQUIRED: How rows should be displayed based on data.
             return [
                 {
@@ -1986,7 +1986,6 @@
         this.togglecheck = function (item) {
             // this = treebeard object;
             // item = folder to toggle
-            console.log("Togglecheck", this, item);
             return true;
         };
         this.onfilter = function (filterText) {   // Fires on keyup when filter text is changed.
@@ -2070,7 +2069,7 @@
         };
         this.resolveRefreshIcon = function(){
             return m('i.icon-refresh.icon-spin');
-        }
+        };
         this.resolveToggle = function (item) {
             var toggleMinus = m("i.fa.fa-minus-square-o", " "),
                 togglePlus = m("i.fa.fa-plus-square-o", " ");
@@ -2113,7 +2112,7 @@
         this.ondataload = function (item) {
             // this = treebeard object;
         };
-    }
+    };
 
     /**
      * Starts treebard with user options
@@ -2130,7 +2129,7 @@
         };
         tb.view = function(ctrl) {
             return Treebeard.view(ctrl.tbController);
-        }
+        };
         // Weird fix for IE 9, does not harm regular load
         if( window.navigator.userAgent.indexOf('MSIE')){
             setTimeout(function(){ m.redraw();}, 1000);
