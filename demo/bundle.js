@@ -3762,6 +3762,7 @@ if (typeof exports == "object") {
                                 if (!$.isArray(value)) {
                                     value = value.data;
                                 }
+                                tree.children = [];
                                 for (i = 0; i < value.length; i++) {
                                     child = self.buildTree(value[i], tree);
                                     tree.add(child);
@@ -3792,7 +3793,7 @@ if (typeof exports == "object") {
                         if (o.depth === skipLevel) { skip = false; }
                         if (tree.open) {                    // closing
                             o.show = false;
-                        } else {                                 // opening
+                        } else {                            // opening
                             o.show = true;
                             if (!t.open) {
                                 skipLevel = o.depth;
