@@ -199,6 +199,7 @@
         this.dismiss = function () {
             this.on = false;
             m.redraw(true);
+            $('#tb-tbody').css('overflow', 'auto');
         };
         this.show = function () {
             this.on = true;
