@@ -1229,7 +1229,7 @@
                 clickable : false,
                 counter : 0,
                 accept : function _dropzoneAccept(file, done) {
-                    var parent = file.treebeardParent = self.dropzoneItemCache;
+                    var parent = file.treebeardParent;
                     if (self.options.addcheck.call(this, self, parent, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, parent, file))
                             .then(function _resolveUploadUrlThen(newUrl) {
@@ -1322,6 +1322,7 @@
                     }
                 },
                 addedfile : function _dropzoneAddedFile(file) {
+                    file.treebeardParent = self.dropzoneItemCache;
                     if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
                         self.options.dropzoneEvents.addedfile.call(this, self, file);
                     }
