@@ -3118,6 +3118,11 @@ if (typeof exports == "object") {
             this.width = $('#tb-tbody').width();
             m.redraw(true);
         };
+        this.onmodalshow = function () {
+            var margin = $('.tb-tbody-inner>div').css('margin-top');
+            $('.tb-modal-shade').css('margin-top', margin);
+            $('#tb-tbody').css('overflow', 'hidden');
+        };
         $(window).resize(function () {
             self.updateSize();
         });
@@ -4604,7 +4609,7 @@ if (typeof exports == "object") {
                      */
                         (function showModal() {
                             if (ctrl.modal.on) {
-                                return m('.tb-modal-shade', { style : 'width:' + ctrl.modal.width + 'px; position : absolute; height:' + ctrl.modal.height + 'px;'}, [
+                                return m('.tb-modal-shade', { config : ctrl.modal.onmodalshow , style : 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;'}, [
                                     m('.tb-modal-inner', { 'class' : ctrl.modal.css }, [
                                         m('.tb-modal-dismiss', { 'onclick' : function () { ctrl.modal.dismiss(); } }, [m('i.icon-remove-sign')]),
                                         m('.tb-modal-content', ctrl.modal.content),
