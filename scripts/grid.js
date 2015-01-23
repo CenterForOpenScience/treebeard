@@ -2132,5 +2132,8 @@
         return m.module(document.getElementById(finalOptions.divID), tb );
     };
 
+    // Expose some internal classes to the public
+    runTB.Notify = Notify;
+
     return runTB;
 }));
