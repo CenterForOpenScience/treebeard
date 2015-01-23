@@ -138,7 +138,7 @@
     /**
      * Implementation of a notification system, added to each row
      * @param {String} [message] Notification message
-     * @param {String} [tpe] One of the bootstrap alert types (info, danger, warning, success, primary, default)
+     * @param {String} [type] One of the bootstrap alert types (info, danger, warning, success, primary, default)
      * @param {Number} [column] Which column the message should replace, if empty the entire row will be used
      * @param {Number} [timeout] Milliseconds that takes for message to be removed.
      * @constructor
@@ -148,7 +148,7 @@
         this.type = type || "info";
         this.message =  message || 'Hello';
         this.on = false;
-        this.timeout = timeout || 3000;
+        this.timeout = timeout === undefined ? 3000 : timeout;
         this.css = '';
         this.toggle = function () {
             this.on = !this.on;
@@ -2137,6 +2137,9 @@
         }
         return m.module(document.getElementById(finalOptions.divID), tb );
     };
+
+    // Expose some internal classes to the public
+    runTB.Notify = Notify;
 
     return runTB;
 }));
