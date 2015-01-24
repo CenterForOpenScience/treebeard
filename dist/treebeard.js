@@ -135,6 +135,7 @@
         return done;
     }
 
+    var DEFAULT_NOTIFY_TIMEOUT = 3000;
     /**
      * Implementation of a notification system, added to each row
      * @param {String} [message] Notification message
@@ -148,7 +149,7 @@
         this.type = type || "info";
         this.message =  message || 'Hello';
         this.on = false;
-        this.timeout = timeout === undefined ? 3000 : timeout;
+        this.timeout = timeout === undefined ? DEFAULT_NOTIFY_TIMEOUT : timeout;
         this.css = '';
         this.toggle = function () {
             this.on = !this.on;
@@ -168,7 +169,7 @@
         this.update = function(message, type, column, timeout, css) {
             this.type = type || this.type;
             this.column = column || this.column;
-            this.timeout = timeout || this.timeout;
+            this.timeout = timeout === undefined ? DEFAULT_NOTIFY_TIMEOUT : timeout;
             this.message = message;
             this.css = css || '';
             this.show(true);
