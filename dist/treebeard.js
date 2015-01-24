@@ -1265,7 +1265,7 @@
                 drop : function _dropzoneDrop(event) {
                     var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                         item  = Indexes[rowID];
-                    $.each(event.dataTransfer.files, function(file) {
+                    $.each(event.dataTransfer.files, function(index, file) {
                         file.treebeardParent = item;
                     });
                     if(!item.open){
@@ -1329,7 +1329,7 @@
                     }
                 },
                 addedfile : function _dropzoneAddedFile(file) {
-                    file.treebeardParent = self.dropzoneItemCache;
+                    file.treebeardParent = file.treebeardParent || self.dropzoneItemCache;
                     if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
                         self.options.dropzoneEvents.addedfile.call(this, self, file);
                     }
