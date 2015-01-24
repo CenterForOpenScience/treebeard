@@ -10,6 +10,9 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        <link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/all.css">
+
+
         <link rel="stylesheet" href="bundle.css">
         <style>
             body {
@@ -70,16 +73,58 @@
          */
         var options = {
             divID : 'grid',
-            filesData : "sample_s.json",
+            filesData : "tree.json",
             rowHeight : 35,
             showTotal : 15,
             paginate : false,
-            paginateToggle : true,
+            paginateToggle : false,
             lazyLoad : true,
             useDropzone : true,
             uploadURL : "",
             allowMove : true,
-            multiselect : true
+            multiselect : true,
+            moveClass : 'tb-draggable',
+            resolveRows : function (item) {
+                return [            // Defines columns based on data
+                    {
+                        data : "title",  // Data field name
+                        folderIcons : true,
+                        filter : true,
+                        css : 'tb-draggable'
+                    },
+                    {
+                        data : "person",
+                        filter : true
+                    },
+                    {
+                        data : "age",
+                        filter : false
+                    },
+                    {
+                        data : "action",
+                        sortInclude : false,
+                        filter : false,
+                        custom : function (row, col) {
+                            var that = this;
+                            return m("button.tb-button", {
+                                onclick: function _deleteClick(e) {
+                                    e.stopPropagation();
+                                    that.deleteNode(row.parentID, row.id);
+                                }
+                            }, " X ");
+                        }
+                    }
+                ];
+            },
+            dropEvents : {
+                over : function(event, ui) {
+                },
+                drop : function(event, ui) {
+                    console.log("dropped", event, ui);
+                    console.log($(ui.draggable).text());
+                }
+            }
+
         }
         /*
          *  User defined code to implement Treebeard anywhere on the page.
