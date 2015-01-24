@@ -4127,15 +4127,16 @@ if (typeof exports == "object") {
                 clickable : false,
                 counter : 0,
                 accept : function _dropzoneAccept(file, done) {
-                    if (self.options.addcheck.call(this, self, self.dropzoneItemCache, file)) {
-                        $.when(self.options.resolveUploadUrl.call(self, self.dropzoneItemCache, file))
+                    var parent = file.treebeardParent;
+                    if (self.options.addcheck.call(this, self, parent, file)) {
+                        $.when(self.options.resolveUploadUrl.call(self, parent, file))
                             .then(function _resolveUploadUrlThen(newUrl) {
                                 if (newUrl) {
                                     self.dropzone.options.url = newUrl;
                                     self.dropzone.options.counter++;
                                     if(self.dropzone.options.counter < 2 ) {
-                                        var index = self.returnIndex(self.dropzoneItemCache.id);
-                                        if (!self.dropzoneItemCache.open) {
+                                        var index = self.returnIndex(parent.id);
+                                        if (!parent.open) {
                                             self.toggleFolder(index, null);
                                         }
                                     }
@@ -4144,7 +4145,7 @@ if (typeof exports == "object") {
                             })
                             .then(function _resolveUploadMethodThen() {
                                 if ($.isFunction(self.options.resolveUploadMethod)) {
-                                    self.dropzone.options.method  = self.options.resolveUploadMethod.call(self, self.dropzoneItemCache);
+                                    self.dropzone.options.method  = self.options.resolveUploadMethod.call(self, parent);
                                 }
                             })
                             .done(function _resolveUploadUrlDone() {
@@ -4155,7 +4156,9 @@ if (typeof exports == "object") {
                 drop : function _dropzoneDrop(event) {
                     var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
                         item  = Indexes[rowID];
-                    self.dropzoneItemCache = item;
+                    $.each(event.dataTransfer.files, function(file) {
+                        file.treebeardParent = item;
+                    });
                     if(!item.open){
                         this.updateFolder(null, item);
                     }
@@ -4193,7 +4196,7 @@ if (typeof exports == "object") {
                         self.options.dropzoneEvents.success.call(this, self, file, response);
                     }
                     if ($.isFunction(self.options.onadd)) {
-                        self.options.onadd.call(this, self, self.dropzoneItemCache, file, response);
+                        self.options.onadd.call(this, self, file.treebeardParent, file, response);
                     }
                 },
                 error : function _dropzoneError(file, message, xhr) {
@@ -4217,6 +4220,7 @@ if (typeof exports == "object") {
                     }
                 },
                 addedfile : function _dropzoneAddedFile(file) {
+                    file.treebeardParent = self.dropzoneItemCache;
                     if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
                         self.options.dropzoneEvents.addedfile.call(this, self, file);
                     }
