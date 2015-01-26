@@ -4161,12 +4161,17 @@ if (typeof exports == "object") {
                     }
                 },
                 drop : function _dropzoneDrop(event) {
-                    var rowID =  $(event.target).closest('.tb-row').attr('data-id'),
-                        item  = Indexes[rowID];
-                    $.each(event.dataTransfer.files, function(index, file) {
-                        file.treebeardParent = item;
-                    });
-                    if(!item.open){
+                    var rowID = $(event.target).closest('.tb-row').attr('data-id');
+                    var files = event.dataTransfer.files;
+                    var item = Indexes[rowID];
+                    // Store a reference on the parent to each uploaded file object;
+                    // prevents inappropriate garbage collection of files
+                    item._files = item._files || [];
+                    for (var i=0; i<files.length; i++) {
+                        item._files.push(files.item(i));
+                        files.item(i).treebeardParent = item;
+                    }
+                    if (!item.open) {
                         this.updateFolder(null, item);
                     }
                     if ($.isFunction(self.options.dropzoneEvents.drop)) {
@@ -4224,6 +4229,11 @@ if (typeof exports == "object") {
                 complete : function _dropzoneComplete(file) {
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
+                    }
+                    var files = file.treebeardParent._files || [];
+                    var index = files.indexOf(file);
+                    if (index !== -1) {
+                        files.splice(index, 1);
                     }
                 },
                 addedfile : function _dropzoneAddedFile(file) {
