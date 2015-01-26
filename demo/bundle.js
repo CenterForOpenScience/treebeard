@@ -4549,10 +4549,16 @@ if (typeof exports == "object") {
                  * Template for the head row, includes whether filter or title should be shown.
                  */
                     (function showHeadA() {
-                        if (ctrl.options.showFilter || ctrl.options.title) {
-                            var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, functionOrString(ctrl.options.title));
-                            var iftitle = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
-                            var filter = m(".tb-head-filter.col-xs-12"+iftitle, {
+                        var titleContent = functionOrString(ctrl.options.title);
+                        if (ctrl.options.showFilter || titleContent) {
+                            var filterWidth;
+                            var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, titleContent);
+                            if(ctrl.options.filterFullWidth){
+                                filterWidth = '';
+                            } else {
+                                filterWidth = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
+                            }
+                            var filter = m(".tb-head-filter.col-xs-12"+filterWidth, {
                                 }, [
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
