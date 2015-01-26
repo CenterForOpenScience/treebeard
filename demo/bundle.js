@@ -3448,8 +3448,8 @@ if (typeof exports == "object") {
                         $(ui.helper).css({ 'display' : 'none'});
                     }
                     // keep copy of the element and attach it to the mouse location
-                    x = event.clientX > 50 ? event.clientX - 50 : 50;
-                    y = event.clientY - 10;
+                    x = event.pageX > 50 ? event.pageX - 50 : 50;
+                    y = event.pageY - 10;
                     $('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 },
                 create : function (event, ui) {
