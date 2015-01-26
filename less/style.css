@@ -631,15 +631,6 @@
 }
 .tb-head {
   padding: 10px;
-  width: 100%;
-}
-.tb-head-filter {
-  width: 50%;
-  display: inline-block;
-}
-.tb-head-title {
-  width: 50%;
-  display: inline-block;
 }
 .tb-sort-inactive {
   color: #999;

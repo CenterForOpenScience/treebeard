@@ -1652,13 +1652,13 @@
                  */
                     (function showHeadA() {
                         if (ctrl.options.showFilter || ctrl.options.title) {
-                            return m('.tb-head.clearfix', [
-                                m(".tb-head-filter", {
-                                    style: "width:" + ctrl.options.filterStyle.width + "; float:" + ctrl.options.filterStyle.float
+                            var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, functionOrString(ctrl.options.title));
+                            var iftitle = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
+                            var filter = m(".tb-head-filter.col-xs-12"+iftitle, {
                                 }, [
                                     (function showFilterA() {
                                         if (ctrl.options.showFilter) {
-                                            return m("input.form-control[placeholder='"+ ctrl.options.filterPlaceholder + "'][type='text']", {
+                                            return m("input.pull-right.form-control[placeholder='"+ ctrl.options.filterPlaceholder + "'][type='text']", {
                                                     style: "width:100%;display:inline;",
                                                     onkeyup: ctrl.filter,
                                                     value : ctrl.filterText()
@@ -1666,8 +1666,18 @@
                                             );
                                         }
                                     }())
-                                ])
-                            ]);
+                                ]);
+                            if(ctrl.options.title){
+                                return m('.tb-head.row', [
+                                    title,
+                                    filter
+                                ]);
+                            } else {
+                                return m('.tb-head.row', [
+                                    filter
+                                ]);
+                            }
+
                         }
                     }()),
                     m(".tb-row-titles", [
@@ -1942,7 +1952,6 @@
         this.paginateToggle = false;    // Show the buttons that allow users to switch between scroll and paginate.
         this.uploads = false;           // Turns dropzone on/off.
         this.multiselect = false;       // turns ability to multiselect with shift or command keys
-        this.filterStyle = { float : 'right', width : '50%'}; // Adds style control to the filter box.
         this.columnTitles = function () {   // REQUIRED: Adjust this array based on data needs.
             return [
                 {
@@ -1982,7 +1991,7 @@
         this.hoverClass = undefined;    // Css class for hovering over rows
         this.hoverClassMultiselect = 'tb-multiselect'; // Css class for hover on multiselect
         this.showFilter = true;         // Gives the option to filter by showing the filter box.
-        this.title = "Grid Title";      // Title of the grid, boolean, string OR function that returns a string.
+        this.title = null;      // Title of the grid, boolean, string OR function that returns a string.
         this.allowMove = true;          // Turn moving on or off.
         this.moveClass = undefined;     // Css class for which elements can be moved. Your login needs to add these to appropriate elements.
         this.sortButtonSelector = {};   // custom buttons for sort, needed because not everyone uses FontAwesome

@@ -157,8 +157,7 @@
 .tb-row-active{background:#ADD8E6}
 .tb-row{height:35px}
 .tb-footer{background:rgba(239,239,239,.51);border:1px solid #CCC;border-top:none;padding:5px}
-.tb-head{padding:10px;width:100%}
-.tb-head-filter,.tb-head-title{width:50%;display:inline-block}
+.tb-head{padding:10px}
 .tb-sort-inactive{color:#999}
 .tb-sort-active{color:#222}
 .form-comp{margin:0 16px}
