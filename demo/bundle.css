@@ -169,12 +169,13 @@
 .tb-notify{text-align:center}
 .tb-modal-shade{background:rgba(0,0,0,.61);position:absolute;padding:50px 100px;z-index:99;top:0;left:0}
 .tb-modal-inner{background:#FFF;border-radius:5px;box-shadow:0 0 5px #424242}
-.tb-modal-dismiss{float:right;color:grey;font-size:27px;margin-top:2px;margin-right:10px}
+.tb-modal-dismiss{float:right;color:gray;font-size:27px;margin-top:2px;margin-right:10px}
 .tb-modal-content,.tb-modal-footer{padding:15px 25px}
 .tb-modal-footer{border-top:1px solid #eee;text-align:right}
 .tb-multiselect{background-color:#f08080}
 .tb-unselectable{-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-o-user-select:none;user-select:none}
 .tb-button{border:1px solid #CCC;border-radius:5px}
+.asc-btn,.desc-btn{cursor:pointer}
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)

@@ -711,3 +711,7 @@
   border: 1px solid #CCC;
   border-radius: 5px;
 }
+.asc-btn,
+.desc-btn {
+  cursor: pointer;
+}
