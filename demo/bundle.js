@@ -4172,7 +4172,7 @@ if (typeof exports == "object") {
                         files.item(i).treebeardParent = item;
                     }
                     if (!item.open) {
-                        this.updateFolder(null, item);
+                        self.updateFolder(null, item);
                     }
                     if ($.isFunction(self.options.dropzoneEvents.drop)) {
                         self.options.dropzoneEvents.drop.call(this, self, event);
