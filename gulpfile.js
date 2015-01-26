@@ -66,7 +66,7 @@ gulp.task('js', function(){
 
 gulp.task('watch', function() {
     gulp.watch(paths.less, ['css', 'css-dist-min']);
-    gulp.watch(paths.jsfiles, ['js', 'js-dist-min']);
+    gulp.watch(paths.jsfiles, ['js', 'js-dist-min', 'js-dist-full']);
 });
 
 gulp.task('css-dist-min', ["less"], function(){
