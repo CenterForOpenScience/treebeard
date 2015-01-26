@@ -3761,7 +3761,7 @@ if (typeof exports == "object") {
                 t,
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
-            if(icon.get(0)) {
+            if (icon.get(0)) {
                 m.render(icon.get(0), self.options.resolveRefreshIcon());
             }
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
@@ -3776,7 +3776,11 @@ if (typeof exports == "object") {
                                 if (!$.isArray(value)) {
                                     value = value.data;
                                 }
-                                tree.children = [];
+                                //tree.children = [];
+                                var isUploadItem  = function (element) {
+                                    return element.data.tmpID;
+                                };
+                                tree.children = tree.children.filter(isUploadItem);
                                 for (i = 0; i < value.length; i++) {
                                     child = self.buildTree(value[i], tree);
                                     tree.add(child);
@@ -4171,8 +4175,9 @@ if (typeof exports == "object") {
                         item._files.push(files.item(i));
                         files.item(i).treebeardParent = item;
                     }
-                    if (!item.open) {
-                        self.updateFolder(null, item);
+                    if(!item.open){
+                        var index = self.returnIndex(item.id);
+                        self.toggleFolder(index, null);
                     }
                     if ($.isFunction(self.options.dropzoneEvents.drop)) {
                         self.options.dropzoneEvents.drop.call(this, self, event);
