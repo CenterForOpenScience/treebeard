@@ -148,7 +148,7 @@
 #tb-tbody{border:1px solid #ccc;height:500px;overflow:auto;background:#fff;position:relative}
 .tb-tbody-inner{overflow:hidden}
 .tb-row-titles{background:#EEE;border:1px solid #CCC;border-bottom:none;height:35px}
-.td-title{cursor:pointer}
+.title-text{cursor:pointer}
 .tb-td{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:5px;height:inherit;padding-top:8px;vertical-align:top}
 .tb-th{display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;border-left:1px solid #CCC;padding:10px 0 7px 5px}
 .tb-th:first-of-type{border-left:none}
