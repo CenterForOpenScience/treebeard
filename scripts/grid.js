@@ -906,7 +906,7 @@
                                 tree.open = true;
                                 tree.load = true;
                                 var iconTemplate = self.options.resolveToggle.call(self, tree);
-                                if(icon.get(0)) {
+                                if (icon.get(0)) {
                                     m.render(icon.get(0), iconTemplate);
                                 }
                             }
@@ -942,7 +942,7 @@
                     self.calculateHeight();
                     m.redraw(true);
                     var iconTemplate = self.options.resolveToggle.call(self, tree);
-                    if(icon.get(0)) {
+                    if (icon.get(0)) {
                         m.render(icon.get(0), iconTemplate);
                     }
                 }
@@ -1029,7 +1029,6 @@
                         total = total + 1;
                     }
                 }
-
             }
             self.refreshRange(rangeIndex);
             return total;
@@ -1045,7 +1044,7 @@
                 counter = 0,
                 i,
                 index;
-            if(!begin || begin > self.flatData.length) {
+            if (!begin || begin > self.flatData.length) {
                 begin =  0;
             }
             self.visibleTop = begin;
@@ -1506,7 +1505,7 @@
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
                 index = Math.round(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = Math.round(itemsHeight * (scrollTop / innerHeight));
+                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight))-self.remainder;
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
@@ -1523,7 +1522,8 @@
          */
         this.init = function _init(el, isInit) {
             var containerHeight = $('#tb-tbody').height();
-            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight);
+            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight)+1;
+            self.remainder =  (containerHeight / self.options.rowHeight)+self.options.rowHeight;
             // reapply move on view change.
             if (self.options.allowMove) {
                 self.moveOn();
