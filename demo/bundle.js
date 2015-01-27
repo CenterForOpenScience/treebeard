@@ -3145,7 +3145,7 @@ if (typeof exports == "object") {
         };
         this.onmodalshow = function () {
             var margin = $('.tb-tbody-inner>div').css('margin-top');
-            $('.tb-modal-shade').css('margin-top', margin + 100);
+            $('.tb-modal-shade').css('margin-top', margin);
             $('#tb-tbody').css('overflow', 'hidden');
         };
         $(window).resize(function () {
@@ -3898,7 +3898,7 @@ if (typeof exports == "object") {
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
             }
-            $('.tb-tbody-inner').height(itemsHeight);
+            $('.tb-tbody-inner').height(itemsHeight + self.remainder);
             return itemsHeight;
         };
 
@@ -4396,11 +4396,11 @@ if (typeof exports == "object") {
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
                 index = Math.round(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight))-self.remainder;
+                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight));
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
-                if(self.options.onscrollcomplete){
+                if(self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
                 }
             }
@@ -4413,8 +4413,8 @@ if (typeof exports == "object") {
          */
         this.init = function _init(el, isInit) {
             var containerHeight = $('#tb-tbody').height();
-            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight)+1;
-            self.remainder =  (containerHeight / self.options.rowHeight)+self.options.rowHeight;
+            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
+            self.remainder =  (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
             if (self.options.allowMove) {
                 self.moveOn();
@@ -4427,15 +4427,15 @@ if (typeof exports == "object") {
             // Main scrolling functionality
             $('#tb-tbody').scroll(self.onScroll);
             function _resizeCols () {
-                var parentWidth = $('.tb-row-titles').width();
-                var percentageTotal = 0, p;
-                $('.tb-th').each(function(index){                   // calculate percentages for each column
+                var parentWidth = $('.tb-row-titles').width(),
+                    percentageTotal = 0, p;
+                $('.tb-th').each(function (index) {                   // calculate percentages for each column
                     $(this).attr('data-tb-size', $(this).outerWidth());
-                    if(index === $('.tb-th').length - 1 ) {         // last column gets the remainder
+                    if (index === $('.tb-th').length - 1) {         // last column gets the remainder
                         //var rounded = Math.floor(100 - percentageTotal);
                         self.colsizes[$(this).attr('data-tb-th-col')] = 100 - percentageTotal;
                     } else {
-                        p = $(this).outerWidth()/parentWidth*100;
+                        p = $(this).outerWidth() / parentWidth * 100;
                         self.colsizes[$(this).attr('data-tb-th-col')] = p;
                     }
                     percentageTotal += p;
@@ -4446,7 +4446,7 @@ if (typeof exports == "object") {
                 delay : 200,
                 handles : 'e',
                 minWidth : 60,
-                create : function(event, ui) {
+                create : function (event, ui) {
                     // change cursor
                     $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
                     // update beginning sizes
