@@ -3145,7 +3145,7 @@ if (typeof exports == "object") {
         };
         this.onmodalshow = function () {
             var margin = $('.tb-tbody-inner>div').css('margin-top');
-            $('.tb-modal-shade').css('margin-top', margin);
+            $('.tb-modal-shade').css('margin-top', margin + 100);
             $('#tb-tbody').css('overflow', 'hidden');
         };
         $(window).resize(function () {
