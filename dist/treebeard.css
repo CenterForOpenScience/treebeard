@@ -651,6 +651,7 @@
 .tb-toggle-icon {
   width: 20px;
   display: inline-block;
+  cursor: pointer;
 }
 .clearfix {
   display: table;

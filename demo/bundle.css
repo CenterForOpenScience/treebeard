@@ -163,7 +163,7 @@
 .form-comp{margin:0 16px}
 .tb-h-success{background-color:rgba(57,255,17,.53)}
 .tb-h-error{background-color:rgba(255,4,0,.53)}
-.tb-expand-icon-holder,.tb-toggle-icon{width:20px;display:inline-block}
+.tb-expand-icon-holder,.tb-toggle-icon{width:20px;display:inline-block;cursor:pointer}
 .clearfix{display:table;content:" ";clear:both}
 .tb-notify{text-align:center}
 .tb-modal-shade{background:rgba(0,0,0,.61);position:absolute;padding:50px 100px;z-index:99;top:0;left:0}
