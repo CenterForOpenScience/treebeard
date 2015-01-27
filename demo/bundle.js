@@ -2922,6 +2922,22 @@ if (typeof exports == "object") {
 }(this, function (jQuery, m) {
     "use strict";
 
+    //Force cache busting in IE
+    var oldmrequest = m.request;
+    m.request = function() {
+        var buster;
+        var requestArgs = arguments[0];
+
+        if (requestArgs.url.indexOf('?') !== -1) {
+            buster = '&_=';
+        } else {
+            buster = '?_=';
+        }
+
+        requestArgs.url += (buster + (new Date().getTime()));
+        return oldmrequest.apply(this, arguments);
+    };
+
     // Indexes by id, shortcuts to the tree objects. Use example: var item = Indexes[23];
     var Indexes = {},
     // Item constructor
