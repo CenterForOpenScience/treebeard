@@ -4112,8 +4112,11 @@ if (typeof exports == "object") {
             }
             // if key is cmd
             cmdkey = 91; // works with mac
-            if (window.navigator.userAgent.indexOf('MSIE') > -1) {
+            if (window.navigator.userAgent.indexOf('MSIE') > -1 || window.navigator.userAgent.indexOf('Windows') > -1) {
                 cmdkey = 17; // works with windows
+            }
+            if (window.navigator.userAgent.indexOf('Firefox') > -1) {
+                cmdkey = 224; // works with Firefox
             }
             if (self.pressedKey === cmdkey) {
                 if (!self.isMultiselected(tree.id)) {
@@ -4566,11 +4569,11 @@ if (typeof exports == "object") {
             }
             $(window).keydown(function (event) {
                 // if escape cancel modal - 27
-                if(self.modal.on && event.keyCode === 27){
+                if (self.modal.on && event.keyCode === 27) {
                     self.modal.dismiss();
                 }
                 // if enter then run the modal - 13
-                if(self.modal.on && event.keyCode === 13){
+                if (self.modal.on && event.keyCode === 13) {
                     $('.tb-modal-footer .btn-success').trigger('click');
                 }
             });
