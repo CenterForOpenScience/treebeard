@@ -1532,6 +1532,7 @@
             }
             // Main scrolling functionality
             $('#tb-tbody').scroll(self.onScroll);
+            var tableRow = $('.tb-row').first();
             function _resizeCols() {
                 var parentWidth = titles.width(),
                     percentageTotal = 0,
@@ -1585,7 +1586,7 @@
                         index = $(this).attr('data-tb-th-col'),
                         totalColumns = columns.length,
                     // if the overall size is getting bigger than home size, make other items smaller
-                        parentWidth = titles.width() - 1,
+                        parentWidth = tableRow.width() - 1,
                         childrenWidth = 0,
                         diff,
                         nextBigThing,
