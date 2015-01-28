@@ -4400,7 +4400,7 @@ if (typeof exports == "object") {
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
-                if(self.options.onscrollcomplete) {
+                if (self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
                 }
             }
@@ -4412,7 +4412,9 @@ if (typeof exports == "object") {
          * @param {Boolean} isInit Whether this function ran once after page load.
          */
         this.init = function _init(el, isInit) {
-            var containerHeight = $('#tb-tbody').height();
+            var containerHeight = $('#tb-tbody').height(),
+                titles = $('.tb-row-titles'),
+                columns = $('.tb-th');
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
             self.remainder =  (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
@@ -4426,19 +4428,40 @@ if (typeof exports == "object") {
             }
             // Main scrolling functionality
             $('#tb-tbody').scroll(self.onScroll);
-            function _resizeCols () {
-                var parentWidth = $('.tb-row-titles').width(),
-                    percentageTotal = 0, p;
-                $('.tb-th').each(function (index) {                   // calculate percentages for each column
-                    $(this).attr('data-tb-size', $(this).outerWidth());
+            function _resizeCols() {
+                var parentWidth = titles.width(),
+                    percentageTotal = 0,
+                    p;
+                columns.each(function (index) {                   // calculate percentages for each column
+                    var col = $(this),
+                        lastWidth;
+                    col.attr('data-tb-size', col.outerWidth());
                     if (index === $('.tb-th').length - 1) {         // last column gets the remainder
-                        //var rounded = Math.floor(100 - percentageTotal);
-                        self.colsizes[$(this).attr('data-tb-th-col')] = 100 - percentageTotal;
+                        lastWidth = 100 - percentageTotal;
+                        self.colsizes[col.attr('data-tb-th-col')] = lastWidth;
+                        col.css('width', lastWidth + '%');
                     } else {
-                        p = $(this).outerWidth() / parentWidth * 100;
-                        self.colsizes[$(this).attr('data-tb-th-col')] = p;
+                        p = col.outerWidth() / parentWidth * 100;
+                        self.colsizes[col.attr('data-tb-th-col')] = p;
+                        col.css('width', p + '%');
                     }
                     percentageTotal += p;
+                });
+            }
+            function convertToPixels() {
+                var parentWidth = titles.width(),
+                    totalPixels = 0;
+                columns.each(function (index) {
+                    var col = $(this),
+                        colWidth = parentWidth - totalPixels - 1,
+                        width;
+                    if (index === $('.tb-th').length - 1) {         // last column gets the remainder
+                        col.css('width', colWidth + 'px'); // -1 for the border
+                    } else {
+                        width = col.outerWidth();
+                        col.css('width', width);
+                        totalPixels += width;
+                    }
                 });
             }
             $('.tb-th.tb-resizable').resizable({
@@ -4446,75 +4469,82 @@ if (typeof exports == "object") {
                 delay : 200,
                 handles : 'e',
                 minWidth : 60,
+                start : function (event, ui) {
+                    convertToPixels();
+                },
                 create : function (event, ui) {
                     // change cursor
                     $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
-                    // update beginning sizes
-                    _resizeCols();
                 },
-                resize : function(event, ui) {
-                    var thisCol = $(ui.element).attr('data-tb-th-col');
-                    var diff = ui.originalSize.width - ui.size.width;           // change in size on column acted on
-                    var next = $(ui.element).next();                         // column to the right
-                    var nextOriginalWidth = parseInt(next.attr('data-tb-size'));
-                    var nextCurrentWidth = next.outerWidth();
-                    if(nextCurrentWidth > 60) {
-                        next.css({ width : (nextOriginalWidth + diff) + 'px'});
-                        var siblingIndex = next.attr('data-tb-th-col');
-                        $('.tb-col-'+siblingIndex).css({width : (nextOriginalWidth + diff) + 'px'});
-                    }
+                resize : function (event, ui) {
+                    var thisCol = $(this),
+                        index = $(this).attr('data-tb-th-col'),
+                        totalColumns = columns.length,
                     // if the overall size is getting bigger than home size, make other items smaller
-                    var parentWidth = $('.tb-row-titles').width();
-                    var childrenWidth = 0;
-                    $('.tb-th').each(function(){
+                        parentWidth = titles.width() - 1,
+                        childrenWidth = 0,
+                        diff,
+                        nextBigThing,
+                        nextBigThingIndex,
+                        lastBigThing,
+                        lastBigThingIndex,
+                        diff2,
+                        diff3,
+                        w2,
+                        w3,
+                        lastWidth,
+                        colWidth;
+                    columns.each(function () {
                         childrenWidth = childrenWidth + $(this).outerWidth();
-                        //$(this).css({ height : self.options.rowHeight + 'px'});
                     });
-                    if(childrenWidth > parentWidth){
-                        var diff2 = childrenWidth - parentWidth;
-                        var nextBigThing = $('.tb-th').not(ui.element).filter(function () {
-                            var colElement = parseInt($(ui.element).attr('data-tb-th-col'));
-                            var colThis = parseInt($(this).attr('data-tb-th-col'));
-                            if(colThis > colElement) {
+                    if (childrenWidth > parentWidth) {
+                        diff2 = childrenWidth - parentWidth;
+                        nextBigThing = columns.not(ui.element).filter(function () {
+                            var colElement = parseInt($(ui.element).attr('data-tb-th-col')),
+                                colThis = parseInt($(this).attr('data-tb-th-col'));
+                            if (colThis > colElement) {
                                 return $(this).outerWidth() > 40;
                             }
                             return false;
                         }).first();
-                        if(nextBigThing.length > 0){
-                            var w2 = nextBigThing.outerWidth();
+                        if (nextBigThing.length > 0) {
+                            w2 = nextBigThing.outerWidth();
                             nextBigThing.css({ width : (w2 - diff2) + 'px' });
-                            var nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
-                            $('.tb-col-'+nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
+                            nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
+                            $('.tb-col-' + nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
                         } else {
                             $(ui.element).css({ width : $(ui.element).attr('data-tb-currentSize') + 'px'});
                             return;
                         }
                     }
-                    if(childrenWidth < parentWidth) {
-                        var diff3 = parentWidth - childrenWidth;
-                        var w3;
+                    if (childrenWidth < parentWidth) {
+                        diff3 = parentWidth - childrenWidth;
                         // number of children other than the current element with widths bigger than 40
-                        var lastBigThing = $('.tb-th').not(ui.element).filter(function () {
-                            return $(this).outerWidth() < parseInt($(this).attr('data-tb-size')); }).last();
-                        if(lastBigThing.length > 0){
+                        lastBigThing = columns.not(ui.element).filter(function () {
+                            return $(this).outerWidth() < parseInt($(this).attr('data-tb-size'));
+                        }).last();
+                        if (lastBigThing.length > 0) {
                             w3 = lastBigThing.outerWidth();
                             lastBigThing.css({ width : (w3 + diff3) + 'px' });
-                            var lastBigThingIndex = lastBigThing.attr('data-tb-th-col');
-                            $('.tb-col-'+lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
+                            lastBigThingIndex = lastBigThing.attr('data-tb-th-col');
+                            $('.tb-col-' + lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
                         } else {
-                            w3 = $('.tb-th').last().outerWidth();
-                            $('.tb-th').last().css({width : (w3 + diff3) + 'px'}).attr('data-tb-size', w3 + diff3);
+                            w3 = columns.last().outerWidth();
+                            columns.last().css({width : (w3 + diff3) + 'px'}).attr('data-tb-size', w3 + diff3);
                         }
                     }
+                    // make the last column rows be same size as last column header
+                    lastWidth = columns.last().width();
+                    $('.tb-col-' + (totalColumns - 1)).css('width', lastWidth + 'px');
+
                     $(ui.element).attr('data-tb-currentSize', $(ui.element).outerWidth());
                     // change corresponding columns in the table
-                    var index = $(this).attr('data-tb-th-col');
-                    var colWidth = $(this).outerWidth();
-                    $('.tb-col-'+index).css({width : colWidth + 'px'});
+                    colWidth = thisCol.outerWidth();
+                    $('.tb-col-' + index).css({width : colWidth + 'px'});
                 },
-                stop : function(event, ui){
+                stop : function (event, ui) {
                     _resizeCols();
-                    m.redraw();
+                    m.redraw(true);
                 }
             });
             if (self.options.uploads) { _applyDropzone(); }
@@ -4540,7 +4570,6 @@ if (typeof exports == "object") {
                 }
             });
         };
-
         /**
          * Destroys Treebeard by emptying the DOM object and removing dropzone
          * Because DOM objects are removed their events are going to be cleaned up.
