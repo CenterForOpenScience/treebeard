@@ -1178,12 +1178,11 @@
          */
         this.handleMultiselect = function (id, index, event) {
             var tree = Indexes[id],
-                originalIndex,
-                finalIndex,
                 begin,
                 end,
                 i,
-                cmdkey;
+                cmdkey,
+                direction;
             // if key is shift
             if (self.pressedKey === 16) {
                 // get the index of this and add all visible indexes between this one and last selected
@@ -1191,20 +1190,24 @@
                 if (self.multiselected.length === 0) {
                     self.multiselected.push(tree);
                 } else {
-                    originalIndex = self.returnRangeIndex(self.multiselected[0].id);
-                    finalIndex = self.returnRangeIndex(id);
-                    if (originalIndex > finalIndex) {
-                        // going up
-                        begin = finalIndex;
-                        end = originalIndex;
+                    begin = self.returnRangeIndex(self.multiselected[0].id);
+                    end = self.returnRangeIndex(id);
+                    if (begin > end) {
+                        direction = 'up';
                     } else {
-                        begin = originalIndex;
-                        end = finalIndex;
+                        direction = 'down';
                     }
-                    if (originalIndex !== finalIndex) {
+                    if (begin !== end) {
                         self.multiselected = [];
-                        for (i = begin; i < end + 1; i++) {
-                            self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                        if (direction === 'down') {
+                            for (i = begin; i < end + 1; i++) {
+                                self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                            }
+                        }
+                        if (direction === 'up') {
+                            for (i = begin; i > end - 1; i--) {
+                                self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                            }
                         }
                     }
                 }
