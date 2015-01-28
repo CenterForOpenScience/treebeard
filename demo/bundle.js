@@ -4182,6 +4182,9 @@ if (typeof exports == "object") {
                 drop : function _dropzoneDrop(event) {
                     var rowID = $(event.target).closest('.tb-row').attr('data-id');
                     var item = Indexes[rowID];
+                    if (item.kind === 'file') {
+                        item = item.parent();
+                    }
                     self.dropzoneItemCache = item;
                     if (!item.open) {
                         var index = self.returnIndex(item.id);
