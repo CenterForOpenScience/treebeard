@@ -1853,6 +1853,7 @@
                                                 if (ctrl.options.multiselect) {
                                                     ctrl.handleMultiselect(id, index, event);
                                                 }
+                                                ctrl.selected = id;
                                                 if (ctrl.options.onselectrow) {
                                                     ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }
