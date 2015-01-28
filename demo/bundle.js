@@ -4080,16 +4080,16 @@ if (typeof exports == "object") {
                 finalIndex,
                 begin,
                 end,
-                i;
+                i,
+                cmdkey;
             // if key is shift
             if (self.pressedKey === 16) {
                 // get the index of this and add all visible indexes between this one and last selected
                 // If there is no multiselect yet
-                if (self.multiselected.length === 0 && !self.selected) {
-                    self.selected = tree.id;
+                if (self.multiselected.length === 0) {
                     self.multiselected.push(tree);
                 } else {
-                    originalIndex = self.returnRangeIndex(self.selected);
+                    originalIndex = self.returnRangeIndex(self.multiselected[0].id);
                     finalIndex = self.returnRangeIndex(id);
                     if (originalIndex > finalIndex) {
                         // going up
@@ -4108,8 +4108,8 @@ if (typeof exports == "object") {
                 }
             }
             // if key is cmd
-            var cmdkey = 91; // works with mac
-            if( window.navigator.userAgent.indexOf('MSIE') > -1){
+            cmdkey = 91; // works with mac
+            if (window.navigator.userAgent.indexOf('MSIE') > -1) {
                 cmdkey = 17; // works with windows
             }
             if (self.pressedKey === cmdkey) {
@@ -4119,9 +4119,8 @@ if (typeof exports == "object") {
                     self.removeMultiselected(tree.id);
                 }
             }
-
             // if there is no key add the one.
-            if (!self.pressedKey){
+            if (!self.pressedKey) {
                 self.clearMultiselect();
                 self.multiselected.push(tree);
             }
@@ -4572,7 +4571,15 @@ if (typeof exports == "object") {
                     $('.tb-modal-footer .btn-success').trigger('click');
                 }
             });
+            window.onblur = self.resetKeyPress;
         };
+
+        /**
+         * Resets keys that are hung up. Other window onblur event actions can be added in here.
+         */
+        this.resetKeyPress = function () {
+            self.pressedKey = undefined;
+        }
         /**
          * Destroys Treebeard by emptying the DOM object and removing dropzone
          * Because DOM objects are removed their events are going to be cleaned up.
@@ -4744,7 +4751,6 @@ if (typeof exports == "object") {
                                                 if (ctrl.options.multiselect) {
                                                     ctrl.handleMultiselect(id, index, event);
                                                 }
-                                                ctrl.selected = id;
                                                 if (ctrl.options.onselectrow) {
                                                     ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }
