@@ -17,6 +17,7 @@
     "through2": "^0.5.1"
   },
   "devDependencies": {
+    "gulp-qunit": "^1.2.1",
     "qunitjs": "^1.15.0"
   },
   "scripts": {
