@@ -4250,11 +4250,6 @@ if (typeof exports == "object") {
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
-                    var files = file.treebeardParent._files || [];
-                    var index = files.indexOf(file);
-                    if (index !== -1) {
-                        files.splice(index, 1);
-                    }
                 },
                 addedfile : function _dropzoneAddedFile(file) {
                     file.treebeardParent = self.dropzoneItemCache;
