@@ -1,5 +1,5 @@
 {
-  "name": "mithrilgrid",
+  "name": "Treebeard",
   "version": "0.1.0",
   "description": "Implementation of grid data display through Mithril",
   "main": "gulpfile.js",
