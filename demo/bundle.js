@@ -4434,7 +4434,7 @@ if (typeof exports == "object") {
                 self.options.rowHeight = $('.tb-row').height();
             }
             $('.gridWrapper').mouseleave(function () {
-                $('.tb-row').removeClass('hoverClass');
+                $('.tb-row').removeClass(self.options.hoverClass);
             });
             // Main scrolling functionality
             $('#tb-tbody').scroll(self.onScroll);
