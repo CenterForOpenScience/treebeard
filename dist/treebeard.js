@@ -430,8 +430,9 @@
      * @param {Number} index The index of the column, needed to find out which field to be sorted
      */
     Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
-        var columns = treebeard.options.resolveRows.call(treebeard, this),
-            field = columns[index].data;
+        var columns = treebeard.options.resolveRows.call(treebeard, this);
+        console.log(this, index, columns, columns[index]);
+        var field = columns[index].data;
         if (!direction || (direction !== 'asc' && direction !== 'desc')) {
             throw new Error("Treebeard Error: To sort children you need to pass direction as asc or desc to Item.sortChildren");
         }
@@ -1336,6 +1337,7 @@
                     }
                 },
                 success : function _dropzoneSuccess(file, response) {
+                    console.log(file);
                     if ($.isFunction(self.options.dropzoneEvents.success)) {
                         self.options.dropzoneEvents.success.call(this, self, file, response);
                     }
@@ -1361,11 +1363,6 @@
                 complete : function _dropzoneComplete(file) {
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
-                    }
-                    var files = file.treebeardParent._files || [];
-                    var index = files.indexOf(file);
-                    if (index !== -1) {
-                        files.splice(index, 1);
                     }
                 },
                 addedfile : function _dropzoneAddedFile(file) {
@@ -2051,8 +2048,7 @@
                 {
                     title: "Author",
                     width : "25%",
-                    sortType : "text",
-                    sort : true
+                    sortType : "text"
                 },
                 {
                     title: "Age",

@@ -1,10 +1,15 @@
-var gulp = require('gulp');
-var concat = require("gulp-concat");
-var minifyCSS = require('gulp-minify-css');
-var less = require('gulp-less');
-var generate = require('./scripts/generate');
-var rename = require('gulp-rename');
-var uglify = require('gulp-uglify');
+var gulp = require('gulp'),
+    concat = require("gulp-concat"),
+    minifyCSS = require('gulp-minify-css'),
+    less = require('gulp-less'),
+    generate = require('./scripts/generate'),
+    rename = require('gulp-rename'),
+    uglify = require('gulp-uglify'),
+    qunit = require('node-qunit-phantomjs');
+
+gulp.task('qunit', function() {
+    qunit('./tests/qunit/index.html', { 'verbose': true });
+});
 
 var paths = {
     cssfiles : [
@@ -76,7 +81,7 @@ gulp.task('css-dist-min', ["less"], function(){
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('js-dist-min', function(){
+gulp.task('js-dist-min', function() {
     return gulp.src('./scripts/grid.js')
         .pipe(uglify())
         .pipe(rename("treebeard.min.js"))
@@ -94,6 +99,5 @@ gulp.task('js-dist-full',  ["js-dist-min"], function () {
         .pipe(rename("treebeard.js"))
         .pipe(gulp.dest('./dist'));
 });
-
 
 gulp.task("default", ["css", "js", "watch", "js-dist-full", "css-dist-full" ]);
