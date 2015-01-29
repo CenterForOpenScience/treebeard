@@ -576,8 +576,18 @@
                     }
                 },
                 start : function (event, ui) {
+                    var thisID,
+                        item,
+                        ghost;
+                    // if the item being dragged is not in multiselect clear multiselect
+                    thisID = parseInt($(ui.helper).closest('.tb-row').attr('data-id'), 10);
+                    item = self.find(thisID);
+                    if (!self.isMultiselected(thisID)) {
+                        self.clearMultiselect();
+                        self.multiselected.push(item);
+                    }
                     self.dragText = "";
-                    var ghost = $(ui.helper).clone();
+                    ghost = $(ui.helper).clone();
                     ghost.addClass('tb-drag-ghost');
                     $('body').append(ghost);
                     if (self.options.dragEvents.start) {
