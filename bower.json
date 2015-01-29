@@ -1,6 +1,6 @@
 {
   "name": "treebeard",
-  "version": "0.3.3",
+  "version": "0.6.0",
   "homepage": "https://github.com/caneruguz/treebeard",
   "authors": [
     "Caner Uguz <caneruguz@gmail.com>",
@@ -25,8 +25,9 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "~3.2.0",
-    "jquery-ui": "~1.11.0",
-    "mithril": "~0.1.22"
+    "jquery-ui": ">=1.10.4",
+    "mithril": ">=0.1.22",
+    "jquery": "~1.11.0",
+    "bootstrap": "~3.3.2"
   }
 }

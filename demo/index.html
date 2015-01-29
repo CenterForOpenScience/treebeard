@@ -10,6 +10,11 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        <link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/all.css">
+
+        <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+
+
         <link rel="stylesheet" href="bundle.css">
         <style>
             body {
@@ -25,6 +30,9 @@
 
             img.logo {
                 width: 300px;
+            }
+            .hoverClass {
+                background: yellow;
             }
 
             .list-group-item {
@@ -68,35 +76,66 @@
         /*
          *  User defined options
          */
-
-         var myCustomFunc = function(col){
-            console.log("This is", this);
-            return m('span', this[col.data]+' --')
-         }
         var options = {
             divID : 'grid',
-            filesData : "http://localhost:63342/mGrid/demo/small.json",
+            filesData : "tree.json",
             rowHeight : 35,
             showTotal : 15,
             paginate : false,
-            paginateToggle : true,
+            paginateToggle : false,
             lazyLoad : true,
             useDropzone : true,
             uploadURL : "",
-            allowMove : true
-
+            allowMove : true,
+            multiselect : true,
+            hoverClass : 'hoverClass',
+            moveClass : 'tb-draggable',
+            resolveRows : function (item) {
+                return [            // Defines columns based on data
+                    {
+                        data : "title",  // Data field name
+                        folderIcons : true,
+                        filter : true,
+                        css : 'tb-draggable'
+                    },
+                    {
+                        data : "person",
+                        filter : true
+                    },
+                    {
+                        data : "age",
+                        filter : false
+                    },
+                    {
+                        data : "action",
+                        sortInclude : false,
+                        filter : false,
+                        custom : function (row, col) {
+                            var that = this;
+                            return m("button.tb-button", {
+                                onclick: function _deleteClick(e) {
+                                    e.stopPropagation();
+                                    that.deleteNode(row.parentID, row.id);
+                                }
+                            }, " X ");
+                        }
+                    }
+                ];
+            },
+            dropEvents : {
+                over : function(event, ui) {
+                },
+                drop : function(event, ui) {
+                    console.log("dropped", event, ui);
+                    console.log($(ui.draggable).text());
+                }
+            }
 
         }
-
-
         /*
          *  User defined code to implement Treebeard anywhere on the page.
          */
-        Treebeard.run(options);
-
-
-
-
+        Treebeard(options);
     </script>
     </body>
 </html>
