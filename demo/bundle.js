@@ -4052,7 +4052,6 @@ if (typeof exports == "object") {
                     arr.splice(index, 1);
                     // remove highlight
                     $('.tb-row[data-id="' + item.id + '"]').removeClass(self.options.hoverClassMultiselect);
-
                 }
             });
             return false;
@@ -4434,6 +4433,9 @@ if (typeof exports == "object") {
             if (!self.options.rowHeight) {                      // If row height is not set get it from CSS
                 self.options.rowHeight = $('.tb-row').height();
             }
+            $('.gridWrapper').mouseleave(function () {
+                $('.tb-row').removeClass('hoverClass');
+            });
             // Main scrolling functionality
             $('#tb-tbody').scroll(self.onScroll);
             function _resizeCols() {

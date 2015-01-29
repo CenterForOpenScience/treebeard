@@ -31,6 +31,9 @@
             img.logo {
                 width: 300px;
             }
+            .hoverClass {
+                background: yellow;
+            }
 
             .list-group-item {
                 position: relative;
@@ -85,6 +88,7 @@
             uploadURL : "",
             allowMove : true,
             multiselect : true,
+            hoverClass : 'hoverClass',
             moveClass : 'tb-draggable',
             resolveRows : function (item) {
                 return [            // Defines columns based on data
