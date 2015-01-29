@@ -3,27 +3,31 @@ var mockData = {
     'long': '[{"id":1,"person":"MadihahNegassi","desc":"Erossitacultricessedfacilisisipsumsedleoblanditnuncaliquet.","title":"IaculisNequeVehiculaSit","age":17,"skills":"css","open":true,"date":"2014-10-28T16:17:19.710Z","icon":"fa-file-code-o","children":[{"id":2,"person":"ÁkosSándor","desc":"Antenibhaliquamiaculisnonarcusitgravidadolortellusnullaelit.","title":"EuElitPorttitorOdioNon","age":42,"skills":"js","open":false,"date":"2014-10-28T16:17:19.710Z","icon":"fa-file-sound-o","children":[],"kind":"folder"},{"id":92,"person":"KennethCraig","desc":"Hendreritidloremameterosodioenimidblanditsedsitsemposuere.","title":"VolutpatLacusNequeQuis","age":3,"skills":"html","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-picture-o","children":[],"kind":"item"},{"id":93,"person":"BeataLund","desc":"Scelerisqueetiamsuspendissesitsitduisedelementum.","title":"EuAcConsectetur","age":10,"skills":"html","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-movie-o","children":[],"kind":"item"},{"id":94,"person":"JónBergsveinsson","desc":"Lobortismetuseuismodjustoquisfeugiatauctorsedviverraposuere.","title":"UtConsecteturTemporEuismodEget","age":47,"skills":"js","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-powerpoint-o","children":[],"kind":"item"},{"id":95,"person":"UrszulaWoźniak","desc":"Veltinciduntsemurnaidsitlorempharetrasemsemligulaaliquam.","title":"QuisSagittisOrnareNibhEu","age":15,"skills":"js","open":false,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-audio-o","children":[],"kind":"item"},{"id":96,"person":"RankoĆosić","desc":"tortorpulvinarenimplacerategetnuncnonidloremturpisut.","title":"NequeVehiculaTempor","age":15,"skills":"css","open":false,"date":"2014-10-28T16:17:19.712Z","children":[],"kind":"item"},{"id":97,"person":"DrewReid","desc":"Rutrumeunecmalesuadavelitfacilisisdiamsedpellentesquesed.","title":"FermentumTempusVitaeMauris","age":52,"skills":"python","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-movie-o","children":[],"kind":"item"},{"id":98,"person":"JosíasFrías","desc":"Velconsequateleifenderategetmimaurisprimisatenimtortorlobortiscraset.","title":"EuVestibulumMagnaBibendum","age":41,"skills":"js","open":false,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-word-o","children":[],"kind":"item"},{"id":99,"person":"JaroslavaBalounová","desc":"erataccumsanjustoleoegetsapiencursussapiensitloremidnislpellentesque.","title":"EtEgetUltricesSitNeque","age":34,"skills":"python","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-photo-o","children":[],"kind":"item"},{"id":100,"person":"NicholasCooper","desc":"Pulvinarquamidfringillamisedsapienelitconvallislorem.","title":"NullamEtVelitIdUltrices","age":17,"open":false,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-sound-o","children":[],"kind":"item"},{"id":101,"person":"RenanCorreia","desc":"arcuconvallisaliquamnibhelementumrutrumvelnondapibusdonecvestibulum.","title":"ElitPlaceratTinciduntLoremCondimentum","age":14,"skills":"python","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-video-o","children":[],"kind":"item"},{"id":102,"person":"MarcellaLi","desc":"ullamcorpersuscipitactinciduntodioleolectuspellentesquevitaevenenatisdolor.","title":"LoremUltricesNuncSed","age":14,"skills":"js","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-text","children":[],"kind":"item"}],"kind":"folder"},{"id":103,"person":"AlacoqueBisson","desc":"Magnadonecnibhphasellusnullaegestasliberoegetvitaealiquamturpisametmassaauctor.","title":"NequeEtiamDapibusVelUndefined","age":7,"skills":"css","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-code-o","children":[],"kind":"item"},{"id":104,"person":"TomiSaariaho","desc":"Laciniamassarhoncusegestasrisusloremsitrutrumnuncsollicitudinpellentesque.","title":"EtPharetraEuLoremElit","age":46,"skills":"html","open":true,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-o","children":[],"kind":"item"},{"id":105,"person":"HamidIdris","desc":"Consequategetatnibharcupellentesquecongueorcitortorsitenim.","title":"NamAcFermentumSagittisVelit","age":54,"skills":"python","open":false,"date":"2014-10-28T16:17:19.712Z","icon":"fa-file-picture-o","children":[],"kind":"item"}]'
 };
 
+var server;
+
 function reload(type, options) {
     stop();
-    this.server.respondWith("GET", "small.json", [200, { "Content-Type": "application/json" }, mockData[type]]);
-    var finalOptions = $.extend({}, {filesData : 'small.json', redrawComplete : function () {
+    //this.server.respondWith("GET", "small.json", [200, { "Content-Type": "application/json" }, mockData[type]]);
+    var passOpts = options || {};
+    var finalOptions = $.extend({}, passOpts, {filesData : 'small.json', redrawComplete : function () {
         if (!this.initialized) {
             start();
         }
     }
-        }, options),
-        _treebeard = new Treebeard(finalOptions),
-        TB = _treebeard.tbController;
-    this.server.respond();
+        });
+    var _treebeard = new Treebeard(finalOptions);
+    var TB = _treebeard.tbController;
+    server.requests[0].respond(200, { "Content-Type": "application/json" }, mockData[type]);
+    //this.server.respond();
     return TB;
 }
 
 QUnit.module("Load Tests", {
     setup : function () {
-        this.server = sinon.fakeServer.create();
+        server = sinon.fakeServer.create();
     },
     teardown : function () {
-        this.server.restore();
+        server.restore();
     }
 });
 
@@ -54,10 +58,10 @@ test('Flatten function gives flat data', function (assert) {
 
 QUnit.module("ITEM API Tests", {
     setup : function () {
-        this.server = sinon.fakeServer.create();
+        server = sinon.fakeServer.create();
     },
     teardown : function () {
-        this.server.restore();
+        server.restore();
     }
 });
 
@@ -132,10 +136,10 @@ test('ITEM is descendant', function (assert) {
 
 QUnit.module("Treebeard API tests", {
     setup : function () {
-        this.server = sinon.fakeServer.create();
+        server = sinon.fakeServer.create();
     },
     teardown : function () {
-        this.server.restore();
+        server.restore();
     }
 });
 
@@ -271,18 +275,20 @@ test('checks folder Toggle actually toggles view and data ', function (assert) {
     var tb,
         openCount,
         item,
-        closedCount;
+        closedCount,
+        shouldShowOpen = 15,
+        shouldShowClosed = 4;
     tb = reload.call(this, 'long');
     tb.toggleFolder(0, null);
     openCount = $('.tb-row').length;
-    assert.equal(openCount, 14, 'The view refreshes to show 16 open items. ');
-    assert.equal(tb.showRange.length, 14, 'The showRange data refreshes to show 16 open items. ');
+    assert.equal(openCount, shouldShowOpen, 'The view refreshes to show ' + shouldShowOpen +  '  open items. ');
+    assert.equal(tb.showRange.length, shouldShowOpen, 'The showRange data refreshes to show ' + shouldShowOpen +  '  open items. ');
     item = tb.find(1);
     assert.ok(item.open, 'The item open property accurately shows true');
     tb.toggleFolder(0, null);
     closedCount = $('.tb-row').length;
-    assert.equal(closedCount, 4, 'The view refreshes to show 4 open items. ');
-    assert.equal(tb.showRange.length, 4, 'The showRange data refreshes to show 4 open items. ');
+    assert.equal(closedCount, shouldShowClosed, 'The view refreshes to show ' + shouldShowClosed +  '  open items. ');
+    assert.equal(tb.showRange.length, shouldShowClosed, 'The showRange data refreshes to show ' + shouldShowClosed +  ' open items. ');
     assert.ok(!item.open, 'The item open property accurately shows false after closing');
     tb.destroy();
 });
@@ -312,26 +318,30 @@ test('checks calculateHeight works', function (assert) {
         height1,
         height2,
         height3,
-        height4;
+        height4,
+        shouldBeHeight1 = 140,
+        shouldBeHeight2 = 525,
+        shouldBeHeight3 = 525,
+        shouldBeHeight4 = 560;
     tb = reload.call(this, 'long');
     // pagination off, fodler  closed
     tb.options.paginate = false;
     height1 = tb.calculateHeight();
-    assert.equal(height1, 140, "Pagination OFF, folder CLOSED calculate height accurate. ");
+    assert.equal(height1, shouldBeHeight1, "Pagination OFF, folder CLOSED calculate height accurate. ");
     // pagination on, folder closed
     tb.options.paginate = true;
     height2 = tb.calculateHeight();
-    assert.equal(height2, 490, "Pagination ON, folder CLOSED calculate height accurate. ");
+    assert.equal(height2, shouldBeHeight2, "Pagination ON, folder CLOSED calculate height accurate. ");
     // pagination on, folder open
     tb.toggleFolder(0, null);
     tb.redraw();
     height3 = tb.calculateHeight();
-    assert.equal(height3, 490, "Pagination ON, folder OPEN calculate height accurate. ");
+    assert.equal(height3, shouldBeHeight3, "Pagination ON, folder OPEN calculate height accurate. ");
     // pagination off, folder open
     tb.options.paginate = false;
     tb.redraw();
     height4 = tb.calculateHeight();
-    assert.equal(height4, 560, "Pagination OFF, folder OPEN calculate height accurate. ");
+    assert.equal(height4, shouldBeHeight4, "Pagination OFF, folder OPEN calculate height accurate. ");
     // reset
     tb.toggleFolder(0, null);
     tb.destroy();
@@ -385,10 +395,10 @@ test('checks refreshRange works', function (assert) {
 
 QUnit.module('Async tests', {
     setup : function () {
-        this.server = sinon.fakeServer.create();
+        server = sinon.fakeServer.create();
     },
     teardown : function () {
-        this.server.restore();
+        server.restore();
     }
 });
 
@@ -473,10 +483,10 @@ test('checks paginate up and down and gotopage', function (assert) {
 
 QUnit.module('Multiselect', {
     setup : function () {
-        this.server = sinon.fakeServer.create();
+        server = sinon.fakeServer.create();
     },
     teardown : function () {
-        this.server.restore();
+        server.restore();
     }
 });
 
@@ -635,10 +645,10 @@ test('checks clear multiselect ', function (assert) {
 
 QUnit.module('Options HOOKS', {
     setup : function () {
-        this.server = sinon.fakeServer.create();
+        server = sinon.fakeServer.create();
     },
     teardown : function () {
-        this.server.restore();
+        server.restore();
     }
 });
 
@@ -804,10 +814,10 @@ test('resolveicon hook ran', function (assert) {
 
 QUnit.module('Dropzone', {
     setup : function () {
-        this.server = sinon.fakeServer.create();
+        server = sinon.fakeServer.create();
     },
     teardown : function () {
-        this.server.restore();
+        server.restore();
     }
 });
 
@@ -869,11 +879,12 @@ test('Dropzone file event hooks', function (assert) {
                 addedfile : addedfile
             }
         }),
+        f = new File([""], "filename"),
         event = jQuery.Event("mouseover");
     event.target = $('.tb-row[data-id="1"]').get(0);
     tb.dropzone.options.drop(event);
     assert.equal(drop.callCount, 1, "drop callback called once .");
-    tb.dropzone.options.success();
+    tb.dropzone.options.success(f);
     assert.equal(success.callCount, 1, "success callback called once .");
     tb.dropzone.options.error();
     assert.ok(error.called, "error callback called.");
@@ -881,9 +892,9 @@ test('Dropzone file event hooks', function (assert) {
     assert.ok(uploadprogress.called, "uploadprogress callback called.");
     tb.dropzone.options.sending();
     assert.ok(sending.called, "sending callback called.");
-    tb.dropzone.options.complete();
+    tb.dropzone.options.complete(f);
     assert.ok(complete.called, "complete callback called.");
-    tb.dropzone.options.addedfile();
+    tb.dropzone.options.addedfile(f);
     assert.ok(addedfile.called, "addedfile callback called.");
     tb.destroy();
 });
@@ -920,7 +931,7 @@ test('Dropzone accept, and related event hooks', function (assert) {
     tb.destroy();
 });
 
-QUnit.module("Notify tests", {});
+QUnit.module('Notify test', {});
 
 test('Notify timeout', function (assert) {
     var notify,
