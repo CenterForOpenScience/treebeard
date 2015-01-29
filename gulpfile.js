@@ -7,7 +7,7 @@ var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     qunit = require('node-qunit-phantomjs');
 
-gulp.task('qunit', function() {
+gulp.task('test', function() {
     qunit('./tests/qunit/index.html', { 'verbose': true });
 });
 
