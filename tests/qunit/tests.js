@@ -4,10 +4,8 @@ var mockData = {
 };
 
 var server;
-
 function reload(type, options) {
     stop();
-    //this.server.respondWith("GET", "small.json", [200, { "Content-Type": "application/json" }, mockData[type]]);
     var passOpts = options || {};
     var finalOptions = $.extend({}, passOpts, {filesData : 'small.json', redrawComplete : function () {
         if (!this.initialized) {
@@ -18,7 +16,6 @@ function reload(type, options) {
     var _treebeard = new Treebeard(finalOptions);
     var TB = _treebeard.tbController;
     server.requests[0].respond(200, { "Content-Type": "application/json" }, mockData[type]);
-    //this.server.respond();
     return TB;
 }
 
@@ -879,7 +876,7 @@ test('Dropzone file event hooks', function (assert) {
                 addedfile : addedfile
             }
         }),
-        f = new File([""], "filename"),
+        f = {},
         event = jQuery.Event("mouseover");
     event.target = $('.tb-row[data-id="1"]').get(0);
     tb.dropzone.options.drop(event);
@@ -923,7 +920,7 @@ test('Dropzone accept, and related event hooks', function (assert) {
         resolveUploadMethod : resolveuploadmethod
     });
     tb.dropzoneItemCache = tb.find(1);
-    f = new File([""], "filename");
+    f = {};
     tb.dropzone.options.accept(f, function () {});
     assert.equal(addcheck.callCount, 1, "addcheck callback called once .");
     assert.equal(resolveuploadurl.callCount, 1, "resolveuploadurl callback called once .");

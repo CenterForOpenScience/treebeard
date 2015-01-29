@@ -5,7 +5,11 @@ var gulp = require('gulp'),
     generate = require('./scripts/generate'),
     rename = require('gulp-rename'),
     uglify = require('gulp-uglify'),
-    qunit = require('gulp-qunit');
+    qunit = require('node-qunit-phantomjs');
+
+gulp.task('qunit', function() {
+    qunit('./tests/qunit/index.html', { 'verbose': true });
+});
 
 var paths = {
     cssfiles : [
@@ -97,8 +101,3 @@ gulp.task('js-dist-full',  ["js-dist-min"], function () {
 });
 
 gulp.task("default", ["css", "js", "watch", "js-dist-full", "css-dist-full" ]);
-
-gulp.task('test', function () {
-    return gulp.src('./tests/qunit/index.html')
-        .pipe(qunit());
-});
