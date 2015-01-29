@@ -4417,6 +4417,7 @@ if (typeof exports == "object") {
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
+                self.highlightMultiselect();
                 if (self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
                 }
