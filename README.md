@@ -2,6 +2,9 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/caneruguz/treebeard/master/demo/treebeard.png" alt="Treebeard Logo"/>
 </p>
+
+<img src="https://travis-ci.org/caneruguz/treebeard.svg?branch=develop" alt="Travis build"/>
+
 <i style="text-align:center"> Logo designed by [fayetality](https://github.com/fayetality "fayetality")  </i>
 
 treebeard
