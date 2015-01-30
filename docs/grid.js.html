@@ -1,16 +1,41 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: grid.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: grid.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * Treebeard : hierarchical grid built with Mithril
  * https://github.com/caneruguz/treebeard
  * Built by Center for Open Science -> http://www.cos.io
- */
-/**
- * @memberOf jQuery
  */
 ;
 (function (global, factory) {
     "use strict";
     var m;
-    if (typeof define === 'function' && define.amd) {
+    if (typeof define === 'function' &amp;&amp; define.amd) {
         // AMD. Register as an anonymous module.
         define(['jQuery', 'mithril'], factory);
     } else if (typeof exports === 'object') {
@@ -34,7 +59,7 @@
         var requestArgs = arguments[0];
 
         if (requestArgs.url.indexOf('?') !== -1) {
-            buster = '&_=';
+            buster = '&amp;_=';
         } else {
             buster = '?_=';
         }
@@ -99,7 +124,7 @@
         return function _compare(a, b) {
             var titleA = a.data[data].toLowerCase().replace(/\s+/g, " "),
                 titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
-            if (titleA < titleB) {
+            if (titleA &lt; titleB) {
                 return -1;
             }
             if (titleA > titleB) {
@@ -127,7 +152,7 @@
             if (titleA > titleB) {
                 return -1;
             }
-            if (titleA < titleB) {
+            if (titleA &lt; titleB) {
                 return 1;
             }
             return 0;
@@ -144,8 +169,8 @@
     function removeByProperty(arr, attr, value) {
         var i,
             done = false;
-        for (i = 0; i < arr.length; i++) {
-            if (arr[i] && arr[i].hasOwnProperty(attr) && (arguments.length > 2 && arr[i][attr] === value)) {
+        for (i = 0; i &lt; arr.length; i++) {
+            if (arr[i] &amp;&amp; arr[i].hasOwnProperty(attr) &amp;&amp; (arguments.length > 2 &amp;&amp; arr[i][attr] === value)) {
                 arr.splice(i, 1);
                 done = true;
                 return done;
@@ -176,7 +201,7 @@
         this.show = function () {
             this.on = true;
             var self = this;
-            if (self.timeout && self.timeout > 1) {                     // set timeout to 1 to stay forever
+            if (self.timeout &amp;&amp; self.timeout > 1) {                     // set timeout to 1 to stay forever
                 setTimeout(function () { self.hide(); }, self.timeout);
             }
             m.redraw(true);
@@ -295,7 +320,7 @@
         component.depth = this.depth + 1;
         component.open = false;
         component.load = false;
-        if (component.depth > 1 && component.children.length === 0) {
+        if (component.depth > 1 &amp;&amp; component.children.length === 0) {
             component.open = false;
         }
         if (toTop) {
@@ -329,7 +354,7 @@
     Item.prototype.redoDepth = function _itemRedoDepth() {
         function recursive(items, depth) {
             var i;
-            for (i = 0; i < items.length; i++) {
+            for (i = 0; i &lt; items.length; i++) {
                 items[i].depth = depth;
                 if (items[i].children.length > 0) {
                     recursive(items[i].children, depth + 1);
@@ -367,7 +392,7 @@
     Item.prototype.next = function _itemNext() {
         var next, parent, i;
         parent = Indexes[this.parentID];
-        for (i = 0; i < parent.children.length; i++) {
+        for (i = 0; i &lt; parent.children.length; i++) {
             if (parent.children[i].id === this.id) {
                 next = parent.children[i + 1];
                 return next;
@@ -385,7 +410,7 @@
     Item.prototype.prev = function _itemPrev() {
         var prev, parent, i;
         parent = Indexes[this.parentID];
-        for (i = 0; i < parent.children.length; i++) {
+        for (i = 0; i &lt; parent.children.length; i++) {
             if (parent.children[i].id === this.id) {
                 prev = parent.children[i - 1];
                 return prev;
@@ -403,7 +428,7 @@
      */
     Item.prototype.child = function _itemChild(childID) {
         var child, i;
-        for (i = 0; i < this.children.length; i++) {
+        for (i = 0; i &lt; this.children.length; i++) {
             if (this.children[i].id === childID) {
                 child = this.children[i];
                 return child;
@@ -435,7 +460,7 @@
     Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
         var columns = treebeard.options.resolveRows.call(treebeard, this);
         var field = columns[index].data;
-        if (!direction || (direction !== 'asc' && direction !== 'desc')) {
+        if (!direction || (direction !== 'asc' &amp;&amp; direction !== 'desc')) {
             throw new Error("Treebeard Error: To sort children you need to pass direction as asc or desc to Item.sortChildren");
         }
         if (this.children.length > 0) {
@@ -478,7 +503,7 @@
         var i,
             result = false;
         function _checkDescendant(children, b) {
-            for (i = 0; i < children.length; i++) {
+            for (i = 0; i &lt; children.length; i++) {
                 if (children[i].id === b.id) {
                     result = true;
                     break;
@@ -561,7 +586,7 @@
                     } else {
                         if (self.dragText === "") {
                             if (self.multiselected.length > 1) {
-                                var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
+                                var newHTML = $(ui.helper).text() + ' &lt;b> + ' + (self.multiselected.length - 1) + ' more &lt;/b>';
                                 self.dragText = newHTML;
                                 $('.tb-drag-ghost').html(newHTML);
                             }
@@ -765,7 +790,7 @@
          */
         this.returnIndex = function _returnIndex(id) {
             var len = self.flatData.length, i, o;
-            for (i = 0; i < len; i++) {
+            for (i = 0; i &lt; len; i++) {
                 o = self.flatData[i];
                 if (o.id === id) {
                     return i;
@@ -781,7 +806,7 @@
          */
         this.returnRangeIndex = function _returnRangeIndex(id) {
             var len = self.showRange.length, i, o;
-            for (i = 0; i < len; i++) {
+            for (i = 0; i &lt; len; i++) {
                 o = self.flatData[self.showRange[i]];
                 if (o.id === id) {
                     return i;
@@ -803,9 +828,9 @@
                 titleResult = false,
                 i,
                 o;
-            for (i = 0; i < cols.length; i++) {
+            for (i = 0; i &lt; cols.length; i++) {
                 o = cols[i];
-                if (o.filter && item.data[o.data].toLowerCase().indexOf(filter) !== -1) {
+                if (o.filter &amp;&amp; item.data[o.data].toLowerCase().indexOf(filter) !== -1) {
                     titleResult = true;
                 }
             }
@@ -856,7 +881,7 @@
             if (data) {
                 parent.children = [];
                 var child, i;
-                for (i = 0; i < data.length; i++) {
+                for (i = 0; i &lt; data.length; i++) {
                     child = self.buildTree(data[i], parent);
                     parent.add(child);
                 }
@@ -897,7 +922,7 @@
             }
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
-                if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
+                if (lazyLoad &amp;&amp; item.row.kind === "folder" &amp;&amp; tree.open === false &amp;&amp; tree.load === false) {
                     tree.children = [];
                     m.request({method: "GET", url: lazyLoad})
                         .then(function _getUrlBuildtree(value) {
@@ -912,7 +937,7 @@
                                     return element.data.tmpID;
                                 };
                                 tree.children = tree.children.filter(isUploadItem);
-                                for (i = 0; i < value.length; i++) {
+                                for (i = 0; i &lt; value.length; i++) {
                                     child = self.buildTree(value[i], tree);
                                     tree.add(child);
                                 }
@@ -934,11 +959,11 @@
                         });
 
                 } else {
-                    for (j = index + 1; j < len; j++) {
+                    for (j = index + 1; j &lt; len; j++) {
                         o = self.flatData[j];
                         t = Indexes[self.flatData[j].id];
-                        if (o.depth <= level) {break; }
-                        if (skip && o.depth > skipLevel) {continue; }
+                        if (o.depth &lt;= level) {break; }
+                        if (skip &amp;&amp; o.depth > skipLevel) {continue; }
                         if (o.depth === skipLevel) { skip = false; }
                         if (tree.open) {                    // closing
                             o.show = false;
@@ -1029,7 +1054,7 @@
                 i,
                 item;
             self.visibleIndexes = [];
-            for (i = 0; i < len; i++) {
+            for (i = 0; i &lt; len; i++) {
                 item = Indexes[self.flatData[i].id];
                 if (self.filterOn) {
                     if (self.rowFilterResult(item)) {
@@ -1061,7 +1086,7 @@
                 begin =  0;
             }
             self.visibleTop = begin;
-            for (i = begin; i < len; i++) {
+            for (i = begin; i &lt; len; i++) {
                 if (range.length === self.options.showTotal) {break; }
                 index = self.visibleIndexes[i];
                 range.push(index);
@@ -1105,7 +1130,7 @@
             // get last shown item index and refresh view from that item onwards
             var lastIndex = self.showRange[self.options.showTotal - 1],
                 last = self.visibleIndexes.indexOf(lastIndex);
-            if (last > -1 && last + 1 < self.visibleIndexes.length) {
+            if (last > -1 &amp;&amp; last + 1 &lt; self.visibleIndexes.length) {
                 self.refreshRange(last + 1);
                 self.currentPage(self.currentPage() + 1);
                 return true;
@@ -1119,7 +1144,7 @@
         this.pageDown = function _pageDown() {
             var firstIndex = self.showRange[0],
                 first = self.visibleIndexes.indexOf(firstIndex);
-            if (first && first > 0) {
+            if (first &amp;&amp; first > 0) {
                 self.refreshRange(first - self.options.showTotal);
                 self.currentPage(self.currentPage() - 1);
                 return true;
@@ -1132,7 +1157,7 @@
          * @param {Number} value the page number to jump to
          */
         this.goToPage = function _goToPage(value) {
-            if (value && value > 0 && value <= (Math.ceil(self.visibleIndexes.length / self.options.showTotal))) {
+            if (value &amp;&amp; value > 0 &amp;&amp; value &lt;= (Math.ceil(self.visibleIndexes.length / self.options.showTotal))) {
                 var index = (self.options.showTotal * (value - 1));
                 self.currentPage(value);
                 self.refreshRange(index);
@@ -1212,7 +1237,7 @@
                     if (begin !== end) {
                         self.multiselected = [];
                         if (direction === 'down') {
-                            for (i = begin; i < end + 1; i++) {
+                            for (i = begin; i &lt; end + 1; i++) {
                                 self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
                             }
                         }
@@ -1279,7 +1304,7 @@
                                 if (newUrl) {
                                     self.dropzone.options.url = newUrl;
                                     self.dropzone.options.counter++;
-                                    if(self.dropzone.options.counter < 2 ) {
+                                    if(self.dropzone.options.counter &lt; 2 ) {
                                         var index = self.returnIndex(parent.id);
                                         if (!parent.open) {
                                             self.toggleFolder(index, null);
@@ -1441,7 +1466,7 @@
             }
             if (children) {
                 len = children.length;
-                for (i = 0; i < len; i++) {
+                for (i = 0; i &lt; len; i++) {
                     child = self.buildTree(children[i], tree);
                     tree.add(child);
                 }
@@ -1460,8 +1485,8 @@
             var openLevel,
                 recursive = function redo(data, show, topLevel) {
                     var length = data.length, i, children, flat;
-                    for (i = 0; i < length; i++) {
-                        if (openLevel && data[i].depth <= openLevel) {
+                    for (i = 0; i &lt; length; i++) {
+                        if (openLevel &amp;&amp; data[i].depth &lt;= openLevel) {
                             show = true;
                         }
                         children = data[i].children;
@@ -1471,7 +1496,7 @@
                             row: data[i].data
                         };
                         flat.show = show;
-                        if (data[i].children.length > 0 && !data[i].open) {
+                        if (data[i].children.length > 0 &amp;&amp; !data[i].open) {
                             show = false;
                             if (!openLevel || openLevel > data[i].depth) { openLevel = data[i].depth; }
                         }
@@ -1480,7 +1505,7 @@
                             redo(children, show, false);
                         }
                         Indexes[data[i].id] = data[i];
-                        if (topLevel && i === length - 1) {
+                        if (topLevel &amp;&amp; i === length - 1) {
                             self.calculateVisible(visibleTop);
                             self.calculateHeight();
                             m.redraw(true);
@@ -1502,10 +1527,10 @@
                 var scrollTop, diff, itemsHeight, innerHeight, location, index;
                 scrollTop = $(this).scrollTop();                    // get current scroll top
                 diff = scrollTop - _lastLocation;                    //Compare to last scroll location
-                if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
+                if (diff > 0 &amp;&amp; diff &lt; self.options.rowHeight) {         // going down, increase index
                     $(this).scrollTop(_lastLocation + self.options.rowHeight);
                 }
-                if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
+                if (diff &lt; 0 &amp;&amp; diff > -self.options.rowHeight) {       // going up, decrease index
                     $(this).scrollTop(_lastLocation - self.options.rowHeight);
                 }
                 itemsHeight = self.calculateHeight();
@@ -1638,11 +1663,11 @@
                             return;
                         }
                     }
-                    if (childrenWidth < parentWidth) {
+                    if (childrenWidth &lt; parentWidth) {
                         diff3 = parentWidth - childrenWidth;
                         // number of children other than the current element with widths bigger than 40
                         lastBigThing = columns.not(ui.element).filter(function () {
-                            return $(this).outerWidth() < parseInt($(this).attr('data-tb-size'));
+                            return $(this).outerWidth() &lt; parseInt($(this).attr('data-tb-size'));
                         }).last();
                         if (lastBigThing.length > 0) {
                             w3 = lastBigThing.outerWidth();
@@ -1682,11 +1707,11 @@
             }
             $(window).keydown(function (event) {
                 // if escape cancel modal - 27
-                if (self.modal.on && event.keyCode === 27) {
+                if (self.modal.on &amp;&amp; event.keyCode === 27) {
                     self.modal.dismiss();
                 }
                 // if enter then run the modal - 13
-                if (self.modal.on && event.keyCode === 13) {
+                if (self.modal.on &amp;&amp; event.keyCode === 13) {
                     $('.tb-modal-footer .btn-success').trigger('click');
                 }
             });
@@ -1851,7 +1876,7 @@
                                     } else {
                                         padding = (indent-1) * 20;
                                     }
-                                    if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
+                                    if (tree.notify.on &amp;&amp; !tree.notify.column) { // In case a notification is taking up the column space
                                         return m(".tb-row", [
                                             m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css, 'style' : "height: " + ctrl.options.rowHeight + "px;padding-top:4px;" }, [
                                                 m('span', tree.notify.message)
@@ -1877,7 +1902,7 @@
                                             },
                                             onmouseover : function _rowMouseover(event) {
                                                 ctrl.mouseon = id;
-                                                if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
+                                                if (ctrl.options.hoverClass &amp;&amp; !ctrl.dragOngoing) {
                                                     $('.tb-row').removeClass(ctrl.options.hoverClass);
                                                     $(this).addClass(ctrl.options.hoverClass);
                                                 }
@@ -1898,7 +1923,7 @@
                                                 cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + width }, [
                                                     m('span', row[col.data])
                                                 ]);
-                                                if (tree.notify.on && tree.notify.column === index) {
+                                                if (tree.notify.on &amp;&amp; tree.notify.column === index) {
                                                     return m('.tb-td.tb-col-' + index, { style : "width:" + width },  [
                                                         m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
                                                             m('span', tree.notify.message)
@@ -1942,7 +1967,7 @@
                                                         title
                                                     ]);
                                                 }
-                                                if (!col.folderIcons && col.custom) { // If there is a custom call.
+                                                if (!col.folderIcons &amp;&amp; col.custom) { // If there is a custom call.
                                                     cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + width }, [
                                                         col.custom.call(ctrl, tree, col)
                                                     ]);
@@ -2250,3 +2275,26 @@
 
     return runTB;
 }));
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta1</a> on Fri Jan 30 2015 12:45:03 GMT-0500 (EST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -17,6 +17,8 @@
     "through2": "^0.5.1"
   },
   "devDependencies": {
+    "gulp-jsdoc": "^0.1.4",
+    "jsdoc": "^3.3.0-beta1",
     "node-qunit-phantomjs": "^1.2.0",
     "qunitjs": "^1.15.0"
   },
