@@ -3,7 +3,9 @@
   <img src="https://raw.githubusercontent.com/caneruguz/treebeard/master/demo/treebeard.png" alt="Treebeard Logo"/>
 </p>
 
-<img src="https://travis-ci.org/caneruguz/treebeard.svg?branch=develop" alt="Travis build"/>
+Develop: <img src="https://travis-ci.org/caneruguz/treebeard.svg?branch=develop" alt="Travis build fopr Develop"/>
+
+Master: <img src="https://travis-ci.org/caneruguz/treebeard.svg?branch=master" alt="Travis build for Master"/>
 
 <i style="text-align:center"> Logo designed by [fayetality](https://github.com/fayetality "fayetality")  </i>
 
