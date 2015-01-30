@@ -18,16 +18,16 @@
   "license": "Apache 2",
   "private": false,
   "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "*",
+    "!dist",
+    "!dist/**/*",
+    "!README.md",
+    "!package.json"
   ],
   "dependencies": {
     "jquery-ui": ">=1.10.4",
     "mithril": ">=0.1.22",
-    "jquery": "~1.11.0",
+    "jquery": ">=1.11.0",
     "bootstrap": "~3.3.2"
   }
 }
