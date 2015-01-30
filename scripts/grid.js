@@ -3,9 +3,6 @@
  * https://github.com/caneruguz/treebeard
  * Built by Center for Open Science -> http://www.cos.io
  */
-/**
- * @memberOf jQuery
- */
 ;
 (function (global, factory) {
     "use strict";
@@ -492,7 +489,12 @@
         return _checkDescendant(item.children, this);
     };
 
-    // Treebeard methods
+    /**
+     * The main Treebeard API with publicly available variables and methods
+     * @alias Treebeard
+     * @param {Object} opts Options passed in
+     * @constructor
+     */
     Treebeard.controller = function _treebeardController(opts) {
         // private variables
         var self = this,                                        // Treebard.controller
@@ -1003,6 +1005,7 @@
 
         /**
          * Calculate how tall the wrapping div should be so that scrollbars appear properly
+         * @name Component#calculateHeight
          * @returns {Number} itemsHeight Number of pixels calculated in the function for height
          */
         this.calculateHeight = function _calculateHeight() {
@@ -2029,15 +2032,24 @@
     /**
      * Treebeard default options as a constructor so multiple different types of options can be established.
      * Implementations have to declare their own "filesData", "columnTitles", "resolveRows", all others are optional
+     * @memberof Treebeard
+     * @param {String} Options.divID - ID of the div that Treebeard draws into
+     * @param {String|Array} Options.filesData - Data in Array or string url
+     * @param {Number} Options.rowHeight - Height of rows in pixels
+     * @param {Boolean} Options.paginate - Whether the applet starts with pagination or not.
+     * @param {Boolean} Options.paginateToggle - Show the buttons that allow users to switch between scroll and paginate.
+     * @param {Boolean} Options.uploads - Turns dropzone on/off.
+     * @param {Boolean} Options.multiselect - turns ability to multiselect with shift or command keys
+     * @method {Object} Options.columnTitles - Returns an array of column objects
      */
     var Options = function() {
-        this.divID = "myGrid";          // This div must be in the html already or added as an option
-        this.filesData = "small.json";  // REQUIRED: Data in Array or string url
-        this.rowHeight = undefined;     // user can override or get from .tb-row height
-        this.paginate = false;          // Whether the applet starts with pagination or not.
-        this.paginateToggle = false;    // Show the buttons that allow users to switch between scroll and paginate.
-        this.uploads = false;           // Turns dropzone on/off.
-        this.multiselect = false;       // turns ability to multiselect with shift or command keys
+        this.divID = "myGrid";
+        this.filesData = "small.json";
+        this.rowHeight = undefined;
+        this.paginate = false;
+        this.paginateToggle = false;
+        this.uploads = false;
+        this.multiselect = false;
         this.columnTitles = function () {   // REQUIRED: Adjust this array based on data needs.
             return [
                 {
