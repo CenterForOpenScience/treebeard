@@ -431,7 +431,6 @@
      */
     Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
         var columns = treebeard.options.resolveRows.call(treebeard, this);
-        console.log(this, index, columns, columns[index]);
         var field = columns[index].data;
         if (!direction || (direction !== 'asc' && direction !== 'desc')) {
             throw new Error("Treebeard Error: To sort children you need to pass direction as asc or desc to Item.sortChildren");
@@ -1337,7 +1336,6 @@
                     }
                 },
                 success : function _dropzoneSuccess(file, response) {
-                    console.log(file);
                     if ($.isFunction(self.options.dropzoneEvents.success)) {
                         self.options.dropzoneEvents.success.call(this, self, file, response);
                     }
