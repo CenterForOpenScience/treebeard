@@ -16,7 +16,7 @@ Hierarchical data renderer built with Mithril
 
 
 Using the library
------
+-----------------
 
 You can install Treebeard with bower. In your project simply run 
 
@@ -34,6 +34,31 @@ You can also just take the files in `/dist` folder. You need the css and js file
 <script src="path/to/treebeard.js"></script>
 ```
 
+### CommonJS
+
+If you are using a CommonJS-compatible module loader (e.g. Webpack or Browserify), you can load treebeard like so:
+
+```js
+var Treebeard = require('treebeard');
+```
+
+**NOTE for Webpack users**: Loading Treebeard with Webpack will load its CSS as a module using the `style-loader` and `css-loader`. You should configure Webpack to use these loaders for `.css` files.
+
+```
+npm install style-loader css-loader --save
+```
+
+Add the following to your Webpack config.
+
+```js
+// webpack.config.js
+// ...
+  module: {
+    loaders: [
+      { test: /\.css$/, loader: 'style!css' },
+    ],
+  },
+```
 
 * * * 
 Read more about using the library in the Wiki: https://github.com/caneruguz/treebeard/wiki
@@ -42,7 +67,7 @@ Read more about using the library in the Wiki: https://github.com/caneruguz/tree
 
 
 Installation for Developers
------
+---------------------------
 If you are a developer and want to work on the source code use the guide below. 
 
 Begin by cloning the project in any way that support your work flow, then go to the main project folder and  run the following commands to install dependencies
