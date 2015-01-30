@@ -5,13 +5,7 @@ var gulp = require('gulp'),
     generate = require('./scripts/generate'),
     rename = require('gulp-rename'),
     uglify = require('gulp-uglify'),
-    qunit = require('node-qunit-phantomjs'),
-    jsdoc = require("gulp-jsdoc");
-
-gulp.task('docs', function () {
-    gulp.src("./scripts/grid.js")
-        .pipe(jsdoc('./docs'));
-});
+    qunit = require('node-qunit-phantomjs');
 
 gulp.task('test', function() {
     qunit('./tests/qunit/index.html', { 'verbose': true });
