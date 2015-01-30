@@ -11,6 +11,11 @@
         // AMD. Register as an anonymous module.
         define(['jQuery', 'mithril'], factory);
     } else if (typeof exports === 'object') {
+        // If using webpack, load CSS with it
+        if (typeof webpackJsonp !== 'undefined') {
+            // NOTE: Assumes that the style-loader and css-loader are used for .css files
+            require('./treebeard.css');
+        }
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
