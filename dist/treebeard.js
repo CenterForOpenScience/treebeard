@@ -434,13 +434,13 @@
      * @param {String} sortType Whether the sort type is number or alphanumeric
      * @param {Number} index The index of the column, needed to find out which field to be sorted
      */
-    Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index) {
-        var columns = treebeard.options.resolveRows.call(treebeard, this);
-        var field = columns[index].data;
+    Item.prototype.sortChildren = function _itemSort(treebeard, direction, sortType, index, sortDepth) {
+        var columns = treebeard.options.resolveRows.call(treebeard, this),
+            field = columns[index].data;
         if (!direction || (direction !== 'asc' && direction !== 'desc')) {
             throw new Error("Treebeard Error: To sort children you need to pass direction as asc or desc to Item.sortChildren");
         }
-        if (this.children.length > 0) {
+        if (this.depth >= sortDepth && this.children.length > 0) {
             if (direction === "asc") {
                 this.children.sort(ascByAttr(field, sortType));
             }
@@ -989,12 +989,12 @@
             if (!self.isSorted[col][type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(self, type, sortType, index);
+                        item.sortChildren(self, type, sortType, index, self.options.sortDepth);
                         if (item.children.length > 0) { redo(item.children); }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(self, type, sortType, index);           // Then start recursive loop
+                self.treeData.sortChildren(self, type, sortType, index, self.options.sortDepth);           // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
                 self.isSorted[col][type] = true;
@@ -2078,6 +2078,7 @@
         this.dropOptions = {};          // jQuery UI droppable options without the methods
         this.dragEvents = {};           // users can override draggable options and events
         this.dropEvents = {};           // users can override droppable options and events
+        this.sortDepth = 0;
         this.oddEvenClass = {
             odd : 'tb-odd',
             even : 'tb-even'
