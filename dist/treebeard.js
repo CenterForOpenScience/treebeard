@@ -1496,15 +1496,7 @@
          */
         this.onScroll = function _scrollHook() {
             if (!self.options.paginate) {
-                var scrollTop, diff, itemsHeight, innerHeight, location, index;
-                scrollTop = $(this).scrollTop();                    // get current scroll top
-                diff = scrollTop - _lastLocation;                    //Compare to last scroll location
-                if (diff > 0 && diff < self.options.rowHeight) {         // going down, increase index
-                    $(this).scrollTop(_lastLocation + self.options.rowHeight);
-                }
-                if (diff < 0 && diff > -self.options.rowHeight) {       // going up, decrease index
-                    $(this).scrollTop(_lastLocation - self.options.rowHeight);
-                }
+                var scrollTop, itemsHeight, innerHeight, location, index;
                 itemsHeight = self.calculateHeight();
                 innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
                 scrollTop = $(this).scrollTop();
