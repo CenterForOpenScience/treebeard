@@ -904,8 +904,9 @@
                                 if (!$.isArray(value)) {
                                     value = value.data;
                                 }
-                                //tree.children = [];
-				value = self.options.lazyLoadPreprocess.call(self, value);
+				if (self.options.lazyLoadPreprocess){
+				    value = self.options.lazyLoadPreprocess.call(self, value);
+				}
                                 var isUploadItem  = function (element) {
                                     return element.data.tmpID;
                                 };
@@ -2208,9 +2209,6 @@
             // this = treebeard object;
             // Item = item acted on
         };
-	this.lazyLoadPreprocess = function(data){
-	    return data;
-	};	
         this.ondataload = function (item) {
             // this = treebeard object;
         };
