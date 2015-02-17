@@ -906,12 +906,12 @@
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
                             } else {
-                                if (!$.isArray(value)) {
-                                    value = value.data;
-                                }
 				if (self.options.lazyLoadPreprocess){
 				    value = self.options.lazyLoadPreprocess.call(self, value);
 				}
+                                if (!$.isArray(value)) {
+                                    value = value.data;
+                                }
                                 var isUploadItem  = function (element) {
                                     return element.data.tmpID;
                                 };
@@ -1416,6 +1416,9 @@
                 // I took out url validation because it does more harm than good here.
                 m.request({method: "GET", url: data})
                     .then(function _requestBuildtree(value) {
+			if (self.options.lazyLoadPreprocess){
+			    value = self.options.lazyLoadPreprocess.call(self, value);
+			}			
                         self.treeData = self.buildTree(value);
                     })
                     .then(function _requestFlatten() {
