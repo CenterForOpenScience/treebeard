@@ -914,9 +914,9 @@
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
                             } else {
-				if (self.options.lazyLoadPreprocess){
-				    value = self.options.lazyLoadPreprocess.call(self, value);
-				}
+                                if (self.options.lazyLoadPreprocess){
+                                    value = self.options.lazyLoadPreprocess.call(self, value);
+                                }
                                 if (!$.isArray(value)) {
                                     value = value.data;
                                 }
@@ -942,6 +942,9 @@
                             self.flatten(self.treeData.children, self.visibleTop);
                             if (self.options.lazyLoadOnLoad) {
                                 self.options.lazyLoadOnLoad.call(self, tree);
+                            }
+                            if (self.options.ontogglefolder) {
+                                self.options.ontogglefolder.call(self, tree, event);
                             }
                         });
 
