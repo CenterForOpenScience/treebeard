@@ -525,6 +525,14 @@
         };
 
         /**
+         * Prepend selector with ID of root DOM node
+         * @param {String} selector CSS selector
+         */
+        this.select = function(selector) {
+            return $('#' + self.options.divID + ' ' + selector);
+        };
+
+        /**
          * Helper function to reset unique id to a reset number or -1
          * @param {Number} resetNum Number to reset counter to
          */
@@ -1010,7 +1018,7 @@
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
             }
-            $('.tb-tbody-inner').height(itemsHeight + self.remainder);
+            self.select('.tb-tbody-inner').height(itemsHeight + self.remainder);
             return itemsHeight;
         };
 
