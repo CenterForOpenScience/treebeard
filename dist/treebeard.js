@@ -530,6 +530,14 @@
         };
 
         /**
+         * Prepend selector with ID of root DOM node
+         * @param {String} selector CSS selector
+         */
+        this.select = function(selector) {
+            return $('#' + self.options.divID + ' ' + selector);
+        };
+
+        /**
          * Helper function to reset unique id to a reset number or -1
          * @param {Number} resetNum Number to reset counter to
          */
@@ -1017,7 +1025,7 @@
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
             }
-            $('.tb-tbody-inner').height(itemsHeight + self.remainder);
+            self.select('.tb-tbody-inner').height(itemsHeight + self.remainder);
             return itemsHeight;
         };
 
@@ -1400,7 +1408,7 @@
             if ($.isArray(data)) {
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
-                    Indexes[0] = value;
+                    Indexes[self.treeData.id] = value;
                     self.flatten(self.treeData.children);
                     return value;
                 }).done(function _buildTreeDone() {
@@ -1414,15 +1422,15 @@
             } else {
                 // then we assume it's a sring with a valiud url
                 // I took out url validation because it does more harm than good here.
-                m.request({method: "GET", url: data})
+                m.request({method: 'GET', url: data})
                     .then(function _requestBuildtree(value) {
-			if (self.options.lazyLoadPreprocess){
-			    value = self.options.lazyLoadPreprocess.call(self, value);
-			}			
+                        if (self.options.lazyLoadPreprocess){
+                            value = self.options.lazyLoadPreprocess.call(self, value);
+                        }
                         self.treeData = self.buildTree(value);
                     })
                     .then(function _requestFlatten() {
-                        Indexes[0] = self.treeData;
+                        Indexes[self.treeData.id] = self.treeData;
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
