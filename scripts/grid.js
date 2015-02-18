@@ -1393,7 +1393,7 @@
             if ($.isArray(data)) {
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
-                    Indexes[0] = value;
+                    Indexes[self.treeData.id] = value;
                     self.flatten(self.treeData.children);
                     return value;
                 }).done(function _buildTreeDone() {
@@ -1412,7 +1412,7 @@
                         self.treeData = self.buildTree(value);
                     })
                     .then(function _requestFlatten() {
-                        Indexes[0] = self.treeData;
+                        Indexes[self.treeData.id] = self.treeData;
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
