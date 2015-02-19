@@ -1542,7 +1542,7 @@
          * @param {Boolean} isInit Whether this function ran once after page load.
          */
         this.init = function _init(el, isInit) {
-            var containerHeight = $('#tb-tbody').height(),
+            var containerHeight = self.select('#tb-tbody').height(),
                 titles = self.select('.tb-row-titles'),
                 columns = self.select('.tb-th');
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
@@ -1891,7 +1891,7 @@
                                             onmouseover : function _rowMouseover(event) {
                                                 ctrl.mouseon = id;
                                                 if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
-                                                    self.select('.tb-row').removeClass(ctrl.options.hoverClass);
+                                                    ctrl.select('.tb-row').removeClass(ctrl.options.hoverClass);
                                                     $(this).addClass(ctrl.options.hoverClass);
                                                 }
                                                 if (ctrl.options.onmouseoverrow) {
