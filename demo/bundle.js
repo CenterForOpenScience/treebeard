@@ -2935,6 +2935,11 @@ if (typeof exports == "object") {
         // AMD. Register as an anonymous module.
         define(['jQuery', 'mithril'], factory);
     } else if (typeof exports === 'object') {
+        // If using webpack, load CSS with it
+        if (typeof webpackJsonp !== 'undefined') {
+            // NOTE: Assumes that the style-loader and css-loader are used for .css files
+            require('./treebeard.css');
+        }
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
@@ -3828,7 +3833,9 @@ if (typeof exports == "object") {
                                 if (!$.isArray(value)) {
                                     value = value.data;
                                 }
-                                //tree.children = [];
+                                if (self.options.lazyLoadPreprocess){
+                                    value = self.options.lazyLoadPreprocess.call(self, value);
+                                }
                                 var isUploadItem  = function (element) {
                                     return element.data.tmpID;
                                 };
@@ -4679,54 +4686,63 @@ if (typeof exports == "object") {
 
                         }
                     }()),
-                    m(".tb-row-titles", [
-                    /**
-                     * Render column titles based on the columnTitles option.
-                     */
-                        ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
-                            var sortView = "",
-                                up,
-                                down,
-                                resizable = '.tb-resizable';
-                            var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' :  col.width;
-                            if(!ctrl.options.resizeColumns){    // Check if columns can be resized.
-                                resizable = '';
-                            }
-                            if(index === arr.length-1){// Last column itself is not resizable because you don't need to
-                                resizable = '';
-                            }
-                            if (col.sort) {     // Add sort buttons with their onclick functions
-                                ctrl.isSorted[index] = { asc : false, desc : false };
-                                if (ctrl.options.sortButtonSelector.up) {
-                                    up = ctrl.options.sortButtonSelector.up;
-                                } else {
-                                    up = 'i.fa.fa-sort-asc';
-                                }
+                    (function(){
+                        if (!ctrl.options.hideColumnTitles) {
+                            return m(".tb-row-titles", [
+                            /**
+                             * Render column titles based on the columnTitles option.
+                             */
 
-                                if (ctrl.options.sortButtonSelector.down) {
-                                    down = ctrl.options.sortButtonSelector.down;
-                                } else {
-                                    down = 'i.fa.fa-sort-desc';
-                                }
-                                sortView =  [
-                                    m(up + '.tb-sort-inactive.asc-btn.m-r-xs', {
-                                        onclick: ctrl.sortToggle.bind(index),
-                                        "data-direction": "asc",
-                                        "data-sortType" : col.sortType
-                                    }),
-                                    m(down + '.tb-sort-inactive.desc-btn', {
-                                        onclick: ctrl.sortToggle.bind(index),
-                                        "data-direction": "desc",
-                                        "data-sortType" : col.sortType
-                                    })
-                                ];
-                            }
-                            return m('.tb-th'+resizable, { style : "width: " +width, 'data-tb-th-col' : index }, [
-                                m('span.m-r-sm', col.title),
-                                sortView
-                            ]);
-                        })
-                    ]),
+                                ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
+                                    var sortView = "",
+                                        up,
+                                        down,
+                                        resizable = '.tb-resizable';
+                                    var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' : col.width;
+                                    if (!ctrl.options.resizeColumns) {    // Check if columns can be resized.
+                                        resizable = '';
+                                    }
+                                    if (index === arr.length - 1) {// Last column itself is not resizable because you don't need to
+                                        resizable = '';
+                                    }
+                                    if (col.sort) {     // Add sort buttons with their onclick functions
+                                        ctrl.isSorted[index] = {asc: false, desc: false};
+                                        if (ctrl.options.sortButtonSelector.up) {
+                                            up = ctrl.options.sortButtonSelector.up;
+                                        } else {
+                                            up = 'i.fa.fa-sort-asc';
+                                        }
+
+                                        if (ctrl.options.sortButtonSelector.down) {
+                                            down = ctrl.options.sortButtonSelector.down;
+                                        } else {
+                                            down = 'i.fa.fa-sort-desc';
+                                        }
+                                        sortView = [
+                                            m(up + '.tb-sort-inactive.asc-btn.m-r-xs', {
+                                                onclick: ctrl.sortToggle.bind(index),
+                                                "data-direction": "asc",
+                                                "data-sortType": col.sortType
+                                            }),
+                                            m(down + '.tb-sort-inactive.desc-btn', {
+                                                onclick: ctrl.sortToggle.bind(index),
+                                                "data-direction": "desc",
+                                                "data-sortType": col.sortType
+                                            })
+                                        ];
+                                    }
+                                    return m('.tb-th' + resizable, {
+                                        style: "width: " + width,
+                                        'data-tb-th-col': index
+                                    }, [
+                                        m('span.m-r-sm', col.title),
+                                        sortView
+                                    ]);
+                                })
+
+                            ])
+                        }
+                    }()),
                     m("#tb-tbody", { config : ctrl.init },  [
                     /**
                      * In case a modal needs to be shown, check Modal object
@@ -4975,6 +4991,7 @@ if (typeof exports == "object") {
                 }
             ];
         };
+        this.hideColumnTitles = false;
         this.resolveRows = function (item) { // REQUIRED: How rows should be displayed based on data.
             return [
                 {
