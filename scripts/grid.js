@@ -208,8 +208,8 @@
      * Implementation of a modal system, currently used once sitewide
      * @constructor
      */
-    Modal = function _modal() {
-        var el = $('#tb-tbody'),
+    Modal = function _modal(ctrl) {
+        var el = ctrl.select('#tb-tbody'),
             self = this;
         this.on = false;
         this.timeout = false;
@@ -221,7 +221,7 @@
         this.dismiss = function () {
             this.on = false;
             m.redraw(true);
-            $('#tb-tbody').css('overflow', 'auto');
+            ctrl.select('#tb-tbody').css('overflow', 'auto');
         };
         this.show = function () {
             this.on = true;
@@ -246,14 +246,14 @@
             m.redraw(true);
         };
         this.updateSize = function () {
-            this.height = $('#tb-tbody').height();
-            this.width = $('#tb-tbody').width();
+            this.height = ctrl.select('#tb-tbody').height();
+            this.width = ctrl.select('#tb-tbody').width();
             m.redraw(true);
         };
         this.onmodalshow = function () {
-            var margin = $('.tb-tbody-inner>div').css('margin-top');
-            $('.tb-modal-shade').css('margin-top', margin);
-            $('#tb-tbody').css('overflow', 'hidden');
+            var margin = ctrl.select('.tb-tbody-inner>div').css('margin-top');
+            ctrl.select('.tb-modal-shade').css('margin-top', margin);
+            ctrl.select('#tb-tbody').css('overflow', 'hidden');
         };
         $(window).resize(function () {
             self.updateSize();
@@ -503,7 +503,6 @@
         this.isSorted = {};                                       // Temporary variables for sorting
         m.redraw.strategy("all");
         // public variables
-        this.modal = new Modal();                                     // Box wide modal
         this.flatData = [];                                     // Flat data, gets regenerated often
         this.treeData = {};                                     // The data in hierarchical form
         this.filterText = m.prop("");                           // value of the filtertext input
@@ -530,6 +529,17 @@
         };
 
         /**
+         * Prepend selector with ID of root DOM node
+         * @param {String} selector CSS selector
+         */
+        this.select = function(selector) {
+            return $('#' + self.options.divID + ' ' + selector);
+        };
+
+        // Note: `Modal` constructor dependes on `controller#select`
+        this.modal = new Modal(this);
+
+        /**
          * Helper function to reset unique id to a reset number or -1
          * @param {Number} resetNum Number to reset counter to
          */
@@ -550,7 +560,7 @@
                 x,
                 y;
             draggableOptions = {
-                helper: "clone",
+                helper: 'clone',
                 cursor : 'move',
                 containment : '.tb-tbody-inner',
                 delay : 100,
@@ -565,15 +575,15 @@
                             if (self.multiselected.length > 1) {
                                 var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
                                 self.dragText = newHTML;
-                                $('.tb-drag-ghost').html(newHTML);
+                                self.select('.tb-drag-ghost').html(newHTML);
                             }
                         }
-                        $(ui.helper).css({ 'display' : 'none'});
+                        $(ui.helper).css({display: 'none'});
                     }
                     // keep copy of the element and attach it to the mouse location
                     x = event.pageX > 50 ? event.pageX - 50 : 50;
                     y = event.pageY - 10;
-                    $('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                    self.select('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
                 },
                 create : function (event, ui) {
                     if (self.options.dragEvents.create) {
@@ -591,7 +601,7 @@
                         self.clearMultiselect();
                         self.multiselected.push(item);
                     }
-                    self.dragText = "";
+                    self.dragText = '';
                     ghost = $(ui.helper).clone();
                     ghost.addClass('tb-drag-ghost');
                     $('body').append(ghost);
@@ -599,15 +609,15 @@
                         self.options.dragEvents.start.call(self, event, ui);
                     }
                     self.dragOngoing = true;
-                    $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
+                    self.select('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
                 stop : function (event, ui) {
-                    $('.tb-drag-ghost').remove();
+                    self.select('.tb-drag-ghost').remove();
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
                     self.dragOngoing = false;
-                    $('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
+                    self.select('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 }
             };
 
@@ -644,12 +654,12 @@
                         first = self.flatData[self.showRange[0]].id,
                         currentScroll;
                     if (id === last) {
-                        currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
+                        currentScroll = self.select('#tb-tbody').scrollTop();
+                        self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
                     }
                     if (id === first) {
-                        currentScroll = $('#tb-tbody').scrollTop();
-                        $('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
+                        currentScroll = self.select('#tb-tbody').scrollTop();
+                        self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
                     }
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
@@ -668,8 +678,8 @@
          */
         this.moveOn = function _moveOn(parent) {
             if (!parent) {
-                $('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
-                $('.tb-row').droppable(self.options.finalDropOptions);
+                self.select('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
+                self.select('.tb-row').droppable(self.options.finalDropOptions);
             } else {
                 $(parent).find('.' + self.options.dragSelector).draggable(self.options.finalDragOptions);
                 $(parent).droppable(self.options.finalDropOptions);
@@ -680,8 +690,8 @@
          * Removes move related instances by destroying draggable and droppable.
          */
         this.moveOff = function _moveOff() {
-            $(".td-title").draggable("destroy");
-            $(".tb-row").droppable("destroy");
+            self.select('.td-title').draggable('destroy');
+            self.select('.tb-row').droppable('destroy');
         };
 
         /**
@@ -906,11 +916,11 @@
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
                             } else {
-                                if (!$.isArray(value)) {
-                                    value = value.data;
-                                }
                                 if (self.options.lazyLoadPreprocess){
                                     value = self.options.lazyLoadPreprocess.call(self, value);
+                                }
+                                if (!$.isArray(value)) {
+                                    value = value.data;
                                 }
                                 var isUploadItem  = function (element) {
                                     return element.data.tmpID;
@@ -934,6 +944,9 @@
                             self.flatten(self.treeData.children, self.visibleTop);
                             if (self.options.lazyLoadOnLoad) {
                                 self.options.lazyLoadOnLoad.call(self, tree);
+                            }
+                            if (self.options.ontogglefolder) {
+                                self.options.ontogglefolder.call(self, tree, event);
                             }
                         });
 
@@ -1017,7 +1030,7 @@
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
             }
-            $('.tb-tbody-inner').height(itemsHeight + self.remainder);
+            self.select('.tb-tbody-inner').height(itemsHeight + self.remainder);
             return itemsHeight;
         };
 
@@ -1080,9 +1093,9 @@
          */
         this.toggleScroll = function _toggleScroll() {
             self.options.paginate = false;
-            $('.tb-paginate').removeClass('active');
-            $('.tb-scroll').addClass('active');
-            $("#tb-tbody").scrollTop((self.currentPage() - 1) * self.options.showTotal * self.options.rowHeight);
+            self.select('.tb-paginate').removeClass('active');
+            self.select('.tb-scroll').addClass('active');
+            self.select('#tb-tbody').scrollTop((self.currentPage() - 1) * self.options.showTotal * self.options.rowHeight);
             self.calculateHeight();
         };
 
@@ -1095,8 +1108,8 @@
                 pagesBehind = Math.floor(first / self.options.showTotal),
                 firstItem = (pagesBehind * self.options.showTotal);
             self.options.paginate = true;
-            $('.tb-scroll').removeClass('active');
-            $('.tb-paginate').addClass('active');
+            self.select('.tb-scroll').removeClass('active');
+            self.select('.tb-paginate').addClass('active');
             self.currentPage(pagesBehind + 1);
             self.calculateHeight();
             self.refreshRange(firstItem);
@@ -1400,7 +1413,7 @@
             if ($.isArray(data)) {
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
-                    Indexes[0] = value;
+                    Indexes[self.treeData.id] = value;
                     self.flatten(self.treeData.children);
                     return value;
                 }).done(function _buildTreeDone() {
@@ -1414,12 +1427,15 @@
             } else {
                 // then we assume it's a sring with a valiud url
                 // I took out url validation because it does more harm than good here.
-                m.request({method: "GET", url: data})
+                m.request({method: 'GET', url: data})
                     .then(function _requestBuildtree(value) {
+                        if (self.options.lazyLoadPreprocess){
+                            value = self.options.lazyLoadPreprocess.call(self, value);
+                        }
                         self.treeData = self.buildTree(value);
                     })
                     .then(function _requestFlatten() {
-                        Indexes[0] = self.treeData;
+                        Indexes[self.treeData.id] = self.treeData;
                         self.flatten(self.treeData.children);
                     })
                     .then(function _requestCalculate() {
@@ -1526,9 +1542,9 @@
          * @param {Boolean} isInit Whether this function ran once after page load.
          */
         this.init = function _init(el, isInit) {
-            var containerHeight = $('#tb-tbody').height(),
-                titles = $('.tb-row-titles'),
-                columns = $('.tb-th');
+            var containerHeight = self.select('#tb-tbody').height(),
+                titles = self.select('.tb-row-titles'),
+                columns = self.select('.tb-th');
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
             self.remainder =  (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
@@ -1538,13 +1554,13 @@
             if (isInit) { return; }
             self.initializeMove();                              // Needed to run once to establish drag and drop options
             if (!self.options.rowHeight) {                      // If row height is not set get it from CSS
-                self.options.rowHeight = $('.tb-row').height();
+                self.options.rowHeight = self.select('.tb-row').height();
             }
-            $('.gridWrapper').mouseleave(function () {
-                $('.tb-row').removeClass(self.options.hoverClass);
+            self.select('.gridWrapper').mouseleave(function () {
+                self.select('.tb-row').removeClass(self.options.hoverClass);
             });
             // Main scrolling functionality
-            $('#tb-tbody').scroll(self.onScroll);
+            self.select('#tb-tbody').scroll(self.onScroll);
             function _resizeCols() {
                 var parentWidth = titles.width(),
                     percentageTotal = 0,
@@ -1553,7 +1569,7 @@
                     var col = $(this),
                         lastWidth;
                     col.attr('data-tb-size', col.outerWidth());
-                    if (index === $('.tb-th').length - 1) {         // last column gets the remainder
+                    if (index === self.select('.tb-th').length - 1) {         // last column gets the remainder
                         lastWidth = 100 - percentageTotal;
                         self.colsizes[col.attr('data-tb-th-col')] = lastWidth;
                         col.css('width', lastWidth + '%');
@@ -1572,7 +1588,7 @@
                     var col = $(this),
                         colWidth = parentWidth - totalPixels - 1,
                         width;
-                    if (index === $('.tb-th').length - 1) {         // last column gets the remainder
+                    if (index === self.select('.tb-th').length - 1) {         // last column gets the remainder
                         col.css('width', colWidth + 'px'); // -1 for the border
                     } else {
                         width = col.outerWidth();
@@ -1581,7 +1597,7 @@
                     }
                 });
             }
-            $('.tb-th.tb-resizable').resizable({
+            self.select('.tb-th.tb-resizable').resizable({
                 containment : 'parent',
                 delay : 200,
                 handles : 'e',
@@ -1591,7 +1607,7 @@
                 },
                 create : function (event, ui) {
                     // change cursor
-                    $('.ui-resizable-e').css({ "cursor" : "col-resize"} );
+                    self.select('.ui-resizable-e').css({ "cursor" : "col-resize"} );
                 },
                 resize : function (event, ui) {
                     var thisCol = $(this),
@@ -1628,7 +1644,7 @@
                             w2 = nextBigThing.outerWidth();
                             nextBigThing.css({ width : (w2 - diff2) + 'px' });
                             nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
-                            $('.tb-col-' + nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
+                            self.select('.tb-col-' + nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
                         } else {
                             $(ui.element).css({ width : $(ui.element).attr('data-tb-currentSize') + 'px'});
                             return;
@@ -1638,13 +1654,14 @@
                         diff3 = parentWidth - childrenWidth;
                         // number of children other than the current element with widths bigger than 40
                         lastBigThing = columns.not(ui.element).filter(function () {
-                            return $(this).outerWidth() < parseInt($(this).attr('data-tb-size'));
+                            var $this = $(this);
+                            return $this.outerWidth() < parseInt($this.attr('data-tb-size'));
                         }).last();
                         if (lastBigThing.length > 0) {
                             w3 = lastBigThing.outerWidth();
                             lastBigThing.css({ width : (w3 + diff3) + 'px' });
                             lastBigThingIndex = lastBigThing.attr('data-tb-th-col');
-                            $('.tb-col-' + lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
+                            self.select('.tb-col-' + lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
                         } else {
                             w3 = columns.last().outerWidth();
                             columns.last().css({width : (w3 + diff3) + 'px'}).attr('data-tb-size', w3 + diff3);
@@ -1652,12 +1669,12 @@
                     }
                     // make the last column rows be same size as last column header
                     lastWidth = columns.last().width();
-                    $('.tb-col-' + (totalColumns - 1)).css('width', lastWidth + 'px');
+                    self.select('.tb-col-' + (totalColumns - 1)).css('width', lastWidth + 'px');
 
                     $(ui.element).attr('data-tb-currentSize', $(ui.element).outerWidth());
                     // change corresponding columns in the table
                     colWidth = thisCol.outerWidth();
-                    $('.tb-col-' + index).css({width : colWidth + 'px'});
+                    self.select('.tb-col-' + index).css({width : colWidth + 'px'});
                 },
                 stop : function (event, ui) {
                     _resizeCols();
@@ -1683,7 +1700,7 @@
                 }
                 // if enter then run the modal - 13
                 if (self.modal.on && event.keyCode === 13) {
-                    $('.tb-modal-footer .btn-success').trigger('click');
+                    self.select('.tb-modal-footer .btn-success').trigger('click');
                 }
             });
             window.onblur = self.resetKeyPress;
@@ -1883,7 +1900,7 @@
                                             onmouseover : function _rowMouseover(event) {
                                                 ctrl.mouseon = id;
                                                 if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
-                                                    $('.tb-row').removeClass(ctrl.options.hoverClass);
+                                                    ctrl.select('.tb-row').removeClass(ctrl.options.hoverClass);
                                                     $(this).addClass(ctrl.options.hoverClass);
                                                 }
                                                 if (ctrl.options.onmouseoverrow) {
