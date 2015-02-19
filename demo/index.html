@@ -65,19 +65,40 @@
             </div>
         </div>
     </header>
-    <div id="grid" class="container-fluid m-t-md">
-        <p style="font-size: 24px;text-align:center; margin-top:20px"> Loading <i class="fa fa-spinner fa-spin"></i>        </p>
-        <p style="text-align: center;">            <img src="./ctxrf.jpg" alt="meme" />
-        </p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-4">
+            <div id="grid1" class="container-fluid m-t-md">
+                <p style="font-size: 24px;text-align:center; margin-top:20px"> Loading <i class="fa fa-spinner fa-spin"></i>        </p>
+                <p style="text-align: center;">            <img src="./ctxrf.jpg" alt="meme" />
+                </p>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div id="grid2" class="container-fluid m-t-md">
+                <p style="font-size: 24px;text-align:center; margin-top:20px"> Loading <i class="fa fa-spinner fa-spin"></i>        </p>
+                <p style="text-align: center;">            <img src="./ctxrf.jpg" alt="meme" />
+                </p>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div id="grid3" class="container-fluid m-t-md">
+                <p style="font-size: 24px;text-align:center; margin-top:20px"> Loading <i class="fa fa-spinner fa-spin"></i>        </p>
+                <p style="text-align: center;">            <img src="./ctxrf.jpg" alt="meme" />
+                </p>
+            </div>
+        </div>
     </div>
+</div>
+
     <script src="bundle.js"></script>
 
     <script type="text/javascript">
         /*
          *  User defined options
          */
-        var options = {
-            divID : 'grid',
+        var options1 = {
+            divID : 'grid1',
             filesData : "tree.json",
             rowHeight : 35,
             showTotal : 15,
@@ -133,10 +154,132 @@
             hideColumnTitles : true
 
         }
+
+        var options2 = {
+            divID : 'grid2',
+            filesData : "tree.json",
+            rowHeight : 35,
+            showTotal : 15,
+            paginate : false,
+            paginateToggle : false,
+            lazyLoad : true,
+            useDropzone : true,
+            uploadURL : "",
+            allowMove : true,
+            multiselect : true,
+            hoverClass : 'hoverClass',
+            moveClass : 'tb-draggable',
+            resolveRows : function (item) {
+                return [            // Defines columns based on data
+                    {
+                        data : "title",  // Data field name
+                        folderIcons : true,
+                        filter : true,
+                        css : 'tb-draggable'
+                    },
+                    {
+                        data : "person",
+                        filter : true
+                    },
+                    {
+                        data : "age",
+                        filter : false
+                    },
+                    {
+                        data : "action",
+                        sortInclude : false,
+                        filter : false,
+                        custom : function (row, col) {
+                            var that = this;
+                            return m("button.tb-button", {
+                                onclick: function _deleteClick(e) {
+                                    e.stopPropagation();
+                                    that.deleteNode(row.parentID, row.id);
+                                }
+                            }, " X ");
+                        }
+                    }
+                ];
+            },
+            dropEvents : {
+                over : function(event, ui) {
+                },
+                drop : function(event, ui) {
+                    console.log("dropped", event, ui);
+                    console.log($(ui.draggable).text());
+                }
+            },
+            hideColumnTitles : true
+
+        }
+
+
+        var options3 = {
+            divID : 'grid3',
+            filesData : "tree.json",
+            rowHeight : 35,
+            showTotal : 15,
+            paginate : false,
+            paginateToggle : false,
+            lazyLoad : true,
+            useDropzone : true,
+            uploadURL : "",
+            allowMove : true,
+            multiselect : true,
+            hoverClass : 'hoverClass',
+            moveClass : 'tb-draggable',
+            resolveRows : function (item) {
+                return [            // Defines columns based on data
+                    {
+                        data : "title",  // Data field name
+                        folderIcons : true,
+                        filter : true,
+                        css : 'tb-draggable'
+                    },
+                    {
+                        data : "person",
+                        filter : true
+                    },
+                    {
+                        data : "age",
+                        filter : false
+                    },
+                    {
+                        data : "action",
+                        sortInclude : false,
+                        filter : false,
+                        custom : function (row, col) {
+                            var that = this;
+                            return m("button.tb-button", {
+                                onclick: function _deleteClick(e) {
+                                    e.stopPropagation();
+                                    that.deleteNode(row.parentID, row.id);
+                                }
+                            }, " X ");
+                        }
+                    }
+                ];
+            },
+            dropEvents : {
+                over : function(event, ui) {
+                },
+                drop : function(event, ui) {
+                    console.log("dropped", event, ui);
+                    console.log($(ui.draggable).text());
+                }
+            },
+            hideColumnTitles : true
+
+        }
+
+
         /*
          *  User defined code to implement Treebeard anywhere on the page.
          */
-        Treebeard(options);
+        var tb1 = Treebeard(options1);
+        var tb2 = Treebeard(options2);
+        var tb3 = Treebeard(options3);
+
     </script>
     </body>
 </html>
