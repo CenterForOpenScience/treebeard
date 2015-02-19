@@ -537,7 +537,7 @@
         };
 
         // Note: `Modal` constructor dependes on `controller#select`
-        this.modal = new Modal();
+        this.modal = new Modal(this);
 
         /**
          * Helper function to reset unique id to a reset number or -1
