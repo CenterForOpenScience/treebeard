@@ -3936,7 +3936,7 @@ if (typeof exports == "object") {
                 itemsHeight = self.options.showTotal * self.options.rowHeight;
                 self.rangeMargin = 0;
             }
-            self.select('.tb-tbody-inner').height(itemsHeight + self.remainder);
+            self.innerHeight = itemsHeight + self.remainder;
             return itemsHeight;
         };
 
@@ -4756,8 +4756,8 @@ if (typeof exports == "object") {
                                 ]);
                             }
                         }()),
-                        m('.tb-tbody-inner', [
-                            m('', { style : "margin-top:" + ctrl.rangeMargin + "px" }, [
+                        m('.tb-tbody-inner', {style: 'height: ' + ctrl.innerHeight + 'px;'}, [
+                            m('', { style : "margin-top:" + ctrl.rangeMargin + 'px;' }, [
                             /**
                              * showRange has the several items that get shown at a time. It's key to view optimization
                              * showRange values change with scroll, filter, folder toggling etc.
@@ -4780,7 +4780,7 @@ if (typeof exports == "object") {
                                         padding = (indent-1) * 20;
                                     }
                                     if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
-                                        return m(".tb-row", [
+                                        return m('.tb-row', [
                                             m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css, 'style' : "height: " + ctrl.options.rowHeight + "px;padding-top:4px;" }, [
                                                 m('span', tree.notify.message)
                                             ])
