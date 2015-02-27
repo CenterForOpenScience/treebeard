@@ -136,7 +136,15 @@
                             return m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
                                     e.stopPropagation();
-                                    that.deleteNode(row.parentID, row.id);
+                                    var mithrilContent = m('div', [
+                                        m('h3.break-word', 'Delete "' + row.data.title+ '"?'),
+                                        m('p', 'This action is irreversible.')
+                                    ]);
+                                    var mithrilButtons = m('div', [
+                                        m('button', { 'class' : 'btn btn-default m-r-md', onclick : function() { that.modal.dismiss(); } }, 'Cancel'),
+                                        m('button', { 'class' : 'btn btn-success', onclick : function() { that.deleteNode(row.parentID, row.id); that.modal.dismiss(); }  }, 'OK')
+                                    ]);
+                                    that.modal.update(mithrilContent, mithrilButtons);
                                 }
                             }, " X ");
                         }
@@ -194,7 +202,15 @@
                             return m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
                                     e.stopPropagation();
-                                    that.deleteNode(row.parentID, row.id);
+                                    var mithrilContent = m('div', [
+                                        m('h3.break-word', 'Delete "' + row.data.title+ '"?'),
+                                        m('p', 'This action is irreversible.')
+                                    ]);
+                                    var mithrilButtons = m('div', [
+                                        m('button', { 'class' : 'btn btn-default m-r-md', onclick : function() { that.modal.dismiss(); } }, 'Cancel'),
+                                        m('button', { 'class' : 'btn btn-success', onclick : function() { that.deleteNode(row.parentID, row.id); that.modal.dismiss(); }  }, 'OK')
+                                    ]);
+                                    that.modal.update(mithrilContent, mithrilButtons);
                                 }
                             }, " X ");
                         }
@@ -253,7 +269,15 @@
                             return m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
                                     e.stopPropagation();
-                                    that.deleteNode(row.parentID, row.id);
+                                    var mithrilContent = m('div', [
+                                        m('h3.break-word', 'Delete "' + row.data.title+ '"?'),
+                                        m('p', 'This action is irreversible.')
+                                    ]);
+                                    var mithrilButtons = m('div', [
+                                        m('button', { 'class' : 'btn btn-default m-r-md', onclick : function() { that.modal.dismiss(); } }, 'Cancel'),
+                                        m('button', { 'class' : 'btn btn-success', onclick : function() { that.deleteNode(row.parentID, row.id); that.modal.dismiss(); }  }, 'OK')
+                                    ]);
+                                    that.modal.update(mithrilContent, mithrilButtons);
                                 }
                             }, " X ");
                         }
