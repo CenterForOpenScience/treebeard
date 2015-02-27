@@ -4,7 +4,7 @@
  * Built by Center for Open Science -> http://www.cos.io
  */
 ;
-(function (global, factory) {
+(function(global, factory) {
     "use strict";
     var m;
     if (typeof define === 'function' && define.amd) {
@@ -26,7 +26,7 @@
         m = global.m;
         global.Treebeard = factory(jQuery, m);
     }
-}(this, function (jQuery, m) {
+}(this, function(jQuery, m) {
     "use strict";
 
     //Force cache busting in IE
@@ -47,13 +47,13 @@
 
     // Indexes by id, shortcuts to the tree objects. Use example: var item = Indexes[23];
     var Indexes = {},
-    // Item constructor
+        // Item constructor
         Item,
-    // Notifications constructor
+        // Notifications constructor
         Notify,
-    // Modal for box-wide errors
+        // Modal for box-wide errors
         Modal,
-    // Initialize and namespace Treebeard module
+        // Initialize and namespace Treebeard module
         Treebeard = {};
     // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
     // we are using globals here because of mithril views with unique keys for rows in case we have multiple
@@ -67,7 +67,7 @@
      * @returns {Number} idCounter The state of id counter after incementing
      */
     function getUID() {
-        window.treebeardCounter = window.treebeardCounter  + 1;
+        window.treebeardCounter = window.treebeardCounter + 1;
         return window.treebeardCounter;
     }
 
@@ -168,22 +168,24 @@
     Notify = function _notify(message, type, column, timeout) {
         this.column = column || null;
         this.type = type || "info";
-        this.message =  message || 'Hello';
+        this.message = message || 'Hello';
         this.on = false;
         this.timeout = timeout === undefined ? DEFAULT_NOTIFY_TIMEOUT : timeout;
         this.css = '';
-        this.toggle = function () {
+        this.toggle = function() {
             this.on = !this.on;
         };
-        this.show = function () {
+        this.show = function() {
             this.on = true;
             var self = this;
-            if (self.timeout && self.timeout > 1) {                     // set timeout to 1 to stay forever
-                setTimeout(function () { self.hide(); }, self.timeout);
+            if (self.timeout && self.timeout > 1) { // set timeout to 1 to stay forever
+                setTimeout(function() {
+                    self.hide();
+                }, self.timeout);
             }
             m.redraw(true);
         };
-        this.hide = function () {
+        this.hide = function() {
             this.on = false;
             m.redraw(true);
         };
@@ -195,12 +197,16 @@
             this.css = css || '';
             this.show(true);
         };
-        this.selfDestruct = function (treebeard, item, timeout) {
+        this.selfDestruct = function(treebeard, item, timeout) {
             this.on = false;
             this.on = true;
             var self = this,
                 out = timeout || 3000;
-            setTimeout(function () { self.hide(); item.removeSelf(); treebeard.redraw(); }, out);
+            setTimeout(function() {
+                self.hide();
+                item.removeSelf();
+                treebeard.redraw();
+            }, out);
         };
     };
 
@@ -218,23 +224,25 @@
         this.actions = null;
         this.height = el.height();
         this.width = el.width();
-        this.dismiss = function () {
+        this.dismiss = function() {
             this.on = false;
             m.redraw(true);
             ctrl.select('#tb-tbody').css('overflow', 'auto');
         };
-        this.show = function () {
+        this.show = function() {
             this.on = true;
             if (self.timeout) {
-                setTimeout(function () { self.dismiss(); }, self.timeout);
+                setTimeout(function() {
+                    self.dismiss();
+                }, self.timeout);
             }
             m.redraw(true);
         };
-        this.toggle = function () {
+        this.toggle = function() {
             this.on = !this.on;
             m.redraw(true);
         };
-        this.update = function (contentMithril, actions) {
+        this.update = function(contentMithril, actions) {
             self.updateSize();
             if (contentMithril) {
                 this.content = contentMithril;
@@ -245,17 +253,17 @@
             this.on = true;
             m.redraw(true);
         };
-        this.updateSize = function () {
+        this.updateSize = function() {
             this.height = ctrl.select('#tb-tbody').height();
             this.width = ctrl.select('#tb-tbody').width();
             m.redraw(true);
         };
-        this.onmodalshow = function () {
+        this.onmodalshow = function() {
             var margin = ctrl.select('.tb-tbody-inner>div').css('margin-top');
             ctrl.select('.tb-modal-shade').css('margin-top', margin);
             ctrl.select('#tb-tbody').css('overflow', 'hidden');
         };
-        $(window).resize(function () {
+        $(window).resize(function() {
             self.updateSize();
         });
     };
@@ -281,7 +289,7 @@
         }
         this.id = getUID();
         this.depth = 0;
-        this.children =  [];
+        this.children = [];
         this.parentID = null;
         this.notify = new Notify();
     };
@@ -476,9 +484,10 @@
      * @param {Object} item An item constructed by _item
      * @returns {Boolean} result Whether the item is descendant of item passed as argument
      */
-    Item.prototype.isDescendant = function (item) {
+    Item.prototype.isDescendant = function(item) {
         var i,
             result = false;
+
         function _checkDescendant(children, b) {
             for (i = 0; i < children.length; i++) {
                 if (children[i].id === b.id) {
@@ -497,30 +506,30 @@
     // Treebeard methods
     Treebeard.controller = function _treebeardController(opts) {
         // private variables
-        var self = this,                                        // Treebard.controller
-            _lastLocation = 0,                                  // The last scrollTop location, updates on every scroll.
-            _lastNonFilterLocation = 0;                         // The last scrolltop location before filter was used.
-        this.isSorted = {};                                       // Temporary variables for sorting
+        var self = this, // Treebard.controller
+            _lastLocation = 0, // The last scrollTop location, updates on every scroll.
+            _lastNonFilterLocation = 0; // The last scrolltop location before filter was used.
+        this.isSorted = {}; // Temporary variables for sorting
         m.redraw.strategy("all");
         // public variables
-        this.flatData = [];                                     // Flat data, gets regenerated often
-        this.treeData = {};                                     // The data in hierarchical form
-        this.filterText = m.prop("");                           // value of the filtertext input
-        this.showRange = [];                                    // Array of indexes that the range shows
-        this.options = opts;                       // User defined options
-        this.selected = undefined;                              // The row selected on click.
-        this.rangeMargin = 0;                                   // Top margin, required for proper scrolling
-        this.visibleIndexes = [];                               // List of items viewable as a result of an operation like filter.
-        this.visibleTop = undefined;                            // The first visible item.
-        this.currentPage = m.prop(1);                           // for pagination
-        this.dropzone = null;                                   // Treebeard's own dropzone object
-        this.dropzoneItemCache = undefined;                      // Cache of the dropped item
-        this.filterOn = false;                                  // Filter state for use across the app
+        this.flatData = []; // Flat data, gets regenerated often
+        this.treeData = {}; // The data in hierarchical form
+        this.filterText = m.prop(""); // value of the filtertext input
+        this.showRange = []; // Array of indexes that the range shows
+        this.options = opts; // User defined options
+        this.selected = undefined; // The row selected on click.
+        this.rangeMargin = 0; // Top margin, required for proper scrolling
+        this.visibleIndexes = []; // List of items viewable as a result of an operation like filter.
+        this.visibleTop = undefined; // The first visible item.
+        this.currentPage = m.prop(1); // for pagination
+        this.dropzone = null; // Treebeard's own dropzone object
+        this.dropzoneItemCache = undefined; // Cache of the dropped item
+        this.filterOn = false; // Filter state for use across the app
         this.multiselected = [];
         this.pressedKey = undefined;
         this.dragOngoing = false;
-        this.initialized = false;                               // Treebeard's own initialization check, turns to true after page loads.
-        this.colsizes = {};                                     // Storing column sizes across the app.
+        this.initialized = false; // Treebeard's own initialization check, turns to true after page loads.
+        this.colsizes = {}; // Storing column sizes across the app.
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
          */
@@ -545,26 +554,26 @@
          */
         this.resetCounter = function _resetCounter(resetNum) {
             if (resetNum !== 0) {
-                window.treebeardCounter  = resetNum || -1;
+                window.treebeardCounter = resetNum || -1;
             } else {
-                window.treebeardCounter  = 0;
+                window.treebeardCounter = 0;
             }
         };
 
         /**
          * Instantiates draggable and droppable on DOM elements with options passed from self.options
          */
-        this.initializeMove = function () {
+        this.initializeMove = function() {
             var draggableOptions,
                 droppableOptions,
                 x,
                 y;
             draggableOptions = {
                 helper: 'clone',
-                cursor : 'move',
-                containment : '.tb-tbody-inner',
-                delay : 100,
-                drag : function (event, ui) {
+                cursor: 'move',
+                containment: '.tb-tbody-inner',
+                delay: 100,
+                drag: function(event, ui) {
                     if (self.pressedKey === 27) {
                         return false;
                     }
@@ -578,19 +587,30 @@
                                 self.select('.tb-drag-ghost').html(newHTML);
                             }
                         }
-                        $(ui.helper).css({display: 'none'});
+                        $(ui.helper).css({
+                            display: 'none'
+                        });
                     }
                     // keep copy of the element and attach it to the mouse location
                     x = event.pageX > 50 ? event.pageX - 50 : 50;
                     y = event.pageY - 10;
-                    self.select('.tb-drag-ghost').css({ 'position' : 'absolute', top : y, left : x, 'height' : '25px', 'width' : '400px', 'background' : 'white', 'padding' : '0px 10px', 'box-shadow' : '0 0 4px #ccc'});
+                    self.select('.tb-drag-ghost').css({
+                        'position': 'absolute',
+                        top: y,
+                        left: x,
+                        'height': '25px',
+                        'width': '400px',
+                        'background': 'white',
+                        'padding': '0px 10px',
+                        'box-shadow': '0 0 4px #ccc'
+                    });
                 },
-                create : function (event, ui) {
+                create: function(event, ui) {
                     if (self.options.dragEvents.create) {
                         self.options.dragEvents.create.call(self, event, ui);
                     }
                 },
-                start : function (event, ui) {
+                start: function(event, ui) {
                     var thisID,
                         item,
                         ghost;
@@ -611,7 +631,7 @@
                     self.dragOngoing = true;
                     self.select('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
-                stop : function (event, ui) {
+                stop: function(event, ui) {
                     self.select('.tb-drag-ghost').remove();
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
@@ -622,33 +642,33 @@
             };
 
             droppableOptions = {
-                tolerance : 'pointer',
-                activate : function (event, ui) {
+                tolerance: 'pointer',
+                activate: function(event, ui) {
                     if (self.options.dropEvents.activate) {
                         self.options.dropEvents.activate.call(self, event, ui);
                     }
                 },
-                create : function (event, ui) {
+                create: function(event, ui) {
                     if (self.options.dropEvents.create) {
                         self.options.dropEvents.create.call(self, event, ui);
                     }
                 },
-                deactivate : function (event, ui) {
+                deactivate: function(event, ui) {
                     if (self.options.dropEvents.deactivate) {
                         self.options.dropEvents.deactivate.call(self, event, ui);
                     }
                 },
-                drop : function (event, ui) {
+                drop: function(event, ui) {
                     if (self.options.dropEvents.drop) {
                         self.options.dropEvents.drop.call(self, event, ui);
                     }
                 },
-                out : function (event, ui) {
+                out: function(event, ui) {
                     if (self.options.dropEvents.out) {
                         self.options.dropEvents.out.call(self, event, ui);
                     }
                 },
-                over : function (event, ui) {
+                over: function(event, ui) {
                     var id = parseInt($(event.target).closest('.tb-row').attr('data-id'), 10),
                         last = self.flatData[self.showRange[self.showRange.length - 1]].id,
                         first = self.flatData[self.showRange[0]].id,
@@ -668,7 +688,7 @@
             };
             self.options.finalDragOptions = $.extend(draggableOptions, self.options.dragOptions);
             self.options.finalDropOptions = $.extend(droppableOptions, self.options.dropOptions);
-            self.options.dragSelector = self.options.moveClass ||  'td-title';
+            self.options.dragSelector = self.options.moveClass || 'td-title';
             self.moveOn();
         };
 
@@ -776,7 +796,8 @@
          * @returns {Number} i The index at which the item is found or undefined if nothing is found.
          */
         this.returnIndex = function _returnIndex(id) {
-            var len = self.flatData.length, i, o;
+            var len = self.flatData.length,
+                i, o;
             for (i = 0; i < len; i++) {
                 o = self.flatData[i];
                 if (o.id === id) {
@@ -792,7 +813,8 @@
          * @returns {Number} i The index at which the item is found or undefined if nothing is found.
          */
         this.returnRangeIndex = function _returnRangeIndex(id) {
-            var len = self.showRange.length, i, o;
+            var len = self.showRange.length,
+                i, o;
             for (i = 0; i < len; i++) {
                 o = self.flatData[self.showRange[i]];
                 if (o.id === id) {
@@ -864,7 +886,7 @@
          * @param {Array} data New raw items, may be returned from ajax call
          * @param {Object} parent Item built with the _item constructor
          */
-        this.updateFolder = function (data, parent) {
+        this.updateFolder = function(data, parent) {
             if (data) {
                 parent.children = [];
                 var child, i;
@@ -911,18 +933,21 @@
                 lazyLoad = url;
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
                     tree.children = [];
-                    m.request({method: "GET", url: lazyLoad})
+                    m.request({
+                            method: "GET",
+                            url: lazyLoad
+                        })
                         .then(function _getUrlBuildtree(value) {
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
                             } else {
-                                if (self.options.lazyLoadPreprocess){
+                                if (self.options.lazyLoadPreprocess) {
                                     value = self.options.lazyLoadPreprocess.call(self, value);
                                 }
                                 if (!$.isArray(value)) {
                                     value = value.data;
                                 }
-                                var isUploadItem  = function (element) {
+                                var isUploadItem = function(element) {
                                     return element.data.tmpID;
                                 };
                                 tree.children = tree.children.filter(isUploadItem);
@@ -937,7 +962,7 @@
                                     m.render(icon.get(0), iconTemplate);
                                 }
                             }
-                        }, function (info) {
+                        }, function(info) {
                             self.options.lazyLoadError.call(self, tree);
                         })
                         .then(function _getUrlFlatten() {
@@ -954,12 +979,18 @@
                     for (j = index + 1; j < len; j++) {
                         o = self.flatData[j];
                         t = Indexes[self.flatData[j].id];
-                        if (o.depth <= level) {break; }
-                        if (skip && o.depth > skipLevel) {continue; }
-                        if (o.depth === skipLevel) { skip = false; }
-                        if (tree.open) {                    // closing
+                        if (o.depth <= level) {
+                            break;
+                        }
+                        if (skip && o.depth > skipLevel) {
+                            continue;
+                        }
+                        if (o.depth === skipLevel) {
+                            skip = false;
+                        }
+                        if (tree.open) { // closing
                             o.show = false;
-                        } else {                            // opening
+                        } else { // opening
                             o.show = true;
                             if (!t.open) {
                                 skipLevel = o.depth;
@@ -998,18 +1029,20 @@
                 parent = element.parent(),
                 counter = 0,
                 redo;
-            $('.asc-btn, .desc-btn').addClass('tb-sort-inactive');  // turn all styles off
+            $('.asc-btn, .desc-btn').addClass('tb-sort-inactive'); // turn all styles off
             self.isSorted[col].asc = false;
             self.isSorted[col].desc = false;
             if (!self.isSorted[col][type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
                         item.sortChildren(self, type, sortType, index, self.options.sortDepth);
-                        if (item.children.length > 0) { redo(item.children); }
+                        if (item.children.length > 0) {
+                            redo(item.children);
+                        }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(self, type, sortType, index, self.options.sortDepth);           // Then start recursive loop
+                self.treeData.sortChildren(self, type, sortType, index, self.options.sortDepth); // Then start recursive loop
                 redo(self.treeData.children);
                 parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
                 self.isSorted[col][type] = true;
@@ -1075,11 +1108,13 @@
                 i,
                 index;
             if (!begin || begin > self.flatData.length) {
-                begin =  0;
+                begin = 0;
             }
             self.visibleTop = begin;
             for (i = begin; i < len; i++) {
-                if (range.length === self.options.showTotal) {break; }
+                if (range.length === self.options.showTotal) {
+                    break;
+                }
                 index = self.visibleIndexes[i];
                 range.push(index);
                 counter = counter + 1;
@@ -1163,9 +1198,9 @@
          * @param {Number} id The unique id of the item.
          * @returns {Boolean} outcome Whether the item is part of multiselected
          */
-        this.isMultiselected = function (id) {
+        this.isMultiselected = function(id) {
             var outcome = false;
-            self.multiselected.map(function (item) {
+            self.multiselected.map(function(item) {
                 if (item.id === id) {
                     outcome = true;
                 }
@@ -1178,8 +1213,8 @@
          * @param {Number} id The unique id of the item.
          * @returns {Boolean} result Whether the item removal was successful
          */
-        this.removeMultiselected = function (id) {
-            self.multiselected.map(function (item, index, arr) {
+        this.removeMultiselected = function(id) {
+            self.multiselected.map(function(item, index, arr) {
                 if (item.id === id) {
                     arr.splice(index, 1);
                     // remove highlight
@@ -1192,9 +1227,9 @@
         /**
          * Adds highlight to the multiselected items using jquery.
          */
-        this.highlightMultiselect = function () {
+        this.highlightMultiselect = function() {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
-            this.multiselected.map(function (item) {
+            this.multiselected.map(function(item) {
                 $('.tb-row[data-id="' + item.id + '"]').addClass(self.options.hoverClassMultiselect);
             });
         };
@@ -1205,7 +1240,7 @@
          * @param {Number} [index] The showRange index of the item
          * @param {Event} [event] Click event on the item
          */
-        this.handleMultiselect = function (id, index, event) {
+        this.handleMultiselect = function(id, index, event) {
             var tree = Indexes[id],
                 begin,
                 end,
@@ -1268,7 +1303,7 @@
             self.highlightMultiselect.call(this);
         };
 
-        this.clearMultiselect = function () {
+        this.clearMultiselect = function() {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
             self.multiselected = [];
         };
@@ -1284,11 +1319,13 @@
          * Apply dropzone to grid with the optional hooks
          */
         function _applyDropzone() {
-            if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
+            if (self.dropzone) {
+                _destroyDropzone();
+            } // Destroy existing dropzone setup
             var options = $.extend({
-                clickable : false,
-                counter : 0,
-                accept : function _dropzoneAccept(file, done) {
+                clickable: false,
+                counter: 0,
+                accept: function _dropzoneAccept(file, done) {
                     var parent = file.treebeardParent;
                     if (self.options.addcheck.call(this, self, parent, file)) {
                         $.when(self.options.resolveUploadUrl.call(self, parent, file))
@@ -1296,7 +1333,7 @@
                                 if (newUrl) {
                                     self.dropzone.options.url = newUrl;
                                     self.dropzone.options.counter++;
-                                    if(self.dropzone.options.counter < 2 ) {
+                                    if (self.dropzone.options.counter < 2) {
                                         var index = self.returnIndex(parent.id);
                                         if (!parent.open) {
                                             self.toggleFolder(index, null);
@@ -1307,7 +1344,7 @@
                             })
                             .then(function _resolveUploadMethodThen() {
                                 if ($.isFunction(self.options.resolveUploadMethod)) {
-                                    self.dropzone.options.method  = self.options.resolveUploadMethod.call(self, parent);
+                                    self.dropzone.options.method = self.options.resolveUploadMethod.call(self, parent);
                                 }
                             })
                             .done(function _resolveUploadUrlDone() {
@@ -1315,7 +1352,7 @@
                             });
                     }
                 },
-                drop : function _dropzoneDrop(event) {
+                drop: function _dropzoneDrop(event) {
                     var rowID = $(event.target).closest('.tb-row').attr('data-id');
                     var item = Indexes[rowID];
                     if (item.kind === 'file') {
@@ -1330,32 +1367,32 @@
                         self.options.dropzoneEvents.drop.call(this, self, event);
                     }
                 },
-                dragstart : function _dropzoneDragStart(event) {
+                dragstart: function _dropzoneDragStart(event) {
                     if ($.isFunction(self.options.dropzoneEvents.dragstart)) {
                         self.options.dropzoneEvents.dragstart.call(this, self, event);
                     }
                 },
-                dragend : function _dropzoneDragEnd(event) {
+                dragend: function _dropzoneDragEnd(event) {
                     if ($.isFunction(self.options.dropzoneEvents.dragend)) {
                         self.options.dropzoneEvents.dragend.call(this, self, event);
                     }
                 },
-                dragenter : function _dropzoneDragEnter(event) {
+                dragenter: function _dropzoneDragEnter(event) {
                     if ($.isFunction(self.options.dropzoneEvents.dragenter)) {
                         self.options.dropzoneEvents.dragenter.call(this, self, event);
                     }
                 },
-                dragover : function _dropzoneDragOver(event) {
+                dragover: function _dropzoneDragOver(event) {
                     if ($.isFunction(self.options.dropzoneEvents.dragover)) {
                         self.options.dropzoneEvents.dragover.call(this, self, event);
                     }
                 },
-                dragleave : function _dropzoneDragLeave(event) {
+                dragleave: function _dropzoneDragLeave(event) {
                     if ($.isFunction(self.options.dropzoneEvents.dragleave)) {
                         self.options.dropzoneEvents.dragleave.call(this, self, event);
                     }
                 },
-                success : function _dropzoneSuccess(file, response) {
+                success: function _dropzoneSuccess(file, response) {
                     if ($.isFunction(self.options.dropzoneEvents.success)) {
                         self.options.dropzoneEvents.success.call(this, self, file, response);
                     }
@@ -1363,33 +1400,33 @@
                         self.options.onadd.call(this, self, file.treebeardParent, file, response);
                     }
                 },
-                error : function _dropzoneError(file, message, xhr) {
+                error: function _dropzoneError(file, message, xhr) {
                     if ($.isFunction(self.options.dropzoneEvents.error)) {
                         self.options.dropzoneEvents.error.call(this, self, file, message, xhr);
                     }
                 },
-                uploadprogress : function _dropzoneUploadProgress(file, progress, bytesSent) {
+                uploadprogress: function _dropzoneUploadProgress(file, progress, bytesSent) {
                     if ($.isFunction(self.options.dropzoneEvents.uploadprogress)) {
                         self.options.dropzoneEvents.uploadprogress.call(this, self, file, progress, bytesSent);
                     }
                 },
-                sending : function _dropzoneSending(file, xhr, formData) {
+                sending: function _dropzoneSending(file, xhr, formData) {
                     if ($.isFunction(self.options.dropzoneEvents.sending)) {
                         self.options.dropzoneEvents.sending.call(this, self, file, xhr, formData);
                     }
                 },
-                complete : function _dropzoneComplete(file) {
+                complete: function _dropzoneComplete(file) {
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
                 },
-                addedfile : function _dropzoneAddedFile(file) {
+                addedfile: function _dropzoneAddedFile(file) {
                     file.treebeardParent = self.dropzoneItemCache;
                     if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
                         self.options.dropzoneEvents.addedfile.call(this, self, file);
                     }
                 }
-            }, self.options.dropzone);           // Extend default options
+            }, self.options.dropzone); // Extend default options
             // Add Dropzone with different scenarios of library inclusion, should work for most installations
             var Dropzone;
             if (typeof module === 'object') {
@@ -1401,7 +1438,7 @@
                 throw new Error('To enable uploads Treebeard needs "Dropzone" to be installed.');
             }
             // apply dropzone to the Treebeard object
-            self.dropzone = new Dropzone('#' + self.options.divID, options);            // Initialize dropzone
+            self.dropzone = new Dropzone('#' + self.options.divID, options); // Initialize dropzone
         }
 
         /**
@@ -1409,36 +1446,14 @@
          * @param {Array, String} data Data sent in as an array of objects or a url in string form
          */
         function _loadData(data) {
-            // Order of operations: Gewt data -> build tree -> flatten for view -> calculations for view: visible, height
-            if ($.isArray(data)) {
-                $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
-                    self.treeData = value;
-                    Indexes[self.treeData.id] = value;
-                    self.flatten(self.treeData.children);
-                    return value;
-                }).done(function _buildTreeDone() {
-                    self.calculateVisible();
-                    self.calculateHeight();
-                    self.initialized = true;
-                    if ($.isFunction(self.options.ondataload)) {
-                        self.options.ondataload.call(self);
-                    }
-                });
-            } else {
-                // then we assume it's a sring with a valiud url
-                // I took out url validation because it does more harm than good here.
-                m.request({method: 'GET', url: data})
-                    .then(function _requestBuildtree(value) {
-                        if (self.options.lazyLoadPreprocess){
-                            value = self.options.lazyLoadPreprocess.call(self, value);
-                        }
-                        self.treeData = self.buildTree(value);
-                    })
-                    .then(function _requestFlatten() {
-                        Indexes[self.treeData.id] = self.treeData;
+                // Order of operations: Gewt data -> build tree -> flatten for view -> calculations for view: visible, height
+                if ($.isArray(data)) {
+                    $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
+                        self.treeData = value;
+                        Indexes[self.treeData.id] = value;
                         self.flatten(self.treeData.children);
-                    })
-                    .then(function _requestCalculate() {
+                        return value;
+                    }).done(function _buildTreeDone() {
                         self.calculateVisible();
                         self.calculateHeight();
                         self.initialized = true;
@@ -1446,9 +1461,40 @@
                             self.options.ondataload.call(self);
                         }
                     });
+                } else {
+                    // then we assume it's a sring with a valiud url
+                    // I took out url validation because it does more harm than good here.
+                    m.request({
+                            method: 'GET',
+                            url: data,
+                            extract: function(xhr, xhrOpts) {
+                                if (xhr.status !== 200) {
+                                    return self.options.ondataloaderror(xhr);
+                                }
+                                return xhr.responseText;
+                            }
+                        })
+                        .then(function _requestBuildtree(value) {
+                            if (self.options.lazyLoadPreprocess) {
+                                value = self.options.lazyLoadPreprocess.call(self, value);
+                            }
+                            self.treeData = self.buildTree(value);
+                        })
+                        .then(function _requestFlatten() {
+                            Indexes[self.treeData.id] = self.treeData;
+                            self.flatten(self.treeData.children);
+                        })
+                        .then(function _requestCalculate() {
+                            self.calculateVisible();
+                            self.calculateHeight();
+                            self.initialized = true;
+                            if ($.isFunction(self.options.ondataload)) {
+                                self.options.ondataload.call(self);
+                            }
+                        });
+                }
             }
-        }
-        // Rebuilds the tree data with an API
+            // Rebuilds the tree data with an API
         this.buildTree = function _buildTree(data, parent) {
             var tree, children, len, child, i;
             if (Array.isArray(data)) {
@@ -1457,7 +1503,7 @@
             } else {
                 tree = new Item(data);
                 children = data.children;
-                tree.depth = parent.depth + 1;   // Going down the list the parent doesn't yet have depth information
+                tree.depth = parent.depth + 1; // Going down the list the parent doesn't yet have depth information
             }
             if (children) {
                 len = children.length;
@@ -1479,7 +1525,8 @@
             self.flatData = [];
             var openLevel,
                 recursive = function redo(data, show, topLevel) {
-                    var length = data.length, i, children, flat;
+                    var length = data.length,
+                        i, children, flat;
                     for (i = 0; i < length; i++) {
                         if (openLevel && data[i].depth <= openLevel) {
                             show = true;
@@ -1487,13 +1534,15 @@
                         children = data[i].children;
                         flat = {
                             id: data[i].id,
-                            depth : data[i].depth,
+                            depth: data[i].depth,
                             row: data[i].data
                         };
                         flat.show = show;
                         if (data[i].children.length > 0 && !data[i].open) {
                             show = false;
-                            if (!openLevel || openLevel > data[i].depth) { openLevel = data[i].depth; }
+                            if (!openLevel || openLevel > data[i].depth) {
+                                openLevel = data[i].depth;
+                            }
                         }
                         self.flatData.push(flat); // add to flatlist
                         if (children.length > 0) {
@@ -1504,7 +1553,7 @@
                             self.calculateVisible(visibleTop);
                             self.calculateHeight();
                             m.redraw(true);
-                            if(self.options.redrawComplete){
+                            if (self.options.redrawComplete) {
                                 self.options.redrawComplete.call(self);
                             }
                         }
@@ -1546,30 +1595,33 @@
                 titles = self.select('.tb-row-titles'),
                 columns = self.select('.tb-th');
             self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
-            self.remainder =  (containerHeight / self.options.rowHeight) + self.options.rowHeight;
+            self.remainder = (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
             if (self.options.allowMove) {
                 self.moveOn();
             }
-            if (isInit) { return; }
-            self.initializeMove();                              // Needed to run once to establish drag and drop options
-            if (!self.options.rowHeight) {                      // If row height is not set get it from CSS
+            if (isInit) {
+                return;
+            }
+            self.initializeMove(); // Needed to run once to establish drag and drop options
+            if (!self.options.rowHeight) { // If row height is not set get it from CSS
                 self.options.rowHeight = self.select('.tb-row').height();
             }
-            self.select('.gridWrapper').mouseleave(function () {
+            self.select('.gridWrapper').mouseleave(function() {
                 self.select('.tb-row').removeClass(self.options.hoverClass);
             });
             // Main scrolling functionality
             self.select('#tb-tbody').scroll(self.onScroll);
+
             function _resizeCols() {
                 var parentWidth = titles.width(),
                     percentageTotal = 0,
                     p;
-                columns.each(function (index) {                   // calculate percentages for each column
+                columns.each(function(index) { // calculate percentages for each column
                     var col = $(this),
                         lastWidth;
                     col.attr('data-tb-size', col.outerWidth());
-                    if (index === self.select('.tb-th').length - 1) {         // last column gets the remainder
+                    if (index === self.select('.tb-th').length - 1) { // last column gets the remainder
                         lastWidth = 100 - percentageTotal;
                         self.colsizes[col.attr('data-tb-th-col')] = lastWidth;
                         col.css('width', lastWidth + '%');
@@ -1581,14 +1633,15 @@
                     percentageTotal += p;
                 });
             }
+
             function convertToPixels() {
                 var parentWidth = titles.width(),
                     totalPixels = 0;
-                columns.each(function (index) {
+                columns.each(function(index) {
                     var col = $(this),
                         colWidth = parentWidth - totalPixels - 1,
                         width;
-                    if (index === self.select('.tb-th').length - 1) {         // last column gets the remainder
+                    if (index === self.select('.tb-th').length - 1) { // last column gets the remainder
                         col.css('width', colWidth + 'px'); // -1 for the border
                     } else {
                         width = col.outerWidth();
@@ -1598,22 +1651,24 @@
                 });
             }
             self.select('.tb-th.tb-resizable').resizable({
-                containment : 'parent',
-                delay : 200,
-                handles : 'e',
-                minWidth : 60,
-                start : function (event, ui) {
+                containment: 'parent',
+                delay: 200,
+                handles: 'e',
+                minWidth: 60,
+                start: function(event, ui) {
                     convertToPixels();
                 },
-                create : function (event, ui) {
+                create: function(event, ui) {
                     // change cursor
-                    self.select('.ui-resizable-e').css({ "cursor" : "col-resize"} );
+                    self.select('.ui-resizable-e').css({
+                        "cursor": "col-resize"
+                    });
                 },
-                resize : function (event, ui) {
+                resize: function(event, ui) {
                     var thisCol = $(this),
                         index = $(this).attr('data-tb-th-col'),
                         totalColumns = columns.length,
-                    // if the overall size is getting bigger than home size, make other items smaller
+                        // if the overall size is getting bigger than home size, make other items smaller
                         parentWidth = titles.width() - 1,
                         childrenWidth = 0,
                         diff,
@@ -1627,12 +1682,12 @@
                         w3,
                         lastWidth,
                         colWidth;
-                    columns.each(function () {
+                    columns.each(function() {
                         childrenWidth = childrenWidth + $(this).outerWidth();
                     });
                     if (childrenWidth > parentWidth) {
                         diff2 = childrenWidth - parentWidth;
-                        nextBigThing = columns.not(ui.element).filter(function () {
+                        nextBigThing = columns.not(ui.element).filter(function() {
                             var colElement = parseInt($(ui.element).attr('data-tb-th-col')),
                                 colThis = parseInt($(this).attr('data-tb-th-col'));
                             if (colThis > colElement) {
@@ -1642,29 +1697,41 @@
                         }).first();
                         if (nextBigThing.length > 0) {
                             w2 = nextBigThing.outerWidth();
-                            nextBigThing.css({ width : (w2 - diff2) + 'px' });
+                            nextBigThing.css({
+                                width: (w2 - diff2) + 'px'
+                            });
                             nextBigThingIndex = nextBigThing.attr('data-tb-th-col');
-                            self.select('.tb-col-' + nextBigThingIndex).css({width : (w2 - diff2) + 'px'});
+                            self.select('.tb-col-' + nextBigThingIndex).css({
+                                width: (w2 - diff2) + 'px'
+                            });
                         } else {
-                            $(ui.element).css({ width : $(ui.element).attr('data-tb-currentSize') + 'px'});
+                            $(ui.element).css({
+                                width: $(ui.element).attr('data-tb-currentSize') + 'px'
+                            });
                             return;
                         }
                     }
                     if (childrenWidth < parentWidth) {
                         diff3 = parentWidth - childrenWidth;
                         // number of children other than the current element with widths bigger than 40
-                        lastBigThing = columns.not(ui.element).filter(function () {
+                        lastBigThing = columns.not(ui.element).filter(function() {
                             var $this = $(this);
                             return $this.outerWidth() < parseInt($this.attr('data-tb-size'));
                         }).last();
                         if (lastBigThing.length > 0) {
                             w3 = lastBigThing.outerWidth();
-                            lastBigThing.css({ width : (w3 + diff3) + 'px' });
+                            lastBigThing.css({
+                                width: (w3 + diff3) + 'px'
+                            });
                             lastBigThingIndex = lastBigThing.attr('data-tb-th-col');
-                            self.select('.tb-col-' + lastBigThingIndex).css({width : (w3 + diff3) + 'px'});
+                            self.select('.tb-col-' + lastBigThingIndex).css({
+                                width: (w3 + diff3) + 'px'
+                            });
                         } else {
                             w3 = columns.last().outerWidth();
-                            columns.last().css({width : (w3 + diff3) + 'px'}).attr('data-tb-size', w3 + diff3);
+                            columns.last().css({
+                                width: (w3 + diff3) + 'px'
+                            }).attr('data-tb-size', w3 + diff3);
                         }
                     }
                     // make the last column rows be same size as last column header
@@ -1674,26 +1741,30 @@
                     $(ui.element).attr('data-tb-currentSize', $(ui.element).outerWidth());
                     // change corresponding columns in the table
                     colWidth = thisCol.outerWidth();
-                    self.select('.tb-col-' + index).css({width : colWidth + 'px'});
+                    self.select('.tb-col-' + index).css({
+                        width: colWidth + 'px'
+                    });
                 },
-                stop : function (event, ui) {
+                stop: function(event, ui) {
                     _resizeCols();
                     m.redraw(true);
                 }
             });
-            if (self.options.uploads) { _applyDropzone(); }
+            if (self.options.uploads) {
+                _applyDropzone();
+            }
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
             }
             if (self.options.multiselect) {
-                $(window).keydown(function (event) {
+                $(window).keydown(function(event) {
                     self.pressedKey = event.keyCode;
                 });
-                $(window).keyup(function (event) {
+                $(window).keyup(function(event) {
                     self.pressedKey = undefined;
                 });
             }
-            $(window).keydown(function (event) {
+            $(window).keydown(function(event) {
                 // if escape cancel modal - 27
                 if (self.modal.on && event.keyCode === 27) {
                     self.modal.dismiss();
@@ -1709,17 +1780,19 @@
         /**
          * Resets keys that are hung up. Other window onblur event actions can be added in here.
          */
-        this.resetKeyPress = function () {
-            self.pressedKey = undefined;
-        }
-        /**
-         * Destroys Treebeard by emptying the DOM object and removing dropzone
-         * Because DOM objects are removed their events are going to be cleaned up.
-         */
-        this.destroy = function _destroy () {
+        this.resetKeyPress = function() {
+                self.pressedKey = undefined;
+            }
+            /**
+             * Destroys Treebeard by emptying the DOM object and removing dropzone
+             * Because DOM objects are removed their events are going to be cleaned up.
+             */
+        this.destroy = function _destroy() {
             window.treebeardCounter = -1;
             $('#' + self.options.divID).html(''); // Empty HTML
-            if (self.dropzone) { _destroyDropzone(); }               // Destroy existing dropzone setup
+            if (self.dropzone) {
+                _destroyDropzone();
+            } // Destroy existing dropzone setup
         };
 
         /**
@@ -1740,33 +1813,31 @@
         return [
             m('.gridWrapper', [
                 m(".tb-table", [
-                /**
-                 * Template for the head row, includes whether filter or title should be shown.
-                 */
+                    /**
+                     * Template for the head row, includes whether filter or title should be shown.
+                     */
                     (function showHeadA() {
                         var titleContent = functionOrString(ctrl.options.title);
                         if (ctrl.options.showFilter || titleContent) {
                             var filterWidth;
                             var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, titleContent);
-                            if(ctrl.options.filterFullWidth){
+                            if (ctrl.options.filterFullWidth) {
                                 filterWidth = '';
                             } else {
                                 filterWidth = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
                             }
-                            var filter = m(".tb-head-filter.col-xs-12"+filterWidth, {
-                                }, [
-                                    (function showFilterA() {
-                                        if (ctrl.options.showFilter) {
-                                            return m("input.pull-right.form-control[placeholder='"+ ctrl.options.filterPlaceholder + "'][type='text']", {
-                                                    style: "width:100%;display:inline;",
-                                                    onkeyup: ctrl.filter,
-                                                    value : ctrl.filterText()
-                                                }
-                                            );
-                                        }
-                                    }())
-                                ]);
-                            if(ctrl.options.title){
+                            var filter = m(".tb-head-filter.col-xs-12" + filterWidth, {}, [
+                                (function showFilterA() {
+                                    if (ctrl.options.showFilter) {
+                                        return m("input.pull-right.form-control[placeholder='" + ctrl.options.filterPlaceholder + "'][type='text']", {
+                                            style: "width:100%;display:inline;",
+                                            onkeyup: ctrl.filter,
+                                            value: ctrl.filterText()
+                                        });
+                                    }
+                                }())
+                            ]);
+                            if (ctrl.options.title) {
                                 return m('.tb-head.row', [
                                     title,
                                     filter
@@ -1778,13 +1849,12 @@
                             }
 
                         }
-                    }()),
-                    (function(){
+                    }()), (function() {
                         if (!ctrl.options.hideColumnTitles) {
                             return m(".tb-row-titles", [
-                            /**
-                             * Render column titles based on the columnTitles option.
-                             */
+                                /**
+                                 * Render column titles based on the columnTitles option.
+                                 */
 
                                 ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
                                     var sortView = "",
@@ -1792,14 +1862,17 @@
                                         down,
                                         resizable = '.tb-resizable';
                                     var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' : col.width;
-                                    if (!ctrl.options.resizeColumns) {    // Check if columns can be resized.
+                                    if (!ctrl.options.resizeColumns) { // Check if columns can be resized.
                                         resizable = '';
                                     }
-                                    if (index === arr.length - 1) {// Last column itself is not resizable because you don't need to
+                                    if (index === arr.length - 1) { // Last column itself is not resizable because you don't need to
                                         resizable = '';
                                     }
-                                    if (col.sort) {     // Add sort buttons with their onclick functions
-                                        ctrl.isSorted[index] = {asc: false, desc: false};
+                                    if (col.sort) { // Add sort buttons with their onclick functions
+                                        ctrl.isSorted[index] = {
+                                            asc: false,
+                                            desc: false
+                                        };
                                         if (ctrl.options.sortButtonSelector.up) {
                                             up = ctrl.options.sortButtonSelector.up;
                                         } else {
@@ -1836,26 +1909,42 @@
                             ])
                         }
                     }()),
-                    m("#tb-tbody", { config : ctrl.init },  [
-                    /**
-                     * In case a modal needs to be shown, check Modal object
-                     */
+                    m("#tb-tbody", {
+                        config: ctrl.init
+                    }, [
+                        /**
+                         * In case a modal needs to be shown, check Modal object
+                         */
                         (function showModal() {
                             if (ctrl.modal.on) {
-                                return m('.tb-modal-shade', { config : ctrl.modal.onmodalshow , style : 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;'}, [
-                                    m('.tb-modal-inner', { 'class' : ctrl.modal.css }, [
-                                        m('.tb-modal-dismiss', { 'onclick' : function () { ctrl.modal.dismiss(); } }, [m('i.icon-remove-sign')]),
+                                return m('.tb-modal-shade', {
+                                    config: ctrl.modal.onmodalshow,
+                                    style: 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;'
+                                }, [
+                                    m('.tb-modal-inner', {
+                                        'class': ctrl.modal.css
+                                    }, [
+                                        m('.tb-modal-dismiss', {
+                                            'onclick': function() {
+                                                ctrl.modal.dismiss();
+                                            }
+                                        }, [m('i.icon-remove-sign')]),
                                         m('.tb-modal-content', ctrl.modal.content),
-                                        m('.tb-modal-footer', ctrl.modal.actions)])
+                                        m('.tb-modal-footer', ctrl.modal.actions)
+                                    ])
                                 ]);
                             }
                         }()),
-                        m('.tb-tbody-inner', {style: 'height: ' + ctrl.innerHeight + 'px;'}, [
-                            m('', { style : "margin-top:" + ctrl.rangeMargin + 'px;' }, [
-                            /**
-                             * showRange has the several items that get shown at a time. It's key to view optimization
-                             * showRange values change with scroll, filter, folder toggling etc.
-                             */
+                        m('.tb-tbody-inner', {
+                            style: 'height: ' + ctrl.innerHeight + 'px;'
+                        }, [
+                            m('', {
+                                style: "margin-top:" + ctrl.rangeMargin + 'px;'
+                            }, [
+                                /**
+                                 * showRange has the several items that get shown at a time. It's key to view optimization
+                                 * showRange values change with scroll, filter, folder toggling etc.
+                                 */
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
                                     var oddEvenClass = ctrl.options.oddEvenClass.odd,
                                         indent = ctrl.flatData[item].depth,
@@ -1871,24 +1960,27 @@
                                     if (ctrl.filterOn) {
                                         padding = 20;
                                     } else {
-                                        padding = (indent-1) * 20;
+                                        padding = (indent - 1) * 20;
                                     }
                                     if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
                                         return m('.tb-row', [
-                                            m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css, 'style' : "height: " + ctrl.options.rowHeight + "px;padding-top:4px;" }, [
+                                            m('.tb-notify.alert-' + tree.notify.type, {
+                                                'class': tree.notify.css,
+                                                'style': "height: " + ctrl.options.rowHeight + "px;padding-top:4px;"
+                                            }, [
                                                 m('span', tree.notify.message)
                                             ])
                                         ]);
                                     } else {
-                                        return m(".tb-row",  {  // Events and attribtues for entire row
-                                            "key" : id,
-                                            "class" : css + " " + oddEvenClass,
-                                            "data-id" : id,
+                                        return m(".tb-row", { // Events and attribtues for entire row
+                                            "key": id,
+                                            "class": css + " " + oddEvenClass,
+                                            "data-id": id,
                                             "data-level": indent,
                                             "data-index": item,
                                             "data-rIndex": index,
-                                            style : "height: " + ctrl.options.rowHeight + "px;",
-                                            onclick : function _rowClick(event) {
+                                            style: "height: " + ctrl.options.rowHeight + "px;",
+                                            onclick: function _rowClick(event) {
                                                 if (ctrl.options.multiselect) {
                                                     ctrl.handleMultiselect(id, index, event);
                                                 }
@@ -1897,7 +1989,7 @@
                                                     ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }
                                             },
-                                            onmouseover : function _rowMouseover(event) {
+                                            onmouseover: function _rowMouseover(event) {
                                                 ctrl.mouseon = id;
                                                 if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
                                                     ctrl.select('.tb-row').removeClass(ctrl.options.hoverClass);
@@ -1908,21 +2000,28 @@
                                                 }
                                             }
                                         }, [
-                                        /**
-                                         * Build individual columns depending on the resolveRows
-                                         */
+                                            /**
+                                             * Build individual columns depending on the resolveRows
+                                             */
                                             rowCols.map(function _mapColumnsContent(col, index) {
                                                 var cell,
                                                     title,
                                                     colInfo = ctrl.options.columnTitles.call(ctrl)[index],
                                                     colcss = col.css || '';
-                                                var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' :  colInfo.width;
-                                                cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + width }, [
+                                                var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' : colInfo.width;
+                                                cell = m('.tb-td.tb-col-' + index, {
+                                                    'class': colcss,
+                                                    style: "width:" + width
+                                                }, [
                                                     m('span', row[col.data])
                                                 ]);
                                                 if (tree.notify.on && tree.notify.column === index) {
-                                                    return m('.tb-td.tb-col-' + index, { style : "width:" + width },  [
-                                                        m('.tb-notify.alert-' + tree.notify.type, { 'class' : tree.notify.css }, [
+                                                    return m('.tb-td.tb-col-' + index, {
+                                                        style: "width:" + width
+                                                    }, [
+                                                        m('.tb-notify.alert-' + tree.notify.type, {
+                                                            'class': tree.notify.css
+                                                        }, [
                                                             m('span', tree.notify.message)
                                                         ])
                                                     ]);
@@ -1934,38 +2033,46 @@
                                                         title = m("span.title-text", row[col.data] + " ");
                                                     }
                                                     cell = m('.tb-td.td-title.tb-col-' + index, {
-                                                        "data-id" : id,
-                                                        'class' : colcss,
-                                                        style : "padding-left: " + padding + "px; width:" + width
+                                                        "data-id": id,
+                                                        'class': colcss,
+                                                        style: "padding-left: " + padding + "px; width:" + width
                                                     }, [
                                                         m("span.tb-td-first", // Where toggling and folder icons are
                                                             (function _toggleView() {
                                                                 var set = [{
-                                                                    'id' : 1,
-                                                                    'css' : 'tb-expand-icon-holder',
-                                                                    'resolve' : ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    'id': 1,
+                                                                    'css': 'tb-expand-icon-holder',
+                                                                    'resolve': ctrl.options.resolveIcon.call(ctrl, tree)
                                                                 }, {
-                                                                    'id' : 2,
-                                                                    'css' : 'tb-toggle-icon',
-                                                                    'resolve' : ctrl.options.resolveToggle.call(ctrl, tree)
+                                                                    'id': 2,
+                                                                    'css': 'tb-toggle-icon',
+                                                                    'resolve': ctrl.options.resolveToggle.call(ctrl, tree)
                                                                 }];
                                                                 if (ctrl.filterOn) {
-                                                                    return m('span.' + set[0].css, { key : set[0].id }, set[0].resolve);
+                                                                    return m('span.' + set[0].css, {
+                                                                        key: set [0].id
+                                                                    }, set[0].resolve);
                                                                 }
-                                                                return [m('span.' + set[1].css, { key : set[1].id,
+                                                                return [m('span.' + set[1].css, {
+                                                                    key: set [1].id,
                                                                     onclick: function _folderToggleClick(event) {
                                                                         if (ctrl.options.togglecheck.call(ctrl, tree)) {
                                                                             ctrl.toggleFolder(item, event);
                                                                         }
                                                                     }
-                                                                }, set[1].resolve), m('span.' + set[0].css, { key : set[0].id }, set[0].resolve)];
+                                                                }, set[1].resolve), m('span.' + set[0].css, {
+                                                                    key: set [0].id
+                                                                }, set[0].resolve)];
                                                             }())
                                                         ),
                                                         title
                                                     ]);
                                                 }
                                                 if (!col.folderIcons && col.custom) { // If there is a custom call.
-                                                    cell = m('.tb-td.tb-col-' + index, { 'class' : colcss, style : "width:" + width }, [
+                                                    cell = m('.tb-td.tb-col-' + index, {
+                                                        'class': colcss,
+                                                        style: "width:" + width
+                                                    }, [
                                                         col.custom.call(ctrl, tree, col)
                                                     ]);
                                                 }
@@ -1979,35 +2086,37 @@
 
                         ])
                     ]),
-                /**
-                 * Footer, scroll/paginate toggle, page numbers.
-                 */
+                    /**
+                     * Footer, scroll/paginate toggle, page numbers.
+                     */
                     (function _footer() {
                         if (ctrl.options.paginate || ctrl.options.paginateToggle) {
                             return m('.tb-footer', [
                                 m(".row", [
-                                    m(".col-xs-4",
-                                        (function _showPaginateToggle() {
-                                            if (ctrl.options.paginateToggle) {
-                                                var activeScroll = "",
-                                                    activePaginate = "";
-                                                if (ctrl.options.paginate) {
-                                                    activePaginate = "active";
-                                                } else {
-                                                    activeScroll = "active";
-                                                }
-                                                return m('.btn-group.padder-10', [
-                                                    m("button.tb-button.tb-scroll",
-                                                        { onclick : ctrl.toggleScroll, "class" : activeScroll},
-                                                        "Scroll"),
-                                                    m("button.tb-button.tb-paginate",
-                                                        { onclick : ctrl.togglePaginate, "class" : activePaginate },
-                                                        "Paginate")
-                                                ]);
+                                    m(".col-xs-4", (function _showPaginateToggle() {
+                                        if (ctrl.options.paginateToggle) {
+                                            var activeScroll = "",
+                                                activePaginate = "";
+                                            if (ctrl.options.paginate) {
+                                                activePaginate = "active";
+                                            } else {
+                                                activeScroll = "active";
                                             }
-                                        }())
-                                    ),
-                                    m('.col-xs-8', [ m('.padder-10', [
+                                            return m('.btn-group.padder-10', [
+                                                m("button.tb-button.tb-scroll", {
+                                                        onclick: ctrl.toggleScroll,
+                                                        "class": activeScroll
+                                                    },
+                                                    "Scroll"),
+                                                m("button.tb-button.tb-paginate", {
+                                                        onclick: ctrl.togglePaginate,
+                                                        "class": activePaginate
+                                                    },
+                                                    "Paginate")
+                                            ]);
+                                        }
+                                    }())),
+                                    m('.col-xs-8', [m('.padder-10', [
                                         (function _showPaginate() {
                                             if (ctrl.options.paginate) {
                                                 var total_visible = ctrl.visibleIndexes.length,
@@ -2016,25 +2125,22 @@
                                                     return ctrl.options.resolvePagination.call(ctrl, total, ctrl.currentPage());
                                                 }
                                                 return m('.tb-pagination.pull-right', [
-                                                    m('button.tb-pagination-prev.tb-button.m-r-sm',
-                                                        { onclick : ctrl.pageDown},
-                                                        [ m('i.fa.fa-chevron-left')]),
-                                                    m('input.tb-pagination-input.m-r-sm',
-                                                        {
-                                                            type : "text",
-                                                            style : "width: 30px;",
-                                                            onkeyup: function (e) {
-                                                                var page = parseInt(e.target.value, 10);
-                                                                ctrl.goToPage(page);
-                                                            },
-                                                            value : ctrl.currentPage()
-                                                        }
-                                                    ),
+                                                    m('button.tb-pagination-prev.tb-button.m-r-sm', {
+                                                        onclick: ctrl.pageDown
+                                                    }, [m('i.fa.fa-chevron-left')]),
+                                                    m('input.tb-pagination-input.m-r-sm', {
+                                                        type: "text",
+                                                        style: "width: 30px;",
+                                                        onkeyup: function(e) {
+                                                            var page = parseInt(e.target.value, 10);
+                                                            ctrl.goToPage(page);
+                                                        },
+                                                        value: ctrl.currentPage()
+                                                    }),
                                                     m('span.tb-pagination-span', "/ " + total + " "),
-                                                    m('button.tb-pagination-next.tb-button',
-                                                        { onclick : ctrl.pageUp},
-                                                        [ m('i.fa.fa-chevron-right')
-                                                        ])
+                                                    m('button.tb-pagination-next.tb-button', {
+                                                        onclick: ctrl.pageUp
+                                                    }, [m('i.fa.fa-chevron-right')])
                                                 ]);
                                             }
                                         }())
@@ -2053,138 +2159,131 @@
      * Implementations have to declare their own "filesData", "columnTitles", "resolveRows", all others are optional
      */
     var Options = function() {
-        this.divID = "myGrid";          // This div must be in the html already or added as an option
-        this.filesData = "small.json";  // REQUIRED: Data in Array or string url
-        this.rowHeight = undefined;     // user can override or get from .tb-row height
-        this.paginate = false;          // Whether the applet starts with pagination or not.
-        this.paginateToggle = false;    // Show the buttons that allow users to switch between scroll and paginate.
-        this.uploads = false;           // Turns dropzone on/off.
-        this.multiselect = false;       // turns ability to multiselect with shift or command keys
-        this.columnTitles = function () {   // REQUIRED: Adjust this array based on data needs.
-            return [
-                {
-                    title: "Title",
-                    width: "50%",
-                    sortType : "text",
-                    sort : true
-                },
-                {
-                    title: "Author",
-                    width : "25%",
-                    sortType : "text"
-                },
-                {
-                    title: "Age",
-                    width : "10%",
-                    sortType : "number"
-                },
-                {
-                    title: "Actions",
-                    width : "15%"
-                }
-            ];
+        this.divID = "myGrid"; // This div must be in the html already or added as an option
+        this.filesData = "small.json"; // REQUIRED: Data in Array or string url
+        this.rowHeight = undefined; // user can override or get from .tb-row height
+        this.paginate = false; // Whether the applet starts with pagination or not.
+        this.paginateToggle = false; // Show the buttons that allow users to switch between scroll and paginate.
+        this.uploads = false; // Turns dropzone on/off.
+        this.multiselect = false; // turns ability to multiselect with shift or command keys
+        this.columnTitles = function() { // REQUIRED: Adjust this array based on data needs.
+            return [{
+                title: "Title",
+                width: "50%",
+                sortType: "text",
+                sort: true
+            }, {
+                title: "Author",
+                width: "25%",
+                sortType: "text"
+            }, {
+                title: "Age",
+                width: "10%",
+                sortType: "number"
+            }, {
+                title: "Actions",
+                width: "15%"
+            }];
         };
         this.hideColumnTitles = false;
-        this.resolveRows = function (item) { // REQUIRED: How rows should be displayed based on data.
-            return [
-                {
-                    data : "title",  // Data field name
-                    folderIcons : true,
-                    filter : true
-                }
-            ];
+        this.resolveRows = function(item) { // REQUIRED: How rows should be displayed based on data.
+            return [{
+                data: "title", // Data field name
+                folderIcons: true,
+                filter: true
+            }];
         };
         this.filterPlaceholder = 'Search';
-        this.resizeColumns = true;      // whether the table columns can be resized.
-        this.hoverClass = undefined;    // Css class for hovering over rows
+        this.resizeColumns = true; // whether the table columns can be resized.
+        this.hoverClass = undefined; // Css class for hovering over rows
         this.hoverClassMultiselect = 'tb-multiselect'; // Css class for hover on multiselect
-        this.showFilter = true;         // Gives the option to filter by showing the filter box.
-        this.title = null;      // Title of the grid, boolean, string OR function that returns a string.
-        this.allowMove = true;          // Turn moving on or off.
-        this.moveClass = undefined;     // Css class for which elements can be moved. Your login needs to add these to appropriate elements.
-        this.sortButtonSelector = {};   // custom buttons for sort, needed because not everyone uses FontAwesome
-        this.dragOptions = {};          // jQuery UI draggable options without the methods
-        this.dropOptions = {};          // jQuery UI droppable options without the methods
-        this.dragEvents = {};           // users can override draggable options and events
-        this.dropEvents = {};           // users can override droppable options and events
+        this.showFilter = true; // Gives the option to filter by showing the filter box.
+        this.title = null; // Title of the grid, boolean, string OR function that returns a string.
+        this.allowMove = true; // Turn moving on or off.
+        this.moveClass = undefined; // Css class for which elements can be moved. Your login needs to add these to appropriate elements.
+        this.sortButtonSelector = {}; // custom buttons for sort, needed because not everyone uses FontAwesome
+        this.dragOptions = {}; // jQuery UI draggable options without the methods
+        this.dropOptions = {}; // jQuery UI droppable options without the methods
+        this.dragEvents = {}; // users can override draggable options and events
+        this.dropEvents = {}; // users can override droppable options and events
         this.sortDepth = 0;
         this.oddEvenClass = {
-            odd : 'tb-odd',
-            even : 'tb-even'
+            odd: 'tb-odd',
+            even: 'tb-even'
         };
-        this.onload = function () {
+        this.onload = function() {
             // this = treebeard object;
         };
-        this.togglecheck = function (item) {
+        this.togglecheck = function(item) {
             // this = treebeard object;
             // item = folder to toggle
             return true;
         };
-        this.onfilter = function (filterText) {   // Fires on keyup when filter text is changed.
+        this.onfilter = function(filterText) { // Fires on keyup when filter text is changed.
             // this = treebeard object;
             // filterText = the value of the filtertext input box.
         };
-        this.onfilterreset = function (filterText) {   // Fires when filter text is cleared.
+        this.onfilterreset = function(filterText) { // Fires when filter text is cleared.
             // this = treebeard object;
             // filterText = the value of the filtertext input box.
         };
-        this.createcheck = function (item, parent) {
+        this.createcheck = function(item, parent) {
             // this = treebeard object;
             // item = Item to be added.  raw item, not _item object
             // parent = parent to be added to = _item object
             return true;
         };
-        this.oncreate = function (item, parent) {  // When new row is added
+        this.oncreate = function(item, parent) { // When new row is added
             // this = treebeard object;
             // item = Item to be added.  = _item object
             // parent = parent to be added to = _item object
         };
-        this.deletecheck = function (item) {  // When user attempts to delete a row, allows for checking permissions etc.
+        this.deletecheck = function(item) { // When user attempts to delete a row, allows for checking permissions etc.
             // this = treebeard object;
             // item = Item to be deleted.
             return true;
         };
-        this.ondelete = function () {  // When row is deleted successfully
+        this.ondelete = function() { // When row is deleted successfully
             // this = treebeard object;
             // item = a shallow copy of the item deleted, not a reference to the actual item
         };
-        this.addcheck = function (treebeard, item, file) {  // check is a file can be added to this item
+        this.addcheck = function(treebeard, item, file) { // check is a file can be added to this item
             // this = dropzone object
             // treebeard = treebeard object
             // item = item to be added to
             // file = info about the file being added
             return true;
         };
-        this.onadd = function (treebeard, item, file, response) {
+        this.onadd = function(treebeard, item, file, response) {
             // this = dropzone object;
             // item = item the file was added to
             // file = file that was added
             // response = what's returned from the server
         };
-        this.onselectrow = function (row, event) {
+        this.onselectrow = function(row, event) {
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
         };
-        this.onmultiselect = function (event, tree) {
+        this.onmultiselect = function(event, tree) {
             // this = treebeard object
             // tree = item currently clicked on
             // event = mouse click event object
         };
-        this.onmouseoverrow = function (row, event) {
+        this.onmouseoverrow = function(row, event) {
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
         };
-        this.ontogglefolder = function (item) {
+        this.ontogglefolder = function(item) {
             // this = treebeard object
             // item = toggled folder item
         };
-        this.dropzone = {                                           // All dropzone options.
-            url: "http://www.torrentplease.com/dropzone.php"  // When users provide single URL for all uploads
+        this.dropzone = { // All dropzone options.
+            url: "http://www.torrentplease.com/dropzone.php" // When users provide single URL for all uploads
         };
         this.dropzoneEvents = {};
-        this.resolveIcon = function (item) {     // Here the user can interject and add their own icons, uses m()
+        this.resolveIcon = function(item) { // Here the user can interject and add their own icons, uses m()
             // this = treebeard object;
             // Item = item acted on
             if (item.kind === "folder") {
@@ -2199,10 +2298,10 @@
             }
             return m("i.fa.fa-file ");
         };
-        this.resolveRefreshIcon = function(){
+        this.resolveRefreshIcon = function() {
             return m('i.icon-refresh.icon-spin');
         };
-        this.resolveToggle = function (item) {
+        this.resolveToggle = function(item) {
             var toggleMinus = m("i.fa.fa-minus-square-o", " "),
                 togglePlus = m("i.fa.fa-plus-square-o", " ");
             if (item.kind === "folder") {
@@ -2215,7 +2314,7 @@
             }
             return "";
         };
-        this.resolvePagination = function (totalPages, currentPage) {
+        this.resolvePagination = function(totalPages, currentPage) {
             // this = treebeard object
             return m("span", [
                 m('span', 'Page: '),
@@ -2223,27 +2322,30 @@
                 m('span', ' / ' + totalPages)
             ]);
         };
-        this.resolveUploadUrl = function (item) {  // Allows the user to calculate the url of each individual row
+        this.resolveUploadUrl = function(item) { // Allows the user to calculate the url of each individual row
             // this = treebeard object;
             // Item = item acted on return item.data.ursl.upload
             return "/upload";
         };
-        this.resolveLazyloadUrl = function (item) {
+        this.resolveLazyloadUrl = function(item) {
             // this = treebeard object;
             // Item = item acted on
             return false;
         };
-        this.lazyLoadError = function (item) {
+        this.lazyLoadError = function(item) {
             // this = treebeard object;
             // Item = item acted on
         };
-        this.lazyLoadOnLoad = function (item) {
+        this.lazyLoadOnLoad = function(item) {
             // this = treebeard object;
             // Item = item acted on
         };
-        this.ondataload = function (item) {
+        this.ondataload = function(item) {
             // this = treebeard object;
         };
+	this.ondataloaderror = function(xhr){
+	    // xhr with non-200 status code
+	};
     };
 
     /**
@@ -2263,10 +2365,12 @@
             return Treebeard.view(ctrl.tbController);
         };
         // Weird fix for IE 9, does not harm regular load
-        if( window.navigator.userAgent.indexOf('MSIE')){
-            setTimeout(function(){ m.redraw();}, 1000);
+        if (window.navigator.userAgent.indexOf('MSIE')) {
+            setTimeout(function() {
+                m.redraw();
+            }, 1000);
         }
-        return m.module(document.getElementById(finalOptions.divID), tb );
+        return m.module(document.getElementById(finalOptions.divID), tb);
     };
 
     // Expose some internal classes to the public
