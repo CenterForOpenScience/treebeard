@@ -3,7 +3,7 @@
  * https://github.com/caneruguz/treebeard
  * Built by Center for Open Science -> http://www.cos.io
  */
-;
+;  // jshint ignore:line
 (function(global, factory) {
     "use strict";
     var m;
@@ -1782,7 +1782,7 @@
          */
         this.resetKeyPress = function() {
                 self.pressedKey = undefined;
-            }
+            };
             /**
              * Destroys Treebeard by emptying the DOM object and removing dropzone
              * Because DOM objects are removed their events are going to be cleaned up.
@@ -1906,7 +1906,7 @@
                                     ]);
                                 })
 
-                            ])
+                            ]);
                         }
                     }()),
                     m("#tb-tbody", {
@@ -2343,9 +2343,9 @@
         this.ondataload = function(item) {
             // this = treebeard object;
         };
-	this.ondataloaderror = function(xhr){
-	    // xhr with non-200 status code
-	};
+        this.ondataloaderror = function(xhr){
+            // xhr with non-200 status code
+        };
     };
 
     /**
