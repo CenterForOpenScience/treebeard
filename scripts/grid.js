@@ -95,7 +95,9 @@
     function ascByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numcompare(a, b) {
-                return a - b;
+                var num1 = a.data[data];
+                var num2 = b.data[data];
+                return num1 - num2;
             };
         }
         return function _compare(a, b) {
@@ -120,7 +122,9 @@
     function descByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numcompare(a, b) {
-                return b - a;
+                var num1 = a.data[data];
+                var num2 = b.data[data];
+                return num2 - num1;
             };
         }
         return function _compare(a, b) {
