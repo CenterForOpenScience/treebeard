@@ -3510,7 +3510,7 @@ if (typeof exports == "object") {
                             if (self.multiselected.length > 1) {
                                 var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
                                 self.dragText = newHTML;
-                                self.select('.tb-drag-ghost').html(newHTML);
+                                $('.tb-drag-ghost').html(newHTML);
                             }
                         }
                         $(ui.helper).css({
@@ -3520,7 +3520,7 @@ if (typeof exports == "object") {
                     // keep copy of the element and attach it to the mouse location
                     x = event.pageX > 50 ? event.pageX - 50 : 50;
                     y = event.pageY - 10;
-                    self.select('.tb-drag-ghost').css({
+                    $('.tb-drag-ghost').css({
                         'position': 'absolute',
                         top: y,
                         left: x,
@@ -3558,7 +3558,7 @@ if (typeof exports == "object") {
                     self.select('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
                 stop: function (event, ui) {
-                    self.select('.tb-drag-ghost').remove();
+                    $('.tb-drag-ghost').remove();
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
