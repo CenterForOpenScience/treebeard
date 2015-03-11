@@ -7,7 +7,7 @@ var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     qunit = require('node-qunit-phantomjs');
 
-gulp.task('test', function() {
+gulp.task('test', function () {
     qunit('./tests/qunit/index.html', { 'verbose': true });
 });
 
@@ -30,7 +30,7 @@ var paths = {
     less : "./less/*.less"
 };
 
-gulp.task('generate-max', function() {
+gulp.task('generate-max', function () {
     // gulp.src -- get html template
     return gulp.src(paths.json)
         // pipe through plugin
@@ -39,7 +39,7 @@ gulp.task('generate-max', function() {
         .pipe(gulp.dest("./demo"));
 });
 
-gulp.task('generate-min', function() {
+gulp.task('generate-min', function () {
     // gulp.src -- get html template
     return gulp.src(paths.json)
         // pipe through plugin
@@ -50,16 +50,16 @@ gulp.task('generate-min', function() {
 });
 
 
-gulp.task("less", function(){
+gulp.task("less", function () {
     gulp.src(paths.less)
         .pipe(less())
         .pipe(gulp.dest('./less'));
 });
 
-gulp.task('css', ["less"], function(){
+gulp.task('css', ["less"], function () {
     return gulp.src(paths.cssfiles)
         .pipe(concat('bundle.css'))
-        .pipe(minifyCSS({keepBreaks:true}))
+        .pipe(minifyCSS({keepBreaks: true}))
         .pipe(gulp.dest('./demo/'));
 });
 
@@ -69,19 +69,19 @@ gulp.task('js', function(){
         .pipe(gulp.dest('./demo/'));
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', function () {
     gulp.watch(paths.less, ['css', 'css-dist-min']);
     gulp.watch(paths.jsfiles, ['js', 'js-dist-min', 'js-dist-full']);
 });
 
-gulp.task('css-dist-min', ["less"], function(){
+gulp.task('css-dist-min', ["less"], function () {
     return gulp.src("./less/style.css")
         .pipe(minifyCSS())
         .pipe(rename("treebeard.min.css"))
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('js-dist-min', function() {
+gulp.task('js-dist-min', function () {
     return gulp.src('./scripts/grid.js')
         .pipe(uglify())
         .pipe(rename("treebeard.min.js"))
