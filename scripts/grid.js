@@ -931,7 +931,7 @@
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
             if (icon.get(0)) {
-                m.render(icon.get(0), self.options.resolveRefreshIcon());
+                m.render(icon.get(0), self.options.icons.resolveRefreshIcon());
             }
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
@@ -1932,7 +1932,7 @@
                                             'onclick': function() {
                                                 ctrl.modal.dismiss();
                                             }
-                                        }, [m('i.icon-remove-sign')]),
+                                        }, [ctrl.options.icons.remove()]),
                                         m('.tb-modal-content', ctrl.modal.content),
                                         m('.tb-modal-footer', ctrl.modal.actions)
                                     ])
@@ -2189,6 +2189,14 @@
                 width: "15%"
             }];
         };
+        this.icons = {
+            remove : function(){
+                return m('i.icon-remove-sign');
+            },
+            resolveRefreshIcon : function() {
+                return m('i.icon-refresh.icon-spin');
+            }
+        }
         this.hideColumnTitles = false;
         this.resolveRows = function(item) { // REQUIRED: How rows should be displayed based on data.
             return [{
@@ -2301,9 +2309,6 @@
                 return m("i.fa." + item.data.icon, " ");
             }
             return m("i.fa.fa-file ");
-        };
-        this.resolveRefreshIcon = function() {
-            return m('i.icon-refresh.icon-spin');
         };
         this.resolveToggle = function(item) {
             var toggleMinus = m("i.fa.fa-minus-square-o", " "),
