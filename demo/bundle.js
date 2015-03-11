@@ -5226,8 +5226,8 @@ if (typeof exports == "object") {
             }
             return m("i.fa.fa-file ");
         };
-        this.removeIcon =function(){
-            return m('i.icon-remove-sign');
+        this.removeIcon = function(){
+            return m('i.fa.fa-remove');
         },
         this.resolveRefreshIcon = function() {
             return m('i.icon-refresh.icon-spin');
