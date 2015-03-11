@@ -3855,7 +3855,7 @@ if (typeof exports == "object") {
                 lazyLoad,
                 icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
             if (icon.get(0)) {
-                m.render(icon.get(0), self.options.icons.resolveRefreshIcon());
+                m.render(icon.get(0), self.options.resolveRefreshIcon());
             }
             $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
                 lazyLoad = url;
@@ -4856,7 +4856,7 @@ if (typeof exports == "object") {
                                             'onclick': function() {
                                                 ctrl.modal.dismiss();
                                             }
-                                        }, [ctrl.options.icons.remove()]),
+                                        }, [ctrl.options.removeIcon()]),
                                         m('.tb-modal-content', ctrl.modal.content),
                                         m('.tb-modal-footer', ctrl.modal.actions)
                                     ])
@@ -5113,14 +5113,6 @@ if (typeof exports == "object") {
                 width: "15%"
             }];
         };
-        this.icons = {
-            remove : function(){
-                return m('i.icon-remove-sign');
-            },
-            resolveRefreshIcon : function() {
-                return m('i.icon-refresh.icon-spin');
-            }
-        }
         this.hideColumnTitles = false;
         this.resolveRows = function(item) { // REQUIRED: How rows should be displayed based on data.
             return [{
@@ -5233,6 +5225,12 @@ if (typeof exports == "object") {
                 return m("i.fa." + item.data.icon, " ");
             }
             return m("i.fa.fa-file ");
+        };
+        this.removeIcon =function(){
+            return m('i.icon-remove-sign');
+        },
+        this.resolveRefreshIcon = function() {
+            return m('i.icon-refresh.icon-spin');
         };
         this.resolveToggle = function(item) {
             var toggleMinus = m("i.fa.fa-minus-square-o", " "),
