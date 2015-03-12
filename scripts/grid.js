@@ -2032,7 +2032,7 @@
                             }
                         }()),
                         m('.tb-tbody-inner', {
-                            style: 'height: ' + ctrl.innerHeight + 'px;'
+                            style: 'height: ' + ctrl.innerHeight + (ctrl.multimodal.on ? ctrl.multimodal.height : 0) + 'px;'
                         }, [
                             m('', {
                                 style: "margin-top:" + ctrl.rangeMargin + 'px;'
