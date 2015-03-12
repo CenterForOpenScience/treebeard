@@ -581,6 +581,7 @@
         this.dropzone = null; // Treebeard's own dropzone object
         this.dropzoneItemCache = undefined; // Cache of the dropped item
         this.filterOn = false; // Filter state for use across the app
+        this.globalRemainder = 0; // For calculating rangeMargin properly without losing rounded pixels.
         this.multiselected = [];
         this.pressedKey = undefined;
         this.dragOngoing = false;
@@ -1627,15 +1628,26 @@
          * Update view on scrolling the table
          */
         this.onScroll = function _scrollHook() {
+            function multiRound(number, priorRemainder) {
+                var floored = Math.floor(number + priorRemainder);
+                var difference = (number + priorRemainder) - floored;
+                return {
+                    number : floored,
+                    remainder : difference
+                };
+            }
             if (!self.options.paginate) {
-                var scrollTop, itemsHeight, innerHeight, location, index, multimodalHeight;
+                var scrollTop, itemsHeight, innerHeight, location, index, multimodalHeight, heightNumber, roundedHeight;
                 itemsHeight = self.calculateHeight();
                 innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
                 index = Math.round(location / 100 * self.visibleIndexes.length);
                 multimodalHeight = self.multimodal.on ? self.multimodal.height : 0;
-                self.rangeMargin = Math.floor((itemsHeight * (scrollTop / innerHeight)) + multimodalHeight);
+                heightNumber = itemsHeight * (scrollTop / innerHeight);
+                roundedHeight = multiRound(heightNumber, self.globalRemainder);
+                self.globalRemainder = roundedHeight.remainder;
+                self.rangeMargin = roundedHeight.number + multimodalHeight;
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
@@ -1969,6 +1981,29 @@
 
                             ]);
                         }
+                        /**
+                         * In case a multi action modal needs to be shown, check MultiModal object
+                         */
+                    }()),
+                    (function () {
+                        if (ctrl.multimodal.on) {
+                            return m('.tb-multimodal-wrap', {
+                                config: ctrl.multimodal.onmodalshow,
+                                style: 'width:' + ctrl.multimodal.width + 'px; height:' + ctrl.multimodal.height + 'px'
+                            }, [
+                                m('.tb-multimodal-inner', {
+                                    'class': ctrl.multimodal.css,
+                                    'style' : 'height:' + ctrl.multimodal.height + 'px'
+                                }, [
+                                    m('.tb-multimodal-dismiss', {
+                                        'onclick': function () {
+                                            ctrl.multimodal.dismiss();
+                                        }
+                                    }, [ctrl.options.removeIcon()]),
+                                    m('.tb-multimodal-content', ctrl.multimodal.content)
+                                ])
+                            ]);
+                        }
                     }()),
                     m("#tb-tbody", {
                         config: ctrl.init
@@ -1992,29 +2027,6 @@
                                         }, [ctrl.options.removeIcon()]),
                                         m('.tb-modal-content', ctrl.modal.content),
                                         m('.tb-modal-footer', ctrl.modal.actions)
-                                    ])
-                                ]);
-                            }
-                        }()),
-                    /**
-                     * In case a multi action modal needs to be shown, check MultiModal object
-                     */
-                        (function showMultimodal() {
-                            if (ctrl.multimodal.on) {
-                                return m('.tb-multimodal-wrap', {
-                                    config: ctrl.multimodal.onmodalshow,
-                                    style: 'width:' + ctrl.multimodal.width + 'px'
-                                }, [
-                                    m('.tb-multimodal-inner', {
-                                        'class': ctrl.multimodal.css,
-                                        'style' : 'height:' + ctrl.multimodal.height + 'px'
-                                    }, [
-                                        m('.tb-multimodal-dismiss', {
-                                            'onclick': function () {
-                                                ctrl.multimodal.dismiss();
-                                            }
-                                        }, [ctrl.options.removeIcon()]),
-                                        m('.tb-multimodal-content', ctrl.multimodal.content)
                                     ])
                                 ]);
                             }
