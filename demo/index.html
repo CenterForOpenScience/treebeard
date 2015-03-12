@@ -133,7 +133,7 @@
                         filter : false,
                         custom : function (row, col) {
                             var that = this;
-                            return m("button.tb-button", {
+                            return [ m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
                                     e.stopPropagation();
                                     var mithrilContent = m('div', [
@@ -146,7 +146,18 @@
                                     ]);
                                     that.modal.update(mithrilContent, mithrilButtons);
                                 }
-                            }, " X ");
+                            }, " X "),
+                                m("button.tb-button", {
+                                    onclick: function _deleteClick(e) {
+                                        e.stopPropagation();
+                                        var mithrilContent = m('div', [
+                                            m('b.break-word', 'Do something with  "' + row.data.title+ '"?'),
+                                            m('span', 'This action is irreversible.')
+                                        ]);
+                                        that.multimodal.update(mithrilContent);
+                                    }
+                                }, " O ")
+                            ];
                         }
                     }
                 ];
@@ -277,7 +288,7 @@
                         filter : false,
                         custom : function (row, col) {
                             var that = this;
-                            return m("button.tb-button", {
+                            return [ m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
                                     e.stopPropagation();
                                     var mithrilContent = m('div', [
@@ -290,7 +301,18 @@
                                     ]);
                                     that.modal.update(mithrilContent, mithrilButtons);
                                 }
-                            }, " X ");
+                            }, " X "),
+                                m("button.tb-button", {
+                                    onclick: function _deleteClick(e) {
+                                        e.stopPropagation();
+                                        var mithrilContent = m('div', [
+                                            m('b.break-word', 'Do something with  "' + row.data.title+ '"?'),
+                                            m('span', 'This action is irreversible.')
+                                        ]);
+                                        that.multimodal.update(mithrilContent);
+                                    }
+                                }, " O ")
+                            ];
                         }
                     }
                 ];
