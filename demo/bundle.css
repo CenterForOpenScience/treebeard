@@ -175,6 +175,10 @@
 .tb-unselectable{-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-o-user-select:none;user-select:none}
 .tb-button{border:1px solid #CCC;border-radius:5px}
 .asc-btn,.desc-btn{cursor:pointer}
+.tb-multimodal-wrap{position:fixed}
+.tb-multimodal-inner{background:#EFEFEF;padding:10px;box-shadow:0 0 3px #999;overflow:auto}
+.tb-multimodal-dismiss{float:right;color:#666}
+.tb-multimodal-content{width:%92}
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)

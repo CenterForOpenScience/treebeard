@@ -51,6 +51,8 @@
         Notify,
         // Modal for box-wide errors
         Modal,
+        // Multi modal for multi action decisions
+        Multimodal,
         // Initialize and namespace Treebeard module
         Treebeard = {};
     // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
@@ -264,6 +266,58 @@
             var margin = ctrl.select('.tb-tbody-inner>div').css('margin-top');
             ctrl.select('.tb-modal-shade').css('margin-top', margin);
             ctrl.select('#tb-tbody').css('overflow', 'hidden');
+        };
+        $(window).resize(function () {
+            self.updateSize();
+        });
+    };
+
+
+    /**
+     * Implementation of a modal system for multiple actions
+     * @constructor
+     */
+    Multimodal = function _multiModal(ctrl) {
+        var el = ctrl.select('#tb-tbody'),
+            self = this;
+        this.on = false;
+        this.timeout = false;
+        this.css = '';
+        this.content = null;
+        this.height = 60;
+        this.width = el.width();
+        this.dismiss = function () {
+            this.on = false;
+            ctrl.onScroll.call(ctrl.select('#tb-tbody'));
+        };
+        this.show = function () {
+            this.on = true;
+            if (self.timeout) {
+                setTimeout(function () {
+                    self.dismiss();
+                }, self.timeout);
+            }
+            ctrl.onScroll.call(ctrl.select('#tb-tbody'));
+        };
+        this.toggle = function () {
+            this.on = !this.on;
+            m.redraw(true);
+        };
+        this.update = function (contentMithril) {
+            self.updateSize();
+            if (contentMithril) {
+                this.content = contentMithril;
+            }
+            this.on = true;
+            ctrl.onScroll.call(ctrl.select('#tb-tbody'));
+        };
+        this.updateSize = function (height) {
+            this.height = height || this.height;
+            this.width = ctrl.select('#tb-tbody').width();
+            m.redraw(true);
+        };
+        this.onmultimodalshow = function () {
+            // ...
         };
         $(window).resize(function () {
             self.updateSize();
@@ -549,6 +603,8 @@
 
         // Note: `Modal` constructor dependes on `controller#select`
         this.modal = new Modal(this);
+
+        this.multimodal = new Multimodal(this);
 
         /**
          * Helper function to reset unique id to a reset number or -1
@@ -1572,13 +1628,14 @@
          */
         this.onScroll = function _scrollHook() {
             if (!self.options.paginate) {
-                var scrollTop, itemsHeight, innerHeight, location, index;
+                var scrollTop, itemsHeight, innerHeight, location, index, multimodalHeight;
                 itemsHeight = self.calculateHeight();
                 innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
                 index = Math.round(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight));
+                multimodalHeight = self.multimodal.on ? self.multimodal.height : 0;
+                self.rangeMargin = Math.floor((itemsHeight * (scrollTop / innerHeight)) + multimodalHeight);
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
@@ -1935,6 +1992,29 @@
                                         }, [ctrl.options.removeIcon()]),
                                         m('.tb-modal-content', ctrl.modal.content),
                                         m('.tb-modal-footer', ctrl.modal.actions)
+                                    ])
+                                ]);
+                            }
+                        }()),
+                    /**
+                     * In case a multi action modal needs to be shown, check MultiModal object
+                     */
+                        (function showMultimodal() {
+                            if (ctrl.multimodal.on) {
+                                return m('.tb-multimodal-wrap', {
+                                    config: ctrl.multimodal.onmodalshow,
+                                    style: 'width:' + ctrl.multimodal.width + 'px'
+                                }, [
+                                    m('.tb-multimodal-inner', {
+                                        'class': ctrl.multimodal.css,
+                                        'style' : 'height:' + ctrl.multimodal.height + 'px'
+                                    }, [
+                                        m('.tb-multimodal-dismiss', {
+                                            'onclick': function () {
+                                                ctrl.multimodal.dismiss();
+                                            }
+                                        }, [ctrl.options.removeIcon()]),
+                                        m('.tb-multimodal-content', ctrl.multimodal.content)
                                     ])
                                 ]);
                             }

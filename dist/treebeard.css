@@ -707,3 +707,19 @@
 .desc-btn {
   cursor: pointer;
 }
+.tb-multimodal-wrap {
+  position: fixed;
+}
+.tb-multimodal-inner {
+  background: #EFEFEF;
+  padding: 10px;
+  box-shadow: 0 0 3px #999;
+  overflow: auto;
+}
+.tb-multimodal-dismiss {
+  float: right;
+  color: #666;
+}
+.tb-multimodal-content {
+  width: %92;
+}
