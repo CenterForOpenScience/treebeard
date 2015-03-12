@@ -51,6 +51,8 @@
         Notify,
         // Modal for box-wide errors
         Modal,
+        // Multi modal for multi action decisions
+        Multimodal,
         // Initialize and namespace Treebeard module
         Treebeard = {};
     // Create unique ids, we are now using our own ids. Data ids are availbe to user through tree.data
@@ -275,19 +277,17 @@
      * Implementation of a modal system for multiple actions
      * @constructor
      */
-    MultiModal = function _multiModal(ctrl) {
+    Multimodal = function _multiModal(ctrl) {
         var el = ctrl.select('#tb-tbody'),
             self = this;
         this.on = false;
         this.timeout = false;
         this.css = '';
         this.content = null;
-        this.height = el.height();
         this.width = el.width();
         this.dismiss = function () {
             this.on = false;
             m.redraw(true);
-
         };
         this.show = function () {
             this.on = true;
@@ -311,7 +311,6 @@
             m.redraw(true);
         };
         this.updateSize = function () {
-            this.height = ctrl.select('#tb-tbody').height();
             this.width = ctrl.select('#tb-tbody').width();
             m.redraw(true);
         };
@@ -602,6 +601,8 @@
 
         // Note: `Modal` constructor dependes on `controller#select`
         this.modal = new Modal(this);
+
+        this.multimodal = new Multimodal(this);
 
         /**
          * Helper function to reset unique id to a reset number or -1
@@ -1988,6 +1989,28 @@
                                         }, [ctrl.options.removeIcon()]),
                                         m('.tb-modal-content', ctrl.modal.content),
                                         m('.tb-modal-footer', ctrl.modal.actions)
+                                    ])
+                                ]);
+                            }
+                        }()),
+                    /**
+                     * In case a multi action modal needs to be shown, check MultiModal object
+                     */
+                        (function showMultimodal() {
+                            if (ctrl.multimodal.on) {
+                                return m('.tb-multimodal-wrap', {
+                                    config: ctrl.multimodal.onmodalshow,
+                                    style: 'width:' + ctrl.multimodal.width + 'px'
+                                }, [
+                                    m('.tb-multimodal-inner', {
+                                        'class': ctrl.multimodal.css
+                                    }, [
+                                        m('.tb-multimodal-dismiss', {
+                                            'onclick': function () {
+                                                ctrl.multimodal.dismiss();
+                                            }
+                                        }, [ctrl.options.removeIcon()]),
+                                        m('.tb-multimodal-content', ctrl.multimodal.content)
                                     ])
                                 ]);
                             }
