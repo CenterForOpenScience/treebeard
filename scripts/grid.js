@@ -288,7 +288,7 @@
         this.width = el.width();
         this.dismiss = function () {
             this.on = false;
-            ctrl.onScroll();
+            ctrl.onScroll.call(ctrl.select('#tb-tbody'));
         };
         this.show = function () {
             this.on = true;
@@ -297,7 +297,7 @@
                     self.dismiss();
                 }, self.timeout);
             }
-            ctrl.onScroll();
+            ctrl.onScroll.call(ctrl.select('#tb-tbody'));
         };
         this.toggle = function () {
             this.on = !this.on;
@@ -309,7 +309,7 @@
                 this.content = contentMithril;
             }
             this.on = true;
-            ctrl.onScroll();
+            ctrl.onScroll.call(ctrl.select('#tb-tbody'));
         };
         this.updateSize = function (height) {
             this.height = height || this.height;
