@@ -284,10 +284,11 @@
         this.timeout = false;
         this.css = '';
         this.content = null;
+        this.height = 60;
         this.width = el.width();
         this.dismiss = function () {
             this.on = false;
-            m.redraw(true);
+            ctrl.onScroll();
         };
         this.show = function () {
             this.on = true;
@@ -296,7 +297,7 @@
                     self.dismiss();
                 }, self.timeout);
             }
-            m.redraw(true);
+            ctrl.onScroll();
         };
         this.toggle = function () {
             this.on = !this.on;
@@ -308,9 +309,10 @@
                 this.content = contentMithril;
             }
             this.on = true;
-            m.redraw(true);
+            ctrl.onScroll();
         };
-        this.updateSize = function () {
+        this.updateSize = function (height) {
+            this.height = height || this.height;
             this.width = ctrl.select('#tb-tbody').width();
             m.redraw(true);
         };
@@ -1626,13 +1628,14 @@
          */
         this.onScroll = function _scrollHook() {
             if (!self.options.paginate) {
-                var scrollTop, itemsHeight, innerHeight, location, index;
+                var scrollTop, itemsHeight, innerHeight, location, index, multimodalHeight;
                 itemsHeight = self.calculateHeight();
                 innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
                 index = Math.round(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight));
+                multimodalHeight = self.multimodal.on ? self.multimodal.height : 0;
+                self.rangeMargin = Math.floor((itemsHeight * (scrollTop / innerHeight)) + multimodalHeight);
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
@@ -2003,7 +2006,8 @@
                                     style: 'width:' + ctrl.multimodal.width + 'px'
                                 }, [
                                     m('.tb-multimodal-inner', {
-                                        'class': ctrl.multimodal.css
+                                        'class': ctrl.multimodal.css,
+                                        'style' : 'height:' + ctrl.multimodal.height + 'px'
                                     }, [
                                         m('.tb-multimodal-dismiss', {
                                             'onclick': function () {
