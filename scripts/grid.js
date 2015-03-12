@@ -270,6 +270,59 @@
         });
     };
 
+
+    /**
+     * Implementation of a modal system for multiple actions
+     * @constructor
+     */
+    MultiModal = function _multiModal(ctrl) {
+        var el = ctrl.select('#tb-tbody'),
+            self = this;
+        this.on = false;
+        this.timeout = false;
+        this.css = '';
+        this.content = null;
+        this.height = el.height();
+        this.width = el.width();
+        this.dismiss = function () {
+            this.on = false;
+            m.redraw(true);
+
+        };
+        this.show = function () {
+            this.on = true;
+            if (self.timeout) {
+                setTimeout(function () {
+                    self.dismiss();
+                }, self.timeout);
+            }
+            m.redraw(true);
+        };
+        this.toggle = function () {
+            this.on = !this.on;
+            m.redraw(true);
+        };
+        this.update = function (contentMithril) {
+            self.updateSize();
+            if (contentMithril) {
+                this.content = contentMithril;
+            }
+            this.on = true;
+            m.redraw(true);
+        };
+        this.updateSize = function () {
+            this.height = ctrl.select('#tb-tbody').height();
+            this.width = ctrl.select('#tb-tbody').width();
+            m.redraw(true);
+        };
+        this.onmultimodalshow = function () {
+            // ...
+        };
+        $(window).resize(function () {
+            self.updateSize();
+        });
+    };
+
     /**
      * Builds an _item that uses item related api calls, what we mean when we say "constructed by _item"
      * @param {Object} data Raw data to be converted into an item
