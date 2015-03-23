@@ -1821,38 +1821,7 @@
                      * Template for the head row, includes whether filter or title should be shown.
                      */
                     (function showHeadA() {
-                        var titleContent = functionOrString(ctrl.options.title);
-                        if (ctrl.options.showFilter || titleContent) {
-                            var filterWidth;
-                            var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, titleContent);
-                            if (ctrl.options.filterFullWidth) {
-                                filterWidth = '';
-                            } else {
-                                filterWidth = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
-                            }
-                            var filter = m(".tb-head-filter.col-xs-12" + filterWidth, {}, [
-                                (function showFilterA() {
-                                    if (ctrl.options.showFilter) {
-                                        return m("input.pull-right.form-control[placeholder='" + ctrl.options.filterPlaceholder + "'][type='text']", {
-                                            style: "width:100%;display:inline;",
-                                            onkeyup: ctrl.filter,
-                                            value: ctrl.filterText()
-                                        });
-                                    }
-                                }())
-                            ]);
-                            if (ctrl.options.title) {
-                                return m('.tb-head.row', [
-                                    title,
-                                    filter
-                                ]);
-                            } else {
-                                return m('.tb-head.row', [
-                                    filter
-                                ]);
-                            }
-
-                        }
+                        return ctrl.options.headerTemplate.call(ctrl);
                     }()), (function () {
                         if (!ctrl.options.hideColumnTitles) {
                             return m(".tb-row-titles", [
@@ -2223,6 +2192,45 @@
             // item = folder to toggle
             return true;
         };
+        this.filterTemplate = function () {
+            var tb = this;
+            return m("input.pull-right.form-control[placeholder='" + tb.options.filterPlaceholder + "'][type='text']", {
+                style: "width:100%;display:inline;",
+                onkeyup: tb.filter,
+                value: tb.filterText()
+            });
+        };
+        this.headerTemplate = function () {
+            var ctrl = this;
+            var titleContent = functionOrString(ctrl.options.title);
+            if (ctrl.options.showFilter || titleContent) {
+                var filterWidth;
+                var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, titleContent);
+                if (ctrl.options.filterFullWidth) {
+                    filterWidth = '';
+                } else {
+                    filterWidth = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
+                }
+                var filter = m(".tb-head-filter.col-xs-12" + filterWidth, {}, [
+                    (function showFilterA() {
+                        if (ctrl.options.showFilter) {
+                            return ctrl.options.filterTemplate.call(ctrl);
+                        }
+                    }())
+                ]);
+                if (ctrl.options.title) {
+                    return m('.tb-head.row', [
+                        title,
+                        filter
+                    ]);
+                } else {
+                    return m('.tb-head.row', [
+                        filter
+                    ]);
+                }
+
+            }
+        }
         this.onfilter = function(filterText) { // Fires on keyup when filter text is changed.
             // this = treebeard object;
             // filterText = the value of the filtertext input box.
