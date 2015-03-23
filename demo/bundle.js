@@ -3782,14 +3782,7 @@ if (typeof exports == "object") {
             var filter = self.filterText().toLowerCase(),
                 index = self.visibleTop;
             if (filter.length === 0) {
-                self.filterOn = false;
-                self.calculateVisible(0);
-                self.calculateHeight();
-                m.redraw(true);
-                $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
-                if (self.options.onfilterreset) {
-                    self.options.onfilterreset.call(self, filter);
-                }
+                self.resetFilter();
             } else {
                 if (!self.filterOn) {
                     self.filterOn = true;
@@ -3806,6 +3799,23 @@ if (typeof exports == "object") {
                 }
             }
         };
+
+        /**
+         * Programatically cancels filtering
+         */
+        this.resetFilter = function _resetFilter() {
+            var tb = this;
+            var filter = self.filterText().toLowerCase();
+            tb.filterOn = false;
+            tb.calculateVisible(0);
+            tb.calculateHeight();
+            m.redraw(true);
+            $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
+            if (tb.options.onfilterreset) {
+                tb.options.onfilterreset.call(tb, filter);
+            }
+        }
+
 
         /**
          * Updates content of the folder with new data or refreshes from lazyload
