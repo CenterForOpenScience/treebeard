@@ -4,7 +4,7 @@
  * Built by Center for Open Science -> http://www.cos.io
  */
 ;  // jshint ignore:line
-(function(global, factory) {
+(function (global, factory) {
     "use strict";
     var m;
     if (typeof define === 'function' && define.amd) {
@@ -31,16 +31,14 @@
 
     //Force cache busting in IE
     var oldmrequest = m.request;
-    m.request = function() {
+    m.request = function () {
         var buster;
         var requestArgs = arguments[0];
-
         if (requestArgs.url.indexOf('?') !== -1) {
             buster = '&_=';
         } else {
             buster = '?_=';
         }
-
         requestArgs.url += (buster + (new Date().getTime()));
         return oldmrequest.apply(this, arguments);
     };
@@ -95,7 +93,9 @@
     function ascByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numcompare(a, b) {
-                return a - b;
+                var num1 = a.data[data];
+                var num2 = b.data[data];
+                return num1 - num2;
             };
         }
         return function _compare(a, b) {
@@ -120,7 +120,9 @@
     function descByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numcompare(a, b) {
-                return b - a;
+                var num1 = a.data[data];
+                var num2 = b.data[data];
+                return num2 - num1;
             };
         }
         return function _compare(a, b) {
@@ -172,24 +174,24 @@
         this.on = false;
         this.timeout = timeout === undefined ? DEFAULT_NOTIFY_TIMEOUT : timeout;
         this.css = '';
-        this.toggle = function() {
+        this.toggle = function () {
             this.on = !this.on;
         };
-        this.show = function() {
+        this.show = function () {
             this.on = true;
             var self = this;
             if (self.timeout && self.timeout > 1) { // set timeout to 1 to stay forever
-                setTimeout(function() {
+                setTimeout(function () {
                     self.hide();
                 }, self.timeout);
             }
             m.redraw(true);
         };
-        this.hide = function() {
+        this.hide = function () {
             this.on = false;
             m.redraw(true);
         };
-        this.update = function(message, type, column, timeout, css) {
+        this.update = function (message, type, column, timeout, css) {
             this.type = type || this.type;
             this.column = column || this.column;
             this.timeout = timeout === undefined ? DEFAULT_NOTIFY_TIMEOUT : timeout;
@@ -197,12 +199,12 @@
             this.css = css || '';
             this.show(true);
         };
-        this.selfDestruct = function(treebeard, item, timeout) {
+        this.selfDestruct = function (treebeard, item, timeout) {
             this.on = false;
             this.on = true;
             var self = this,
                 out = timeout || 3000;
-            setTimeout(function() {
+            setTimeout(function () {
                 self.hide();
                 item.removeSelf();
                 treebeard.redraw();
@@ -224,25 +226,25 @@
         this.actions = null;
         this.height = el.height();
         this.width = el.width();
-        this.dismiss = function() {
+        this.dismiss = function () {
             this.on = false;
             m.redraw(true);
             ctrl.select('#tb-tbody').css('overflow', 'auto');
         };
-        this.show = function() {
+        this.show = function () {
             this.on = true;
             if (self.timeout) {
-                setTimeout(function() {
+                setTimeout(function () {
                     self.dismiss();
                 }, self.timeout);
             }
             m.redraw(true);
         };
-        this.toggle = function() {
+        this.toggle = function () {
             this.on = !this.on;
             m.redraw(true);
         };
-        this.update = function(contentMithril, actions) {
+        this.update = function (contentMithril, actions) {
             self.updateSize();
             if (contentMithril) {
                 this.content = contentMithril;
@@ -253,17 +255,17 @@
             this.on = true;
             m.redraw(true);
         };
-        this.updateSize = function() {
+        this.updateSize = function () {
             this.height = ctrl.select('#tb-tbody').height();
             this.width = ctrl.select('#tb-tbody').width();
             m.redraw(true);
         };
-        this.onmodalshow = function() {
+        this.onmodalshow = function () {
             var margin = ctrl.select('.tb-tbody-inner>div').css('margin-top');
             ctrl.select('.tb-modal-shade').css('margin-top', margin);
             ctrl.select('#tb-tbody').css('overflow', 'hidden');
         };
-        $(window).resize(function() {
+        $(window).resize(function () {
             self.updateSize();
         });
     };
@@ -563,7 +565,7 @@
         /**
          * Instantiates draggable and droppable on DOM elements with options passed from self.options
          */
-        this.initializeMove = function() {
+        this.initializeMove = function () {
             var draggableOptions,
                 droppableOptions,
                 x,
@@ -573,7 +575,7 @@
                 cursor: 'move',
                 containment: '.tb-tbody-inner',
                 delay: 100,
-                drag: function(event, ui) {
+                drag: function (event, ui) {
                     if (self.pressedKey === 27) {
                         return false;
                     }
@@ -584,7 +586,7 @@
                             if (self.multiselected.length > 1) {
                                 var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
                                 self.dragText = newHTML;
-                                self.select('.tb-drag-ghost').html(newHTML);
+                                $('.tb-drag-ghost').html(newHTML);
                             }
                         }
                         $(ui.helper).css({
@@ -594,7 +596,7 @@
                     // keep copy of the element and attach it to the mouse location
                     x = event.pageX > 50 ? event.pageX - 50 : 50;
                     y = event.pageY - 10;
-                    self.select('.tb-drag-ghost').css({
+                    $('.tb-drag-ghost').css({
                         'position': 'absolute',
                         top: y,
                         left: x,
@@ -605,12 +607,12 @@
                         'box-shadow': '0 0 4px #ccc'
                     });
                 },
-                create: function(event, ui) {
+                create: function (event, ui) {
                     if (self.options.dragEvents.create) {
                         self.options.dragEvents.create.call(self, event, ui);
                     }
                 },
-                start: function(event, ui) {
+                start: function (event, ui) {
                     var thisID,
                         item,
                         ghost;
@@ -631,8 +633,8 @@
                     self.dragOngoing = true;
                     self.select('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
-                stop: function(event, ui) {
-                    self.select('.tb-drag-ghost').remove();
+                stop: function (event, ui) {
+                    $('.tb-drag-ghost').remove();
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
@@ -643,32 +645,32 @@
 
             droppableOptions = {
                 tolerance: 'pointer',
-                activate: function(event, ui) {
+                activate: function (event, ui) {
                     if (self.options.dropEvents.activate) {
                         self.options.dropEvents.activate.call(self, event, ui);
                     }
                 },
-                create: function(event, ui) {
+                create: function (event, ui) {
                     if (self.options.dropEvents.create) {
                         self.options.dropEvents.create.call(self, event, ui);
                     }
                 },
-                deactivate: function(event, ui) {
+                deactivate: function (event, ui) {
                     if (self.options.dropEvents.deactivate) {
                         self.options.dropEvents.deactivate.call(self, event, ui);
                     }
                 },
-                drop: function(event, ui) {
+                drop: function (event, ui) {
                     if (self.options.dropEvents.drop) {
                         self.options.dropEvents.drop.call(self, event, ui);
                     }
                 },
-                out: function(event, ui) {
+                out: function (event, ui) {
                     if (self.options.dropEvents.out) {
                         self.options.dropEvents.out.call(self, event, ui);
                     }
                 },
-                over: function(event, ui) {
+                over: function (event, ui) {
                     var id = parseInt($(event.target).closest('.tb-row').attr('data-id'), 10),
                         last = self.flatData[self.showRange[self.showRange.length - 1]].id,
                         first = self.flatData[self.showRange[0]].id,
@@ -886,7 +888,7 @@
          * @param {Array} data New raw items, may be returned from ajax call
          * @param {Object} parent Item built with the _item constructor
          */
-        this.updateFolder = function(data, parent) {
+        this.updateFolder = function (data, parent) {
             if (data) {
                 parent.children = [];
                 var child, i;
@@ -934,9 +936,9 @@
                 if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
                     tree.children = [];
                     m.request({
-                            method: "GET",
-                            url: lazyLoad
-                        })
+                        method: "GET",
+                        url: lazyLoad
+                    })
                         .then(function _getUrlBuildtree(value) {
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
@@ -962,7 +964,7 @@
                                     m.render(icon.get(0), iconTemplate);
                                 }
                             }
-                        }, function(info) {
+                        }, function (info) {
                             self.options.lazyLoadError.call(self, tree);
                         })
                         .then(function _getUrlFlatten() {
@@ -1198,9 +1200,9 @@
          * @param {Number} id The unique id of the item.
          * @returns {Boolean} outcome Whether the item is part of multiselected
          */
-        this.isMultiselected = function(id) {
+        this.isMultiselected = function (id) {
             var outcome = false;
-            self.multiselected.map(function(item) {
+            self.multiselected.map(function (item) {
                 if (item.id === id) {
                     outcome = true;
                 }
@@ -1213,8 +1215,8 @@
          * @param {Number} id The unique id of the item.
          * @returns {Boolean} result Whether the item removal was successful
          */
-        this.removeMultiselected = function(id) {
-            self.multiselected.map(function(item, index, arr) {
+        this.removeMultiselected = function (id) {
+            self.multiselected.map(function (item, index, arr) {
                 if (item.id === id) {
                     arr.splice(index, 1);
                     // remove highlight
@@ -1227,9 +1229,9 @@
         /**
          * Adds highlight to the multiselected items using jquery.
          */
-        this.highlightMultiselect = function() {
+        this.highlightMultiselect = function () {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
-            this.multiselected.map(function(item) {
+            this.multiselected.map(function (item) {
                 $('.tb-row[data-id="' + item.id + '"]').addClass(self.options.hoverClassMultiselect);
             });
         };
@@ -1240,7 +1242,7 @@
          * @param {Number} [index] The showRange index of the item
          * @param {Event} [event] Click event on the item
          */
-        this.handleMultiselect = function(id, index, event) {
+        this.handleMultiselect = function (id, index, event) {
             var tree = Indexes[id],
                 begin,
                 end,
@@ -1303,7 +1305,7 @@
             self.highlightMultiselect.call(this);
         };
 
-        this.clearMultiselect = function() {
+        this.clearMultiselect = function () {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
             self.multiselected = [];
         };
@@ -1447,13 +1449,44 @@
          */
         function _loadData(data) {
                 // Order of operations: Gewt data -> build tree -> flatten for view -> calculations for view: visible, height
-                if ($.isArray(data)) {
-                    $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
-                        self.treeData = value;
-                        Indexes[self.treeData.id] = value;
+            if ($.isArray(data)) {
+                $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
+                    self.treeData = value;
+                    Indexes[self.treeData.id] = value;
+                    self.flatten(self.treeData.children);
+                    return value;
+                }).done(function _buildTreeDone() {
+                    self.calculateVisible();
+                    self.calculateHeight();
+                    self.initialized = true;
+                    if ($.isFunction(self.options.ondataload)) {
+                        self.options.ondataload.call(self);
+                    }
+                });
+            } else {
+                // then we assume it's a sring with a valiud url
+                // I took out url validation because it does more harm than good here.
+                m.request({
+                    method: 'GET',
+                    url: data,
+                    extract: function (xhr, xhrOpts) {
+                        if (xhr.status !== 200) {
+                            return self.options.ondataloaderror(xhr);
+                        }
+                        return xhr.responseText;
+                    }
+                })
+                    .then(function _requestBuildtree(value) {
+                        if (self.options.lazyLoadPreprocess) {
+                            value = self.options.lazyLoadPreprocess.call(self, value);
+                        }
+                        self.treeData = self.buildTree(value);
+                    })
+                    .then(function _requestFlatten() {
+                        Indexes[self.treeData.id] = self.treeData;
                         self.flatten(self.treeData.children);
-                        return value;
-                    }).done(function _buildTreeDone() {
+                    })
+                    .then(function _requestCalculate() {
                         self.calculateVisible();
                         self.calculateHeight();
                         self.initialized = true;
@@ -1461,39 +1494,8 @@
                             self.options.ondataload.call(self);
                         }
                     });
-                } else {
-                    // then we assume it's a sring with a valiud url
-                    // I took out url validation because it does more harm than good here.
-                    m.request({
-                            method: 'GET',
-                            url: data,
-                            extract: function(xhr, xhrOpts) {
-                                if (xhr.status !== 200) {
-                                    return self.options.ondataloaderror(xhr);
-                                }
-                                return xhr.responseText;
-                            }
-                        })
-                        .then(function _requestBuildtree(value) {
-                            if (self.options.lazyLoadPreprocess) {
-                                value = self.options.lazyLoadPreprocess.call(self, value);
-                            }
-                            self.treeData = self.buildTree(value);
-                        })
-                        .then(function _requestFlatten() {
-                            Indexes[self.treeData.id] = self.treeData;
-                            self.flatten(self.treeData.children);
-                        })
-                        .then(function _requestCalculate() {
-                            self.calculateVisible();
-                            self.calculateHeight();
-                            self.initialized = true;
-                            if ($.isFunction(self.options.ondataload)) {
-                                self.options.ondataload.call(self);
-                            }
-                        });
-                }
             }
+        }
             // Rebuilds the tree data with an API
         this.buildTree = function _buildTree(data, parent) {
             var tree, children, len, child, i;
@@ -1526,7 +1528,9 @@
             var openLevel,
                 recursive = function redo(data, show, topLevel) {
                     var length = data.length,
-                        i, children, flat;
+                        i,
+                        children,
+                        flat;
                     for (i = 0; i < length; i++) {
                         if (openLevel && data[i].depth <= openLevel) {
                             show = true;
@@ -1637,7 +1641,7 @@
             function convertToPixels() {
                 var parentWidth = titles.width(),
                     totalPixels = 0;
-                columns.each(function(index) {
+                columns.each(function (index) {
                     var col = $(this),
                         colWidth = parentWidth - totalPixels - 1,
                         width;
@@ -1655,16 +1659,16 @@
                 delay: 200,
                 handles: 'e',
                 minWidth: 60,
-                start: function(event, ui) {
+                start: function (event, ui) {
                     convertToPixels();
                 },
-                create: function(event, ui) {
+                create: function (event, ui) {
                     // change cursor
                     self.select('.ui-resizable-e').css({
                         "cursor": "col-resize"
                     });
                 },
-                resize: function(event, ui) {
+                resize: function (event, ui) {
                     var thisCol = $(this),
                         index = $(this).attr('data-tb-th-col'),
                         totalColumns = columns.length,
@@ -1745,7 +1749,7 @@
                         width: colWidth + 'px'
                     });
                 },
-                stop: function(event, ui) {
+                stop: function (event, ui) {
                     _resizeCols();
                     m.redraw(true);
                 }
@@ -1757,14 +1761,14 @@
                 self.options.onload.call(self);
             }
             if (self.options.multiselect) {
-                $(window).keydown(function(event) {
+                $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
                 });
-                $(window).keyup(function(event) {
+                $(window).keyup(function (event) {
                     self.pressedKey = undefined;
                 });
             }
-            $(window).keydown(function(event) {
+            $(window).keydown(function (event) {
                 // if escape cancel modal - 27
                 if (self.modal.on && event.keyCode === 27) {
                     self.modal.dismiss();
@@ -1849,7 +1853,7 @@
                             }
 
                         }
-                    }()), (function() {
+                    }()), (function () {
                         if (!ctrl.options.hideColumnTitles) {
                             return m(".tb-row-titles", [
                                 /**
@@ -1928,7 +1932,7 @@
                                             'onclick': function() {
                                                 ctrl.modal.dismiss();
                                             }
-                                        }, [m('i.icon-remove-sign')]),
+                                        }, [ctrl.options.removeIcon()]),
                                         m('.tb-modal-content', ctrl.modal.content),
                                         m('.tb-modal-footer', ctrl.modal.actions)
                                     ])
@@ -2298,6 +2302,9 @@
             }
             return m("i.fa.fa-file ");
         };
+        this.removeIcon = function(){
+            return m('i.fa.fa-remove');
+        },
         this.resolveRefreshIcon = function() {
             return m('i.icon-refresh.icon-spin');
         };
