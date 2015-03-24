@@ -697,6 +697,79 @@ test('checks folder Toggle runs "lazyload", "ontoggle" and "togglecheck" callbac
     tb.destroy();
 });
 
+test('toggleFolder callback gets called', function(assert) {
+    assert.expect(1);
+    var check,
+        load,
+        lazyload,
+        ontoggle,
+        togglecheck,
+        lazyloadonload,
+        tb;
+    check = function (item) {
+        return true;
+    };
+    load = function (item) {
+        if (item.id === 1) {
+            return 'small.json';
+        }
+        return false;
+    };
+    lazyload = sinon.spy(load);
+    ontoggle = sinon.spy();
+    callback = sinon.spy();
+    togglecheck = sinon.spy(check);
+    lazyloadonload = sinon.spy();
+    tb = reload.call(this, 'long', {
+        resolveRefreshIcon : function () {
+            return m('i.fa.fa-refresh.fa-spin');
+        },
+        resolveLazyloadUrl : lazyload,
+        ontogglefolder : ontoggle,
+        togglecheck : togglecheck,
+        lazyLoadOnLoad : lazyloadonload
+    });
+    tb.toggleFolder(0, null, callback);
+    assert.equal(callback.callCount, 1, 'toggleFolder callback is called.');
+    tb.destroy();
+});
+
+test('toggleFolder callback is not required', function(assert) {
+    assert.expect(0);
+    var check,
+        load,
+        lazyload,
+        ontoggle,
+        togglecheck,
+        lazyloadonload,
+        tb;
+    check = function (item) {
+        return true;
+    };
+    load = function (item) {
+        if (item.id === 1) {
+            return 'small.json';
+        }
+        return false;
+    };
+    lazyload = sinon.spy(load);
+    ontoggle = sinon.spy();
+    callback = sinon.spy();
+    togglecheck = sinon.spy(check);
+    lazyloadonload = sinon.spy();
+    tb = reload.call(this, 'long', {
+        resolveRefreshIcon : function () {
+            return m('i.fa.fa-refresh.fa-spin');
+        },
+        resolveLazyloadUrl : lazyload,
+        ontogglefolder : ontoggle,
+        togglecheck : togglecheck,
+        lazyLoadOnLoad : lazyloadonload
+    });
+    tb.toggleFolder(0, null);
+    tb.destroy();
+});
+
 
 test('onload hook function runs', function (assert) {
     var onload = sinon.spy(),
