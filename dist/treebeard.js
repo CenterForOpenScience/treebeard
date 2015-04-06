@@ -897,8 +897,9 @@
          * Updates content of the folder with new data or refreshes from lazyload
          * @param {Array} data New raw items, may be returned from ajax call
          * @param {Object} parent Item built with the _item constructor
+         * @param {Function} callback A function to be called after loading all data
          */
-        this.updateFolder = function (data, parent) {
+        this.updateFolder = function (data, parent, callback) {
             if (data) {
                 parent.children = [];
                 var child, i;
@@ -912,15 +913,17 @@
             var index = self.returnIndex(parent.id);
             parent.open = false;
             parent.load = false;
-            self.toggleFolder(index, null);
+
+            self.toggleFolder(index, null, callback);
         };
 
         /**
          * Toggles folder, refreshing the view or reloading in event of lazyload
          * @param {Number} index The index of the item in the flatdata.
          * @param {Event} [event] Toggle click event if this function is triggered by an event.
+         * @param {Function} callback A function to be called after loading all data
          */
-        this.toggleFolder = function _toggleFolder(index, event) {
+        this.toggleFolder = function _toggleFolder(index, event, callback) {
             if (index === undefined || index === null) {
                 self.redraw();
                 return;
@@ -985,6 +988,9 @@
                             if (self.options.ontogglefolder) {
                                 self.options.ontogglefolder.call(self, tree, event);
                             }
+                            if (callback) {
+                                callback.call(self, tree, event);
+                            }
                         });
 
                 } else {
@@ -1024,6 +1030,9 @@
                 }
                 if (self.options.ontogglefolder) {
                     self.options.ontogglefolder.call(self, tree, event);
+                }
+                if (callback) {
+                    callback.call(self, tree, event);
                 }
             });
         };
