@@ -2310,7 +2310,7 @@
             // item = toggled folder item
         };
         this.dropzone = { // All dropzone options.
-            url: "http://www.torrentplease.com/dropzone.php" // When users provide single URL for all uploads
+            url: null // When users provide single URL for all uploads
         };
         this.dropzoneEvents = {};
         this.resolveIcon = function(item) { // Here the user can interject and add their own icons, uses m()
