@@ -983,7 +983,7 @@
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
                             if (self.options.lazyLoadOnLoad) {
-                                self.options.lazyLoadOnLoad.call(self, tree);
+                                self.options.lazyLoadOnLoad.call(self, tree, event);
                             }
                             if (self.options.ontogglefolder) {
                                 self.options.ontogglefolder.call(self, tree, event);
