@@ -1329,6 +1329,53 @@
             self.multiselected = [];
         };
 
+        // Handles the up and down arrow keys since they do almost identical work
+        this.multiSelectArrows = function (direction){
+            var tb = this;
+            var val = direction === 'down' ? 1 : -1;
+            var selectedIndex = tb.returnRangeIndex(tb.multiselected[0].id);
+            var previousItemIndex = tb.showRange[selectedIndex+val];
+            var flatItem = tb.flatData[previousItemIndex].id;
+            var treeItem = tb.find(flatItem);
+            tb.clearMultiselect();
+            tb.multiselected.push(treeItem);
+            tb.highlightMultiselect.call(tb);
+//            tb.fangornMultiselect.call(tb, null, treeItem);
+        }
+
+        // Handles the toggling of folders with the right and left arrow keypress
+        this.keyboardFolderToggle = function (action) {
+            var item = self.multiselected[0];
+            if(item.kind === 'folder') {
+                if((item.open === true && action === 'close') || (item.open === false && action === 'open'))  {
+                    var index = self.returnIndex(item.id);
+                    self.toggleFolder(index, null);
+                }
+            }
+        }
+
+        // Handles what the up, down, left, right arrow keys do.
+        this.handleArrowKeys = function (key) {
+            // if pressed key is up arrow
+            if(key === 38) {
+                self.multiSelectArrows('up');
+            }
+            // if pressed key is down arrow
+            if(key === 40) {
+                self.multiSelectArrows('down');
+            }
+            // if pressed key is left arrow
+            if(key === 37) {
+                self.keyboardFolderToggle('close');
+            }
+            // if pressed key is right arrow
+            if(key === 39) {
+                self.keyboardFolderToggle('open');
+            }
+        }
+
+
+
         /**
          * Remove dropzone from grid
          */
@@ -1779,6 +1826,12 @@
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
             }
+            $(window).on('keydown', function(event){
+                var key = event.keyCode;
+                if(self.multiselected.length === 1) {
+                    self.handleArrowKeys(key);
+                }
+            });
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
