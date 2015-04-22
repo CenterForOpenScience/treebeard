@@ -3595,18 +3595,8 @@ if (typeof exports == "object") {
                     }
                 },
                 over: function (event, ui) {
-                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'), 10),
-                        last = self.flatData[self.showRange[self.showRange.length - 1]].id,
-                        first = self.flatData[self.showRange[0]].id,
-                        currentScroll;
-                    if (id === last) {
-                        currentScroll = self.select('#tb-tbody').scrollTop();
-                        self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
-                    }
-                    if (id === first) {
-                        currentScroll = self.select('#tb-tbody').scrollTop();
-                        self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
-                    }
+                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'), 10);
+                    self.scrollEdges(id);
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
                     }
@@ -3617,6 +3607,21 @@ if (typeof exports == "object") {
             self.options.dragSelector = self.options.moveClass || 'td-title';
             self.moveOn();
         };
+
+        // Handles scrolling when items are at the beginning or end of visible items.
+        this.scrollEdges = function (id) {
+            var last = self.flatData[self.showRange[self.showRange.length - 1]].id,
+                first = self.flatData[self.showRange[0]].id,
+                currentScroll;
+            if (id === last) {
+                currentScroll = self.select('#tb-tbody').scrollTop();
+                self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
+            }
+            if (id === first) {
+                currentScroll = self.select('#tb-tbody').scrollTop();
+                self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
+            }
+        }
 
         /**
          * Turns move on for all elements or elements within a parent container
@@ -4255,15 +4260,23 @@ if (typeof exports == "object") {
 
         // Handles the up and down arrow keys since they do almost identical work
         this.multiSelectArrows = function (direction){
-            var tb = this;
             var val = direction === 'down' ? 1 : -1;
-            var selectedIndex = tb.returnRangeIndex(tb.multiselected[0].id);
-            var previousItemIndex = tb.showRange[selectedIndex+val];
-            var flatItem = tb.flatData[previousItemIndex].id;
-            var treeItem = tb.find(flatItem);
-            tb.clearMultiselect();
-            tb.multiselected.push(treeItem);
-            tb.highlightMultiselect.call(tb);
+            console.log(self.multiselected[0].id);
+            var selectedIndex = self.returnRangeIndex(self.multiselected[0].id);
+            var visibleIndex = self.visibleIndexes.indexOf(self.showRange[selectedIndex]);
+            var newIndex = visibleIndex + val;
+            var row = self.flatData[self.visibleIndexes[newIndex]];
+            if(!row){
+                return;
+            }
+            var treeItem = self.find(row.id);
+            self.clearMultiselect();
+            self.multiselected.push(treeItem);
+            self.highlightMultiselect.call(self);
+            self.scrollEdges(treeItem.id);
+            self.redraw();
+            console.log(direction, 'selectedIndex', selectedIndex, 'newIndex' , newIndex, 'treeItem', treeItem) ;
+            console.log('====');
 //            tb.fangornMultiselect.call(tb, null, treeItem);
         }
 
@@ -4279,7 +4292,12 @@ if (typeof exports == "object") {
         }
 
         // Handles what the up, down, left, right arrow keys do.
-        this.handleArrowKeys = function (key) {
+        this.handleArrowKeys = function (e) {
+            //if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+            //    e.preventDefault();
+            //}
+            var key = e.keyCode;
+
             // if pressed key is up arrow
             if(key === 38) {
                 self.multiSelectArrows('up');
@@ -4751,9 +4769,8 @@ if (typeof exports == "object") {
                 self.options.onload.call(self);
             }
             $(window).on('keydown', function(event){
-                var key = event.keyCode;
                 if(self.multiselected.length === 1) {
-                    self.handleArrowKeys(key);
+                    self.handleArrowKeys(event);
                 }
             });
             if (self.options.multiselect) {
@@ -5271,6 +5288,7 @@ if (typeof exports == "object") {
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
+            console.log(row);
         };
         this.onmultiselect = function(event, tree) {
             // this = treebeard object
