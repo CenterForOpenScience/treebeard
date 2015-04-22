@@ -4262,8 +4262,8 @@ if (typeof exports == "object") {
         this.multiSelectArrows = function (direction){
             var val = direction === 'down' ? 1 : -1;
             console.log(self.multiselected[0].id);
-            var selectedIndex = self.returnRangeIndex(self.multiselected[0].id);
-            var visibleIndex = self.visibleIndexes.indexOf(self.showRange[selectedIndex]);
+            var selectedIndex = self.returnIndex(self.multiselected[0].id);
+            var visibleIndex = self.visibleIndexes.indexOf(selectedIndex);
             var newIndex = visibleIndex + val;
             var row = self.flatData[self.visibleIndexes[newIndex]];
             if(!row){
