@@ -539,11 +539,14 @@
             self.flatten(self.treeData.children, self.visibleTop);
         };
 
+        this.mredraw = function _mredraw() {
+            m.redraw();
+        }
         /**
          * Prepend selector with ID of root DOM node
          * @param {String} selector CSS selector
          */
-        this.select = function(selector) {
+        this.select = function (selector) {
             return $('#' + self.options.divID + ' ' + selector);
         };
 
@@ -685,18 +688,18 @@
         };
 
         // Handles scrolling when items are at the beginning or end of visible items.
-        this.scrollEdges = function (id) {
-            var last = self.flatData[self.showRange[self.showRange.length - 1]].id,
-                first = self.flatData[self.showRange[0]].id,
-                currentScroll;
-            if (id === last) {
+        this.scrollEdges = function (id, buffer) {
+            var buffer = buffer || 1,
+                last = self.flatData[self.showRange[self.showRange.length - 1 - buffer]].id,
+                first = self.flatData[self.showRange[0] + buffer].id,
                 currentScroll = self.select('#tb-tbody').scrollTop();
+            if (id === last) {
                 self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
             }
             if (id === first) {
-                currentScroll = self.select('#tb-tbody').scrollTop();
                 self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
             }
+            console.log("==", buffer, last, first, currentScroll);
         }
 
         /**
@@ -1337,10 +1340,9 @@
         // Handles the up and down arrow keys since they do almost identical work
         this.multiSelectArrows = function (direction){
             if ($.isFunction(self.options.onbeforeselectwitharrow)) {
-                self.options.onbeforeselectwitharrow.call(this, row, direction);
+                self.options.onbeforeselectwitharrow.call(this, self.multiselected[0], direction);
             }
             var val = direction === 'down' ? 1 : -1;
-            console.log(self.multiselected[0].id);
             var selectedIndex = self.returnIndex(self.multiselected[0].id);
             var visibleIndex = self.visibleIndexes.indexOf(selectedIndex);
             var newIndex = visibleIndex + val;
@@ -1349,16 +1351,15 @@
                 return;
             }
             var treeItem = self.find(row.id);
-            self.clearMultiselect();
-            self.multiselected.push(treeItem);
-            self.highlightMultiselect.call(self);
+            self.multiselected = [treeItem];
             self.scrollEdges(treeItem.id);
-            self.redraw();
-            console.log(direction, 'selectedIndex', selectedIndex, 'newIndex' , newIndex, 'treeItem', treeItem) ;
-            console.log('====');
+            self.highlightMultiselect.call(self);
+            console.log(treeItem.id, val, selectedIndex, visibleIndex, newIndex, row.id );
+
             if ($.isFunction(self.options.onafterselectwitharrow)) {
                 self.options.onafterselectwitharrow.call(this, row, direction);
             }
+
         }
 
         // Handles the toggling of folders with the right and left arrow keypress
@@ -1374,6 +1375,9 @@
 
         // Handles what the up, down, left, right arrow keys do.
         this.handleArrowKeys = function (e) {
+            if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+                e.preventDefault();
+            }
             var key = e.keyCode;
             // if pressed key is up arrow
             if(key === 38) {
@@ -1450,7 +1454,7 @@
                         var index = self.returnIndex(item.id);
                         self.toggleFolder(index, null);
                     }
-                    if ($.(self.options.dropzoneEvents.drop)) {
+                    if ($.isFunction(self.options.dropzoneEvents.drop)) {
                         self.options.dropzoneEvents.drop.call(this, self, event);
                     }
                 },
