@@ -1336,6 +1336,9 @@
 
         // Handles the up and down arrow keys since they do almost identical work
         this.multiSelectArrows = function (direction){
+            if ($.isFunction(self.options.onbeforeselectwitharrow)) {
+                self.options.onbeforeselectwitharrow.call(this, row, direction);
+            }
             var val = direction === 'down' ? 1 : -1;
             console.log(self.multiselected[0].id);
             var selectedIndex = self.returnIndex(self.multiselected[0].id);
@@ -1353,7 +1356,9 @@
             self.redraw();
             console.log(direction, 'selectedIndex', selectedIndex, 'newIndex' , newIndex, 'treeItem', treeItem) ;
             console.log('====');
-//            tb.fangornMultiselect.call(tb, null, treeItem);
+            if ($.isFunction(self.options.onafterselectwitharrow)) {
+                self.options.onafterselectwitharrow.call(this, row, direction);
+            }
         }
 
         // Handles the toggling of folders with the right and left arrow keypress
@@ -1369,11 +1374,7 @@
 
         // Handles what the up, down, left, right arrow keys do.
         this.handleArrowKeys = function (e) {
-            //if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
-            //    e.preventDefault();
-            //}
             var key = e.keyCode;
-
             // if pressed key is up arrow
             if(key === 38) {
                 self.multiSelectArrows('up');
@@ -1449,7 +1450,7 @@
                         var index = self.returnIndex(item.id);
                         self.toggleFolder(index, null);
                     }
-                    if ($.isFunction(self.options.dropzoneEvents.drop)) {
+                    if ($.(self.options.dropzoneEvents.drop)) {
                         self.options.dropzoneEvents.drop.call(this, self, event);
                     }
                 },
@@ -2449,6 +2450,16 @@
         };
         this.ondataloaderror = function(xhr){
             // xhr with non-200 status code
+        };
+        this.onbeforeselectwitharrow = function(item, direction){
+            // this = treebeard object;
+            // Item = item where selection is going to
+            // direction =  the directino of the arrow key
+        };
+        this.onafterselectwitharrow = function(item, direction){
+            // this = treebeard object;
+            // Item = item where selection is coming from
+            // direction = the directino of the arrow key
         };
     };
 
