@@ -4192,6 +4192,9 @@ if (typeof exports == "object") {
                 i,
                 cmdkey,
                 direction;
+            if (self.options.onbeforemultiselect) {
+                self.options.onbeforemultiselect.call(self, event, tree);
+            }
             // if key is shift
             if (self.pressedKey === 16) {
                 // get the index of this and add all visible indexes between this one and last selected
@@ -5217,6 +5220,11 @@ if (typeof exports == "object") {
         this.onselectrow = function(row, event) {
             // this = treebeard object
             // row = item selected
+            // event = mouse click event object
+        };
+        this.onbeforemultiselect = function(event, tree) {
+            // this = treebeard object
+            // tree = item currently clicked on
             // event = mouse click event object
         };
         this.onmultiselect = function(event, tree) {
