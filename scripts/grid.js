@@ -691,13 +691,13 @@
         this.scrollEdges = function (id, buffer) {
             var buffer = buffer || 1,
                 last = self.flatData[self.showRange[self.showRange.length - 1 - buffer]].id,
-                first = self.flatData[self.showRange[0] + buffer].id,
+                first = self.flatData[self.showRange[0 + buffer]].id,
                 currentScroll = self.select('#tb-tbody').scrollTop();
             if (id === last) {
-                self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
+                self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight + 1);
             }
             if (id === first) {
-                self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
+                self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight - 1);
             }
             console.log("==", buffer, last, first, currentScroll);
         }
@@ -1258,7 +1258,7 @@
          */
         this.highlightMultiselect = function () {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
-            this.multiselected.map(function (item) {
+            self.multiselected.map(function (item) {
                 $('.tb-row[data-id="' + item.id + '"]').addClass(self.options.hoverClassMultiselect);
             });
         };
@@ -1355,7 +1355,7 @@
             }
             var treeItem = self.find(row.id);
             self.multiselected = [treeItem];
-            self.scrollEdges(treeItem.id);
+            self.scrollEdges(treeItem.id, 0);
             self.highlightMultiselect.call(self);
             console.log(treeItem.id, val, selectedIndex, visibleIndex, newIndex, row.id );
 
@@ -1669,7 +1669,7 @@
                 innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
-                index = Math.round(location / 100 * self.visibleIndexes.length);
+                index = Math.floor(location / 100 * self.visibleIndexes.length);
                 self.rangeMargin = scrollTop;
                 self.refreshRange(index);
                 m.redraw(true);
