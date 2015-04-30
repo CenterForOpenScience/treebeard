@@ -4774,7 +4774,7 @@ if (typeof exports == "object") {
                 self.options.onload.call(self);
             }
             $(window).on('keydown', function(event){
-                if(self.multiselected.length === 1) {
+                if(self.options.allowArrows && self.multiselected.length === 1) {
                     self.handleArrowKeys(event);
                 }
             });
@@ -5194,6 +5194,7 @@ if (typeof exports == "object") {
         this.showFilter = true; // Gives the option to filter by showing the filter box.
         this.title = null; // Title of the grid, boolean, string OR function that returns a string.
         this.allowMove = true; // Turn moving on or off.
+        this.allowArrows = false;
         this.moveClass = undefined; // Css class for which elements can be moved. Your login needs to add these to appropriate elements.
         this.sortButtonSelector = {}; // custom buttons for sort, needed because not everyone uses FontAwesome
         this.dragOptions = {}; // jQuery UI draggable options without the methods
