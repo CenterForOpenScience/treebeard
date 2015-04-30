@@ -4524,7 +4524,7 @@ if (typeof exports == "object") {
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
                 index = Math.round(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight));
+                self.rangeMargin = scrollTop;
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
