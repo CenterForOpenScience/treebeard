@@ -3623,7 +3623,6 @@ if (typeof exports == "object") {
             if (id === first) {
                 self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight - 1);
             }
-            console.log("==", buffer, last, first, currentScroll);
         }
 
         /**
@@ -4281,8 +4280,6 @@ if (typeof exports == "object") {
             self.multiselected = [treeItem];
             self.scrollEdges(treeItem.id, 0);
             self.highlightMultiselect.call(self);
-            console.log(treeItem.id, val, selectedIndex, visibleIndex, newIndex, row.id );
-
             if ($.isFunction(self.options.onafterselectwitharrow)) {
                 self.options.onafterselectwitharrow.call(this, row, direction);
             }
@@ -5300,7 +5297,6 @@ if (typeof exports == "object") {
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
-            console.log(row);
         };
         this.onbeforemultiselect = function(event, tree) {
             // this = treebeard object
