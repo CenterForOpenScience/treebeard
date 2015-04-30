@@ -4200,6 +4200,9 @@ if (typeof exports == "object") {
                 i,
                 cmdkey,
                 direction;
+            if (self.options.onbeforemultiselect) {
+                self.options.onbeforemultiselect.call(self, event, tree);
+            }
             // if key is shift
             if (self.pressedKey === 16) {
                 // get the index of this and add all visible indexes between this one and last selected
@@ -4591,7 +4594,7 @@ if (typeof exports == "object") {
                 scrollTop = $(this).scrollTop();
                 location = scrollTop / innerHeight * 100;
                 index = Math.round(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight));
+                self.rangeMargin = scrollTop;
                 self.refreshRange(index);
                 m.redraw(true);
                 _lastLocation = scrollTop;
@@ -4971,6 +4974,10 @@ if (typeof exports == "object") {
                                             "data-rIndex": index,
                                             style: "height: " + ctrl.options.rowHeight + "px;",
                                             onclick: function _rowClick(event) {
+                                                var el = $(event.target);
+                                                if(el.hasClass('tb-toggle-icon') || el.hasClass('fa-plus') || el.hasClass('fa-minus')) {
+                                                    return;
+                                                }
                                                 if (ctrl.options.multiselect) {
                                                     ctrl.handleMultiselect(id, index, event);
                                                 }
@@ -5294,6 +5301,11 @@ if (typeof exports == "object") {
             // row = item selected
             // event = mouse click event object
             console.log(row);
+        };
+        this.onbeforemultiselect = function(event, tree) {
+            // this = treebeard object
+            // tree = item currently clicked on
+            // event = mouse click event object
         };
         this.onmultiselect = function(event, tree) {
             // this = treebeard object
