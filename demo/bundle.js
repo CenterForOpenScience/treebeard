@@ -4899,6 +4899,10 @@ if (typeof exports == "object") {
                                             "data-rIndex": index,
                                             style: "height: " + ctrl.options.rowHeight + "px;",
                                             onclick: function _rowClick(event) {
+                                                var el = $(event.target);
+                                                if(el.hasClass('tb-toggle-icon') || el.hasClass('fa-plus') || el.hasClass('fa-minus')) {
+                                                    return;
+                                                }
                                                 if (ctrl.options.multiselect) {
                                                     ctrl.handleMultiselect(id, index, event);
                                                 }
