@@ -4909,10 +4909,17 @@ if (typeof exports == "object") {
                             if (ctrl.modal.on) {
                                 return m('.tb-modal-shade', {
                                     config: ctrl.modal.onmodalshow,
-                                    style: 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;'
+                                    style: 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;',
+                                    onclick : function(event) {
+                                        ctrl.modal.dismiss();
+                                    }
                                 }, [
                                     m('.tb-modal-inner', {
-                                        'class': ctrl.modal.css
+                                        'class': ctrl.modal.css,
+                                        onclick : function() {
+                                            event.stopPropagation();
+                                            return true;
+                                        }
                                     }, [
                                         m('.tb-modal-dismiss', {
                                             'onclick': function() {
