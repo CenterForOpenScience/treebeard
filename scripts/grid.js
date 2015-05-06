@@ -2324,12 +2324,12 @@
                     }())
                 ]);
                 if (ctrl.options.title) {
-                    return m('.tb-head.row', [
+                    return m('.tb-head', [
                         title,
                         filter
                     ]);
                 } else {
-                    return m('.tb-head.row', [
+                    return m('.tb-head', [
                         filter
                     ]);
                 }
