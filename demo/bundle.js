@@ -3146,6 +3146,7 @@ if (typeof exports == "object") {
         this.on = false;
         this.timeout = false;
         this.css = '';
+        this.padding = '50px 100px;';
         this.content = null;
         this.actions = null;
         this.height = el.height();
@@ -3182,6 +3183,11 @@ if (typeof exports == "object") {
         this.updateSize = function () {
             this.height = ctrl.select('#tb-tbody').height();
             this.width = ctrl.select('#tb-tbody').width();
+            if (this.width < 500) {
+                this.padding = '40px';
+            } else {
+                this.padding = '50px 100px';
+            }
             m.redraw(true);
         };
         this.onmodalshow = function () {
@@ -4923,7 +4929,7 @@ if (typeof exports == "object") {
                             if (ctrl.modal.on) {
                                 return m('.tb-modal-shade', {
                                     config: ctrl.modal.onmodalshow,
-                                    style: 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;',
+                                    style: 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;padding:' + ctrl.modal.padding,
                                     onclick : function(event) {
                                         ctrl.modal.dismiss();
                                     }
