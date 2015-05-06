@@ -631,6 +631,8 @@
 }
 .tb-head {
   padding: 10px;
+  display: inline-block;
+  width: 100%;
 }
 .tb-sort-inactive {
   color: #999;
@@ -668,6 +670,7 @@
   z-index: 99;
   top: 0;
   left: 0;
+  overflow-y: auto;
 }
 .tb-modal-inner {
   background: #FFF;
