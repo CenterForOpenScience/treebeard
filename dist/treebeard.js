@@ -532,6 +532,8 @@
         this.dragOngoing = false;
         this.initialized = false; // Treebeard's own initialization check, turns to true after page loads.
         this.colsizes = {}; // Storing column sizes across the app.
+        this.tableWidth = m.prop('auto;'); // Whether there should be horizontal scrolling
+
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
          */
@@ -1873,8 +1875,20 @@
                 }
             });
             window.onblur = self.resetKeyPress;
+
+            $(window).resize(function () {
+                self.setScrollMode();
+            });
+            self.setScrollMode();
         };
 
+        this.setScrollMode = function _setScrollMode() {
+            if(self.options.hScroll && $('#' + self.options.divID).width() < self.options.hScroll){
+                self.tableWidth(self.options.hScroll + 'px;');
+            } else {
+                self.tableWidth('auto;');
+            }
+        }
         /**
          * Resets keys that are hung up. Other window onblur event actions can be added in here.
          */
@@ -1908,8 +1922,8 @@
      */
     Treebeard.view = function treebeardView(ctrl) {
         return [
-            m('.gridWrapper', [
-                m(".tb-table", [
+            m('.gridWrapper', { style : 'overflow-x: auto' }, [
+                m(".tb-table", { style : 'width:' + ctrl.tableWidth() }, [
                     /**
                      * Template for the head row, includes whether filter or title should be shown.
                      */
@@ -2010,6 +2024,7 @@
                         }()),
                         m('.tb-tbody-inner', {
                             style: 'height: ' + ctrl.innerHeight + 'px;'
+
                         }, [
                             m('', {
                                 style: "margin-top:" + ctrl.rangeMargin + 'px;'
@@ -2270,6 +2285,7 @@
                 filter: true
             }];
         };
+        this.hScroll  = 400; // Number which is the cut off for horizontal scrolling, can also be null;
         this.filterPlaceholder = 'Search';
         this.resizeColumns = true; // whether the table columns can be resized.
         this.hoverClass = undefined; // Css class for hovering over rows
@@ -2324,12 +2340,12 @@
                     }())
                 ]);
                 if (ctrl.options.title) {
-                    return m('.tb-head.row', [
+                    return m('.tb-head', [
                         title,
                         filter
                     ]);
                 } else {
-                    return m('.tb-head.row', [
+                    return m('.tb-head', [
                         filter
                     ]);
                 }
@@ -2402,7 +2418,7 @@
             // item = toggled folder item
         };
         this.dropzone = { // All dropzone options.
-            url: "http://www.torrentplease.com/dropzone.php" // When users provide single URL for all uploads
+            url: null // When users provide single URL for all uploads
         };
         this.dropzoneEvents = {};
         this.resolveIcon = function(item) { // Here the user can interject and add their own icons, uses m()

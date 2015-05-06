@@ -631,6 +631,8 @@
 }
 .tb-head {
   padding: 10px;
+  display: inline-block;
+  width: 100%;
 }
 .tb-sort-inactive {
   color: #999;
