@@ -2270,6 +2270,7 @@
                 filter: true
             }];
         };
+        this.hScroll  = 400; // Number which is the cut off for horizontal scrolling, can also be null;
         this.filterPlaceholder = 'Search';
         this.resizeColumns = true; // whether the table columns can be resized.
         this.hoverClass = undefined; // Css class for hovering over rows
