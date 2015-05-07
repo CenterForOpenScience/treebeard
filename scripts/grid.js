@@ -514,9 +514,9 @@
     // Treebeard methods
     Treebeard.controller = function _treebeardController(opts) {
         // private variables
-        var self = this, // Treebard.controller
-            _lastLocation = 0, // The last scrollTop location, updates on every scroll.
-            _lastNonFilterLocation = 0; // The last scrolltop location before filter was used.
+        var self = this; // Treebard.controller
+        var lastLocation = 0; // The last scrollTop location, updates on every scroll.
+        var lastNonFilterLocation = 0; // The last scrolltop location before filter was used.
         this.isSorted = {}; // Temporary variables for sorting
         m.redraw.strategy("all");
         // public variables
@@ -877,7 +877,7 @@
             } else {
                 if (!self.filterOn) {
                     self.filterOn = true;
-                    _lastNonFilterLocation = _lastLocation;
+                    self.lastNonFilterLocation = self.lastLocation;
                 }
                 if (!self.visibleTop) {
                     index = 0;
@@ -894,14 +894,15 @@
         /**
          * Programatically cancels filtering
          */
-        this.resetFilter = function _resetFilter() {
+        this.resetFilter = function _resetFilter(location) {
             var tb = this;
+            var lastNonFilterLocation = location || self.lastNonFilterLocation; 
             var filter = self.filterText().toLowerCase();
             tb.filterOn = false;
             tb.calculateVisible(0);
             tb.calculateHeight();
             m.redraw(true);
-            $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
+            self.select('#tb-tbody').scrollTop(lastNonFilterLocation); // restore location of scroll
             if (tb.options.onfilterreset) {
                 tb.options.onfilterreset.call(tb, filter);
             }
@@ -1675,7 +1676,7 @@
                 self.rangeMargin = scrollTop;
                 self.refreshRange(index);
                 m.redraw(true);
-                _lastLocation = scrollTop;
+                self.lastLocation = scrollTop;
                 self.highlightMultiselect();
                 if (self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
