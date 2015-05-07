@@ -1046,9 +1046,6 @@
                 if (self.options.ontogglefolder) {
                     self.options.ontogglefolder.call(self, tree, event);
                 }
-                if (callback) {
-                    callback.call(self, tree, event);
-                }
             });
         };
 
