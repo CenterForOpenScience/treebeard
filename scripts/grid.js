@@ -1904,7 +1904,14 @@
              * Because DOM objects are removed their events are going to be cleaned up.
              */
         this.destroy = function _destroy() {
-            $('#' + self.options.divID).html(''); // Empty HTML
+            var el = document.getElementById(self.options.divID);
+            var parent = el.parentNode;
+            var clone = el.cloneNode(true);
+            while (clone.firstChild) {
+                clone.removeChild(clone.firstChild);
+            }
+            parent.removeChild(el);
+            parent.appendChild(clone);
             if (self.dropzone) {
                 _destroyDropzone();
             } // Destroy existing dropzone setup
