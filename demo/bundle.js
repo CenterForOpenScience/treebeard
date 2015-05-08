@@ -4992,6 +4992,9 @@ if (typeof exports == "object") {
                      * Template for the head row, includes whether filter or title should be shown.
                      */
                     (function showHeadA() {
+                        if(ctrl.options.toolbarComponent) {
+                            return m.component(ctrl.options.toolbarComponent, {treebeard : ctrl, mode : null});
+                        }
                         return ctrl.options.headerTemplate.call(ctrl);
                     }()), (function () {
                         if (!ctrl.options.hideColumnTitles) {
@@ -5385,6 +5388,7 @@ if (typeof exports == "object") {
                 value: tb.filterText()
             });
         };
+        this.toolbarComponent = null;
         this.headerTemplate = function () {
             var ctrl = this;
             var titleContent = functionOrString(ctrl.options.title);
