@@ -539,6 +539,7 @@
         this.initialized = false; // Treebeard's own initialization check, turns to true after page loads.
         this.colsizes = {}; // Storing column sizes across the app.
         this.tableWidth = m.prop('auto;'); // Whether there should be horizontal scrolling
+        this.isUploading = m.prop(false); // Whether an upload is taking place.
 
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
@@ -1508,11 +1509,18 @@
                     }
                 },
                 sending: function _dropzoneSending(file, xhr, formData) {
+                    var filesArr = this.getQueuedFiles();
+                    if (filesArr.length  > 0) {
+                        self.isUploading(true);
+                    } else {
+                        self.isUploading(false);
+                    }
                     if ($.isFunction(self.options.dropzoneEvents.sending)) {
                         self.options.dropzoneEvents.sending.call(this, self, file, xhr, formData);
                     }
                 },
                 complete: function _dropzoneComplete(file) {
+                    self.isUploading(true);
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
@@ -1940,7 +1948,7 @@
                      */
                     (function showHeadA() {
                         if(ctrl.options.toolbarComponent) {
-                            return m.component(ctrl.options.toolbarComponent, {treebeard : ctrl, mode : null});
+                            return m.component(ctrl.options.toolbarComponent, {treebeard : ctrl, mode : null });
                         }
                         return ctrl.options.headerTemplate.call(ctrl);
                     }()), (function () {
