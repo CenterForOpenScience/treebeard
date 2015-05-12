@@ -575,12 +575,13 @@
         this.dropzone = null; // Treebeard's own dropzone object
         this.dropzoneItemCache = undefined; // Cache of the dropped item
         this.filterOn = false; // Filter state for use across the app
-        this.multiselected = [];
+        this.multiselected = m.prop([]);
         this.pressedKey = undefined;
         this.dragOngoing = false;
         this.initialized = false; // Treebeard's own initialization check, turns to true after page loads.
         this.colsizes = {}; // Storing column sizes across the app.
         this.tableWidth = m.prop('auto;'); // Whether there should be horizontal scrolling
+        this.isUploading = m.prop(false); // Whether an upload is taking place.
 
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
@@ -636,8 +637,8 @@
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
                         if (self.dragText === "") {
-                            if (self.multiselected.length > 1) {
-                                var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
+                            if (self.multiselected().length > 1) {
+                                var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected().length - 1) + ' more </b>';
                                 self.dragText = newHTML;
                                 $('.tb-drag-ghost').html(newHTML);
                             }
@@ -674,7 +675,7 @@
                     item = self.find(thisID);
                     if (!self.isMultiselected(thisID)) {
                         self.clearMultiselect();
-                        self.multiselected.push(item);
+                        self.multiselected().push(item);
                     }
                     self.dragText = '';
                     ghost = $(ui.helper).clone();
@@ -1281,7 +1282,7 @@
          */
         this.isMultiselected = function (id) {
             var outcome = false;
-            self.multiselected.map(function (item) {
+            self.multiselected().map(function (item) {
                 if (item.id === id) {
                     outcome = true;
                 }
@@ -1295,7 +1296,7 @@
          * @returns {Boolean} result Whether the item removal was successful
          */
         this.removeMultiselected = function (id) {
-            self.multiselected.map(function (item, index, arr) {
+            self.multiselected().map(function (item, index, arr) {
                 if (item.id === id) {
                     arr.splice(index, 1);
                     // remove highlight
@@ -1310,7 +1311,7 @@
          */
         this.highlightMultiselect = function () {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
-            self.multiselected.map(function (item) {
+            self.multiselected().map(function (item) {
                 $('.tb-row[data-id="' + item.id + '"]').addClass(self.options.hoverClassMultiselect);
             });
         };
@@ -1335,10 +1336,10 @@
             if (self.pressedKey === 16) {
                 // get the index of this and add all visible indexes between this one and last selected
                 // If there is no multiselect yet
-                if (self.multiselected.length === 0) {
-                    self.multiselected.push(tree);
+                if (self.multiselected().length === 0) {
+                    self.multiselected().push(tree);
                 } else {
-                    begin = self.returnRangeIndex(self.multiselected[0].id);
+                    begin = self.returnRangeIndex(self.multiselected()[0].id);
                     end = self.returnRangeIndex(id);
                     if (begin > end) {
                         direction = 'up';
@@ -1346,15 +1347,15 @@
                         direction = 'down';
                     }
                     if (begin !== end) {
-                        self.multiselected = [];
+                        self.multiselected([]);
                         if (direction === 'down') {
                             for (i = begin; i < end + 1; i++) {
-                                self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
                             }
                         }
                         if (direction === 'up') {
                             for (i = begin; i > end - 1; i--) {
-                                self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
                             }
                         }
                     }
@@ -1370,7 +1371,7 @@
             }
             if (self.pressedKey === cmdkey) {
                 if (!self.isMultiselected(tree.id)) {
-                    self.multiselected.push(tree);
+                    self.multiselected().push(tree);
                 } else {
                     self.removeMultiselected(tree.id);
                 }
@@ -1378,7 +1379,7 @@
             // if there is no key add the one.
             if (!self.pressedKey) {
                 self.clearMultiselect();
-                self.multiselected.push(tree);
+                self.multiselected().push(tree);
             }
 
             if (self.options.onmultiselect) {
@@ -1389,16 +1390,16 @@
 
         this.clearMultiselect = function () {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
-            self.multiselected = [];
+            self.multiselected([]);
         };
 
         // Handles the up and down arrow keys since they do almost identical work
         this.multiSelectArrows = function (direction){
             if ($.isFunction(self.options.onbeforeselectwitharrow)) {
-                self.options.onbeforeselectwitharrow.call(this, self.multiselected[0], direction);
+                self.options.onbeforeselectwitharrow.call(this, self.multiselected()[0], direction);
             }
             var val = direction === 'down' ? 1 : -1;
-            var selectedIndex = self.returnIndex(self.multiselected[0].id);
+            var selectedIndex = self.returnIndex(self.multiselected()[0].id);
             var visibleIndex = self.visibleIndexes.indexOf(selectedIndex);
             var newIndex = visibleIndex + val;
             var row = self.flatData[self.visibleIndexes[newIndex]];
@@ -1406,7 +1407,7 @@
                 return;
             }
             var treeItem = self.find(row.id);
-            self.multiselected = [treeItem];
+            self.multiselected([treeItem]);
             self.scrollEdges(treeItem.id, 0);
             self.highlightMultiselect.call(self);
             if ($.isFunction(self.options.onafterselectwitharrow)) {
@@ -1417,7 +1418,7 @@
 
         // Handles the toggling of folders with the right and left arrow keypress
         this.keyboardFolderToggle = function (action) {
-            var item = self.multiselected[0];
+            var item = self.multiselected()[0];
             if(item.kind === 'folder') {
                 if((item.open === true && action === 'close') || (item.open === false && action === 'open'))  {
                     var index = self.returnIndex(item.id);
@@ -1555,11 +1556,18 @@
                     }
                 },
                 sending: function _dropzoneSending(file, xhr, formData) {
+                    var filesArr = this.getQueuedFiles();
+                    if (filesArr.length  > 0) {
+                        self.isUploading(true);
+                    } else {
+                        self.isUploading(false);
+                    }
                     if ($.isFunction(self.options.dropzoneEvents.sending)) {
                         self.options.dropzoneEvents.sending.call(this, self, file, xhr, formData);
                     }
                 },
                 complete: function _dropzoneComplete(file) {
+                    self.isUploading(true);
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
@@ -1905,7 +1913,7 @@
                 self.options.onload.call(self);
             }
             $(window).on('keydown', function(event){
-                if(self.options.allowArrows && self.multiselected.length === 1) {
+                if(self.options.allowArrows && self.multiselected().length === 1) {
                     self.handleArrowKeys(event);
                 }
             });
@@ -1988,6 +1996,9 @@
                      * Template for the head row, includes whether filter or title should be shown.
                      */
                     (function showHeadA() {
+                        if(ctrl.options.toolbarComponent) {
+                            return m.component(ctrl.options.toolbarComponent, {treebeard : ctrl, mode : null });
+                        }
                         return ctrl.options.headerTemplate.call(ctrl);
                     }()), (function () {
                         if (!ctrl.options.hideColumnTitles) {
@@ -2381,6 +2392,7 @@
                 value: tb.filterText()
             });
         };
+        this.toolbarComponent = null;
         this.headerTemplate = function () {
             var ctrl = this;
             var titleContent = functionOrString(ctrl.options.title);
