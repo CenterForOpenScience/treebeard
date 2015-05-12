@@ -1556,7 +1556,7 @@
                     }
                 },
                 sending: function _dropzoneSending(file, xhr, formData) {
-                    var filesArr = this.getQueuedFiles();
+                    var filesArr = this.getUploadingFiles();
                     if (filesArr.length  > 0) {
                         self.isUploading(true);
                     } else {
@@ -1567,7 +1567,7 @@
                     }
                 },
                 complete: function _dropzoneComplete(file) {
-                    self.isUploading(true);
+                    self.isUploading(false);
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
