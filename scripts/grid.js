@@ -2122,10 +2122,9 @@
                                         padding = (indent - 1) * 20;
                                     }
                                     if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
-                                        return m('.tb-row', [
+                                        return m('.tb-row',{'style': "height: " + ctrl.options.rowHeight + "px;"}, [
                                             m('.tb-notify.alert-' + tree.notify.type, {
-                                                'class': tree.notify.css,
-                                                'style': "height: " + ctrl.options.rowHeight + "px;padding-top:4px;"
+                                                'class': tree.notify.css
                                             }, [
                                                 m('span', tree.notify.message)
                                             ])
