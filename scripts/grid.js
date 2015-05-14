@@ -1567,8 +1567,13 @@
                     }
                 },
                 complete: function _dropzoneComplete(file) {
-                    self.isUploading(true);
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
+                        self.options.dropzoneEvents.complete.call(this, self, file);
+                    }
+                },
+                queuecomplete: function _dropzoneComplete(file) {
+                    self.isUploading(false);
+                    if ($.isFunction(self.options.dropzoneEvents.quecomplete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
                 },
