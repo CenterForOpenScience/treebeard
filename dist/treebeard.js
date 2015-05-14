@@ -1726,7 +1726,7 @@
          * Update view on scrolling the table
          */
         this.onScroll = debounce(function _scrollHook() {
-            if (!self.options.paginate) {
+            if (!self.options.paginate && !self.options.naturalScroll) {
                 m.startComputation();
                 var $this = $(this);
                 var scrollTop, itemsHeight, innerHeight, location, index;
@@ -1755,7 +1755,9 @@
             var containerHeight = self.select('#tb-tbody').height(),
                 titles = self.select('.tb-row-titles'),
                 columns = self.select('.tb-th');
-            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
+            if(!self.options.showTotal){
+                self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
+            }
             self.remainder = (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
             if (self.options.allowMove) {
@@ -2333,6 +2335,7 @@
         this.paginateToggle = false; // Show the buttons that allow users to switch between scroll and paginate.
         this.uploads = false; // Turns dropzone on/off.
         this.multiselect = false; // turns ability to multiselect with shift or command keys
+        this.naturalScroll = false // Should onscroll be run at scroll
         this.columnTitles = function() { // REQUIRED: Adjust this array based on data needs.
             return [{
                 title: "Title",
