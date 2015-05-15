@@ -298,6 +298,7 @@
             this.on = true;
             m.redraw(true);
         };
+
         this.updateSize = function () {
             this.height = ctrl.select('#tb-tbody').height();
             this.width = ctrl.select('#tb-tbody').width();
