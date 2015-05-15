@@ -1726,23 +1726,26 @@
          * Update view on scrolling the table
          */
         this.onScroll = debounce(function _scrollHook() {
-            if (!self.options.paginate && !self.options.naturalScroll) {
-                m.startComputation();
-                var $this = $(this);
-                var scrollTop, itemsHeight, innerHeight, location, index;
-                itemsHeight = self.calculateHeight();
-                innerHeight = $this.children('.tb-tbody-inner').outerHeight();
-                scrollTop = $this.scrollTop();
-                location = scrollTop / innerHeight * 100;
-                index = Math.floor(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = scrollTop;
-                self.refreshRange(index, false);
-                self.lastLocation = scrollTop;
-                self.highlightMultiselect();
+            var totalVisibleItems = self.visibleIndexes.length;
+            if (!self.options.paginate) {
+                if (totalVisibleItems > self.options.naturalScrollLimit) {
+                    m.startComputation();
+                    var $this = $(this);
+                    var scrollTop, itemsHeight, innerHeight, location, index;
+                    itemsHeight = self.calculateHeight();
+                    innerHeight = $this.children('.tb-tbody-inner').outerHeight();
+                    scrollTop = $this.scrollTop();
+                    location = scrollTop / innerHeight * 100;
+                    index = Math.floor(location / 100 * totalVisibleItems);
+                    self.rangeMargin = scrollTop;
+                    self.refreshRange(index, false);
+                    self.lastLocation = scrollTop;
+                    self.highlightMultiselect();
+                    m.endComputation();
+                }
                 if (self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
                 }
-                m.endComputation();
             }
         }, this.options.scrollDebounce);
 
@@ -1755,9 +1758,12 @@
             var containerHeight = self.select('#tb-tbody').height(),
                 titles = self.select('.tb-row-titles'),
                 columns = self.select('.tb-th');
-            if(!self.options.showTotal){
+            if(self.options.naturalScrollLimit){
+                self.options.showTotal = self.options.naturalScrollLimit;
+            } else {
                 self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
             }
+
             self.remainder = (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
             if (self.options.allowMove) {
@@ -2335,7 +2341,7 @@
         this.paginateToggle = false; // Show the buttons that allow users to switch between scroll and paginate.
         this.uploads = false; // Turns dropzone on/off.
         this.multiselect = false; // turns ability to multiselect with shift or command keys
-        this.naturalScroll = false // Should onscroll be run at scroll
+        this.naturalScrollLimit = 50; // If items to show is below this number, onscroll should not be run.
         this.columnTitles = function() { // REQUIRED: Adjust this array based on data needs.
             return [{
                 title: "Title",
