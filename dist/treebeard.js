@@ -309,7 +309,7 @@
             m.redraw(true);
         };
         this.onmodalshow = function () {
-            var margin = ctrl.select('.tb-tbody-inner>div').css('margin-top');
+            var margin = ctrl.select('#tb-tbody').scrollTop();
             ctrl.select('.tb-modal-shade').css('margin-top', margin);
             ctrl.select('#tb-tbody').css('overflow', 'hidden');
         };
