@@ -298,6 +298,7 @@
             this.on = true;
             m.redraw(true);
         };
+
         this.updateSize = function () {
             this.height = ctrl.select('#tb-tbody').height();
             this.width = ctrl.select('#tb-tbody').width();
@@ -1009,7 +1010,8 @@
                     tree.children = [];
                     m.request({
                         method: "GET",
-                        url: lazyLoad
+                        url: lazyLoad,
+                        config: self.options.xhrconfig
                     })
                         .then(function _getUrlBuildtree(value) {
                             if (!value) {
@@ -1624,6 +1626,7 @@
                 m.request({
                     method: 'GET',
                     url: data,
+                    config: self.options.xhrconfig,
                     extract: function (xhr, xhrOpts) {
                         if (xhr.status !== 200) {
                             return self.options.ondataloaderror(xhr);
@@ -2581,6 +2584,10 @@
             // this = treebeard object;
             // Item = item where selection is coming from
             // direction = the directino of the arrow key
+        };
+        this.xhrconfig = function(xhr, options){
+            // xhr = xml http request
+            // options = xhr options
         };
         this.scrollDebounce = 15; // milliseconds
     };
