@@ -1740,8 +1740,8 @@
                     scrollTop = $this.scrollTop();
                     location = scrollTop / innerHeight * 100;
                     index = Math.floor(location / 100 * totalVisibleItems);
-                    self.rangeMargin = scrollTop;
-                    self.refreshRange(index, false);
+                    self.rangeMargin = index * self.options.rowHeight; // space the rows will have from the top.
+                    self.refreshRange(index, false); // which actual rows to show
                     self.lastLocation = scrollTop;
                     self.highlightMultiselect();
                     m.endComputation();
