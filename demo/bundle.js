@@ -3432,11 +3432,11 @@ if (typeof exports == "object") {
      * @param {Number} toID Unique id of the container item to move to
      * @returns {Object} this The current item.
      */
-    Item.prototype.move = function _itemMove(toID) {
+    Item.prototype.move = function _itemMove(toID, toTop) {
         var toItem = Indexes[toID],
             parentID = this.parentID,
             parent = Indexes[parentID];
-        toItem.add(this);
+        toItem.add(this, toTop);
         toItem.redoDepth();
         if (parentID > -1) {
             parent.removeChild(parseInt(this.id, 10));
