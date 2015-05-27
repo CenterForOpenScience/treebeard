@@ -1099,31 +1099,32 @@
          * Toggles the sorting when clicked on sort icons.
          * @param {Event} [event] Toggle click event if this function is triggered by an event.
          */
-        this.sortToggle = function _isSortedToggle(ev) {
-            var element = $(ev.target),
-                type = element.attr('data-direction'),
-                index = this,
-                col = element.parent('.tb-th').attr('data-tb-th-col'),
-                sortType = element.attr('data-sortType'),
-                parent = element.parent(),
-                counter = 0,
-                redo;
-            $('.asc-btn, .desc-btn').addClass('tb-sort-inactive'); // turn all styles off
+        this.sortToggle = function _isSortedToggle(ev, col, type, sortType) {
+            var counter = 0;
+            var redo;
+            var element;
+            if(ev){ // If a button is clicked, use the element attributes
+                element = $(ev.target);
+                type = element.attr('data-direction');
+                col = parseInt(element.parent('.tb-th').attr('data-tb-th-col'));
+                sortType = element.attr('data-sortType');
+            }
+            self.select('.asc-btn, .desc-btn').addClass('tb-sort-inactive'); // turn all styles off
             self.isSorted[col].asc = false;
             self.isSorted[col].desc = false;
             if (!self.isSorted[col][type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(self, type, sortType, index, self.options.sortDepth);
+                        item.sortChildren(self, type, sortType, col, self.options.sortDepth);
                         if (item.children.length > 0) {
                             redo(item.children);
                         }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(self, type, sortType, index, self.options.sortDepth); // Then start recursive loop
+                self.treeData.sortChildren(self, type, sortType, col, self.options.sortDepth); // Then start recursive loop
                 redo(self.treeData.children);
-                parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
+                self.select('div[data-tb-th-col=' + col + ']').children('.' + type + '-btn').removeClass('tb-sort-inactive');
                 self.isSorted[col][type] = true;
                 self.flatten(self.treeData.children, 0);
             }
