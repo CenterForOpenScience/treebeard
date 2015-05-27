@@ -3957,11 +3957,20 @@ if (typeof exports == "object") {
                 filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
+                j,
                 o;
             for (i = 0; i < cols.length; i++) {
                 o = cols[i];
-                if (o.filter && item.data[o.data].toLowerCase().indexOf(filter) !== -1) {
+                if (o.filter && item.data[o.data].toString().toLowerCase().indexOf(filter) !== -1) {
                     titleResult = true;
+                }
+            }
+            var hiddenRows = self.options.hiddenFilterRows;
+            if (hiddenRows && hiddenRows.length > 0){
+                for (j = 0; j < hiddenRows.length; j++) {
+                    if (item.data[hiddenRows[j]].toString().toLowerCase().indexOf(filter) !== -1) {
+                        titleResult = true;
+                    }
                 }
             }
             return titleResult;

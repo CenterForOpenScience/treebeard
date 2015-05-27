@@ -188,14 +188,6 @@
                         css : 'tb-draggable'
                     },
                     {
-                        data : "person",
-                        filter : true
-                    },
-                    {
-                        data : "age",
-                        filter : false
-                    },
-                    {
                         data : "action",
                         sortInclude : false,
                         filter : false,
@@ -228,7 +220,8 @@
                 }
             },
             hideColumnTitles : true,
-            hScroll : null
+            hScroll : null,
+            hiddenFilterRows : ['person', 'age']
         }
 
 
