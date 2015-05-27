@@ -2037,9 +2037,11 @@
                                         resizable = '';
                                     }
                                     if (col.sort) { // Add sort buttons with their onclick functions
-                                        ctrl.isSorted[index] = {
-                                            asc: false,
-                                            desc: false
+                                        if(!ctrl.isSorted[index]) {
+                                            ctrl.isSorted[index] = {
+                                                asc: false,
+                                                desc: false
+                                            }
                                         };
                                         if (ctrl.options.sortButtonSelector.up) {
                                             up = ctrl.options.sortButtonSelector.up;
