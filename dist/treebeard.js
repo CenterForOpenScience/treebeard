@@ -886,6 +886,23 @@
         };
 
         /**
+         * Returns the index of an item in the visibleIndex (self.visibleIndexes)
+         * @param {Number} id Unique id of the item acted on (usually item.id) .
+         * @returns {Number} i The index at which the item is found or undefined if nothing is found.
+         */
+        this.returnVisibleIndex = function _returnVisibleIndex(id) {
+            var len = self.visibleIndexes.length,
+                i, o;
+            for (i = 0; i < len; i++) {
+                o = self.flatData[self.visibleIndexes[i]];
+                if (o.id === id) {
+                    return i;
+                }
+            }
+            return undefined;
+        };
+
+        /**
          * Returns whether a single row contains the filtered items, checking if columns can be filtered
          * @param {Object} item Item constructed with _item which the filtering is acting on.
          * @returns {Boolean} titleResult Whether text is found within the item, default is false;
@@ -1351,8 +1368,8 @@
                 if (self.multiselected().length === 0) {
                     self.multiselected().push(tree);
                 } else {
-                    begin = self.returnRangeIndex(self.multiselected()[0].id);
-                    end = self.returnRangeIndex(id);
+                    begin = self.returnVisibleIndex(self.multiselected()[0].id);
+                    end = self.returnVisibleIndex(id);
                     if (begin > end) {
                         direction = 'up';
                     } else {
@@ -1362,12 +1379,12 @@
                         self.multiselected([]);
                         if (direction === 'down') {
                             for (i = begin; i < end + 1; i++) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.visibleIndexes[i]].id]);
                             }
                         }
                         if (direction === 'up') {
                             for (i = begin; i > end - 1; i--) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.visibleIndexes[i]].id]);
                             }
                         }
                     }
