@@ -2099,7 +2099,7 @@
                          * In case a modal needs to be shown, check Modal object
                          */
                         (function showModal() {
-                            var dissmissTemplate = m('.tb-modal-dismiss', {
+                            var dissmissTemplate = m('button.close', {
                                             'onclick': function() {
                                                 ctrl.modal.dismiss();
                                             }
