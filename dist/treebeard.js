@@ -953,7 +953,7 @@
          */
         this.resetFilter = function _resetFilter(location) {
             var tb = this;
-            var lastNonFilterLocation = location || self.lastNonFilterLocation; 
+            var lastNonFilterLocation = location || self.lastNonFilterLocation;
             var filter = self.filterText().toLowerCase();
             tb.filterOn = false;
             tb.calculateVisible(0);
@@ -2119,18 +2119,23 @@
                                             return true;
                                         }
                                     }, [
-
                                         (function checkHeader(){
                                             if(ctrl.modal.header){
-                                                return m('.modal-header', [
+                                                return [ m('.modal-header', [
                                                     dissmissTemplate,
                                                     ctrl.modal.header
-                                                ]);
+                                                    ]),
+                                                 m('.modal-body', ctrl.modal.content)
+                                                ];
                                             } else {
-                                                return dissmissTemplate;
+                                                return [
+                                                m('.modal-body', [
+                                                    dissmissTemplate,
+                                                    ctrl.modal.content
+                                                    ])
+                                                ];
                                             }
                                         }()),
-                                        m('.modal-body', ctrl.modal.content),
                                         m('.modal-footer', ctrl.modal.actions)
                                     ])
                                 ]);
