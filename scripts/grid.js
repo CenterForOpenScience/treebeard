@@ -265,6 +265,7 @@
         this.timeout = false;
         this.css = '';
         this.padding = '50px 100px;';
+        this.header = null;
         this.content = null;
         this.actions = null;
         this.height = el.height();
@@ -287,8 +288,11 @@
             this.on = !this.on;
             m.redraw(true);
         };
-        this.update = function (contentMithril, actions) {
+        this.update = function (contentMithril, actions, header) {
             self.updateSize();
+            if (header) {
+                this.header = header;
+            }
             if (contentMithril) {
                 this.content = contentMithril;
             }
