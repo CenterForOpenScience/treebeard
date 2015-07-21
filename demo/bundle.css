@@ -164,7 +164,6 @@
 .tb-h-success{background-color:rgba(57,255,17,.53)}
 .tb-h-error{background-color:rgba(255,4,0,.53)}
 .tb-expand-icon-holder,.tb-toggle-icon{width:20px;display:inline-block;cursor:pointer}
-.clearfix{display:table;content:" ";clear:both}
 .tb-notify{text-align:center}
 .tb-modal-shade{background:rgba(0,0,0,.61);position:absolute;z-index:99;top:0;left:0;overflow-y:auto}
 .tb-modal-inner{background:#FFF;border-radius:5px;box-shadow:0 0 5px #424242}

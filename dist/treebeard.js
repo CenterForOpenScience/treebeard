@@ -265,6 +265,7 @@
         this.timeout = false;
         this.css = '';
         this.padding = '50px 100px;';
+        this.header = null;
         this.content = null;
         this.actions = null;
         this.height = el.height();
@@ -287,8 +288,11 @@
             this.on = !this.on;
             m.redraw(true);
         };
-        this.update = function (contentMithril, actions) {
+        this.update = function (contentMithril, actions, header) {
             self.updateSize();
+            if (header) {
+                this.header = header;
+            }
             if (contentMithril) {
                 this.content = contentMithril;
             }
@@ -886,23 +890,6 @@
         };
 
         /**
-         * Returns the index of an item in the visibleIndex (self.visibleIndexes)
-         * @param {Number} id Unique id of the item acted on (usually item.id) .
-         * @returns {Number} i The index at which the item is found or undefined if nothing is found.
-         */
-        this.returnVisibleIndex = function _returnVisibleIndex(id) {
-            var len = self.visibleIndexes.length,
-                i, o;
-            for (i = 0; i < len; i++) {
-                o = self.flatData[self.visibleIndexes[i]];
-                if (o.id === id) {
-                    return i;
-                }
-            }
-            return undefined;
-        };
-
-        /**
          * Returns whether a single row contains the filtered items, checking if columns can be filtered
          * @param {Object} item Item constructed with _item which the filtering is acting on.
          * @returns {Boolean} titleResult Whether text is found within the item, default is false;
@@ -1368,8 +1355,8 @@
                 if (self.multiselected().length === 0) {
                     self.multiselected().push(tree);
                 } else {
-                    begin = self.returnVisibleIndex(self.multiselected()[0].id);
-                    end = self.returnVisibleIndex(id);
+                    begin = self.returnRangeIndex(self.multiselected()[0].id);
+                    end = self.returnRangeIndex(id);
                     if (begin > end) {
                         direction = 'up';
                     } else {
@@ -1379,12 +1366,12 @@
                         self.multiselected([]);
                         if (direction === 'down') {
                             for (i = begin; i < end + 1; i++) {
-                                self.multiselected().push(Indexes[self.flatData[self.visibleIndexes[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
                             }
                         }
                         if (direction === 'up') {
                             for (i = begin; i > end - 1; i--) {
-                                self.multiselected().push(Indexes[self.flatData[self.visibleIndexes[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
                             }
                         }
                     }
@@ -2112,6 +2099,11 @@
                          * In case a modal needs to be shown, check Modal object
                          */
                         (function showModal() {
+                            var dissmissTemplate = m('.tb-modal-dismiss', {
+                                            'onclick': function() {
+                                                ctrl.modal.dismiss();
+                                            }
+                                        }, [ctrl.options.removeIcon()]);
                             if (ctrl.modal.on) {
                                 return m('.tb-modal-shade', {
                                     config: ctrl.modal.onmodalshow,
@@ -2120,20 +2112,26 @@
                                         ctrl.modal.dismiss();
                                     }
                                 }, [
-                                    m('.tb-modal-inner', {
+                                    m('.modal-content', {
                                         'class': ctrl.modal.css,
                                         onclick : function() {
                                             event.stopPropagation();
                                             return true;
                                         }
                                     }, [
-                                        m('.tb-modal-dismiss', {
-                                            'onclick': function() {
-                                                ctrl.modal.dismiss();
+
+                                        (function checkHeader(){
+                                            if(ctrl.modal.header){
+                                                return m('.modal-header', [
+                                                    dissmissTemplate,
+                                                    ctrl.modal.header
+                                                ]);
+                                            } else {
+                                                return dissmissTemplate;
                                             }
-                                        }, [ctrl.options.removeIcon()]),
-                                        m('.tb-modal-content', ctrl.modal.content),
-                                        m('.tb-modal-footer', ctrl.modal.actions)
+                                        }()),
+                                        m('.modal-body', ctrl.modal.content),
+                                        m('.modal-footer', ctrl.modal.actions)
                                     ])
                                 ]);
                             }

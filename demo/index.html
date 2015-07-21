@@ -144,7 +144,7 @@
                                         m('button', { 'class' : 'btn btn-default m-r-md', onclick : function() { that.modal.dismiss(); } }, 'Cancel'),
                                         m('button', { 'class' : 'btn btn-success', onclick : function() { that.deleteNode(row.parentID, row.id); that.modal.dismiss(); }  }, 'OK')
                                     ]);
-                                    that.modal.update(mithrilContent, mithrilButtons);
+                                    that.modal.update(mithrilContent, mithrilButtons, m("h3.modal-title", "Hello"));
                                 }
                             }, " X ");
                         }

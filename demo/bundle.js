@@ -3325,6 +3325,7 @@ if (typeof exports == "object") {
         this.timeout = false;
         this.css = '';
         this.padding = '50px 100px;';
+        this.header = null;
         this.content = null;
         this.actions = null;
         this.height = el.height();
@@ -3347,8 +3348,11 @@ if (typeof exports == "object") {
             this.on = !this.on;
             m.redraw(true);
         };
-        this.update = function (contentMithril, actions) {
+        this.update = function (contentMithril, actions, header) {
             self.updateSize();
+            if (header) {
+                this.header = header;
+            }
             if (contentMithril) {
                 this.content = contentMithril;
             }
@@ -5155,6 +5159,11 @@ if (typeof exports == "object") {
                          * In case a modal needs to be shown, check Modal object
                          */
                         (function showModal() {
+                            var dissmissTemplate = m('.tb-modal-dismiss', {
+                                            'onclick': function() {
+                                                ctrl.modal.dismiss();
+                                            }
+                                        }, [ctrl.options.removeIcon()]);
                             if (ctrl.modal.on) {
                                 return m('.tb-modal-shade', {
                                     config: ctrl.modal.onmodalshow,
@@ -5163,20 +5172,26 @@ if (typeof exports == "object") {
                                         ctrl.modal.dismiss();
                                     }
                                 }, [
-                                    m('.tb-modal-inner', {
+                                    m('.modal-content', {
                                         'class': ctrl.modal.css,
                                         onclick : function() {
                                             event.stopPropagation();
                                             return true;
                                         }
                                     }, [
-                                        m('.tb-modal-dismiss', {
-                                            'onclick': function() {
-                                                ctrl.modal.dismiss();
+
+                                        (function checkHeader(){
+                                            if(ctrl.modal.header){
+                                                return m('.modal-header', [
+                                                    dissmissTemplate,
+                                                    ctrl.modal.header
+                                                ]);
+                                            } else {
+                                                return dissmissTemplate;
                                             }
-                                        }, [ctrl.options.removeIcon()]),
-                                        m('.tb-modal-content', ctrl.modal.content),
-                                        m('.tb-modal-footer', ctrl.modal.actions)
+                                        }()),
+                                        m('.modal-body', ctrl.modal.content),
+                                        m('.modal-footer', ctrl.modal.actions)
                                     ])
                                 ]);
                             }
