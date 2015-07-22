@@ -1013,7 +1013,8 @@
                 o,
                 t,
                 lazyLoad,
-                icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
+                icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon'),
+                iconTemplate;
             if (icon.get(0)) {
                 m.render(icon.get(0), self.options.resolveRefreshIcon());
             }
@@ -1027,8 +1028,12 @@
                         config: self.options.xhrconfig
                     })
                         .then(function _getUrlBuildtree(value) {
+                            iconTemplate = self.options.resolveToggle.call(self, tree);
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
+                                if (icon.get(0)) {
+                                    m.render(icon.get(0), iconTemplate);
+                                }
                             } else {
                                 if (self.options.lazyLoadPreprocess) {
                                     value = self.options.lazyLoadPreprocess.call(self, value);
@@ -1046,13 +1051,16 @@
                                 }
                                 tree.open = true;
                                 tree.load = true;
-                                var iconTemplate = self.options.resolveToggle.call(self, tree);
                                 if (icon.get(0)) {
                                     m.render(icon.get(0), iconTemplate);
                                 }
                             }
                         }, function (info) {
                             self.options.lazyLoadError.call(self, tree);
+                            iconTemplate = self.options.resolveToggle.call(self, tree);
+                            if (icon.get(0)) {
+                                    m.render(icon.get(0), iconTemplate);
+                                }
                         })
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
