@@ -1028,9 +1028,9 @@
                         config: self.options.xhrconfig
                     })
                         .then(function _getUrlBuildtree(value) {
-                            iconTemplate = self.options.resolveToggle.call(self, tree);
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
+                                iconTemplate = self.options.resolveToggle.call(self, tree);
                                 if (icon.get(0)) {
                                     m.render(icon.get(0), iconTemplate);
                                 }
@@ -1051,6 +1051,8 @@
                                 }
                                 tree.open = true;
                                 tree.load = true;
+                                // this redundancy is important to get the proper state
+                                iconTemplate = self.options.resolveToggle.call(self, tree);
                                 if (icon.get(0)) {
                                     m.render(icon.get(0), iconTemplate);
                                 }
