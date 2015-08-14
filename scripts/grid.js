@@ -1108,12 +1108,12 @@
                     if (icon.get(0)) {
                         m.render(icon.get(0), iconTemplate);
                     }
+                    if (self.options.ontogglefolder) {
+                        self.options.ontogglefolder.call(self, tree, event);
+                    }
                 }
                 if (self.options.allowMove) {
                     self.moveOn();
-                }
-                if (self.options.ontogglefolder) {
-                    self.options.ontogglefolder.call(self, tree, event);
                 }
             });
         };
