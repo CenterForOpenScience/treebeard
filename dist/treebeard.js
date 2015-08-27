@@ -1724,15 +1724,16 @@
                             row: data[i].data
                         };
                         flat.show = show;
-                        if (data[i].children.length > 0 && !data[i].open) {
-                            show = false;
-                            if (!openLevel || openLevel > data[i].depth) {
-                                openLevel = data[i].depth;
-                            }
-                        }
                         self.flatData.push(flat); // add to flatlist
-                        if (children.length > 0) {
-                            redo(children, show, false);
+                        if (data[i].children.length > 0) {
+                            if (!data[i].open) {
+                                if (!openLevel || openLevel > data[i].depth) {
+                                    openLevel = data[i].depth;
+                                }
+                                redo(children, false, false);
+                            } else {
+                                redo(children, show, false);
+                            }
                         }
                         Indexes[data[i].id] = data[i];
                         if (topLevel && i === length - 1) {
