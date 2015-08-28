@@ -587,6 +587,8 @@
         this.colsizes = {}; // Storing column sizes across the app.
         this.tableWidth = m.prop('auto;'); // Whether there should be horizontal scrolling
         this.isUploading = m.prop(false); // Whether an upload is taking place.
+        this.beginIndex = 0; // The index number the redraws use for top row to show
+
 
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
@@ -878,10 +880,12 @@
          * @returns {Number} i The index at which the item is found or undefined if nothing is found.
          */
         this.returnRangeIndex = function _returnRangeIndex(id) {
-            var len = self.showRange.length,
-                i, o;
+            var len = self.options.showTotal,
+                i,
+                o;
+
             for (i = 0; i < len; i++) {
-                o = self.flatData[self.showRange[i]];
+                o = self.flatData[self.visibleIndexes[self.beginIndex + i]];
                 if (o.id === id) {
                     return i;
                 }
@@ -1167,7 +1171,7 @@
                 self.rangeMargin = 0;
             }
             self.innerHeight = itemsHeight + self.remainder;
-            return itemsHeight;
+            return self.innerHeight;
         };
 
         /**
@@ -1206,26 +1210,7 @@
          */
         this.refreshRange = function _refreshRange(begin, redraw) {
             redraw = redraw !== undefined ? redraw : true; // redraw by default
-            var len = self.visibleIndexes.length,
-                range = [],
-                counter = 0,
-                i,
-                index;
-            if (!begin || begin > self.flatData.length) {
-                begin = 0;
-            }
-            self.visibleTop = begin;
-            for (i = begin; i < len; i++) {
-                if (range.length === self.options.showTotal) {
-                    break;
-                }
-                index = self.visibleIndexes[i];
-                range.push(index);
-                counter = counter + 1;
-            }
-            self.showRange = range;
-            // TODO: Not sure if the redraw param is necessary. We can probably
-            // Use m.start/endComputtion to avoid successive redraws
+            self.beginIndex = begin;
             if (redraw) {
                 m.redraw(true);
             }
@@ -1246,7 +1231,7 @@
          * Changes view to pagination when clicked on the paginate button
          */
         this.togglePaginate = function _togglePaginate() {
-            var firstIndex = self.showRange[0],
+            var firstIndex = self.visibleIndexes[self.beginIndex],
                 first = self.visibleIndexes.indexOf(firstIndex),
                 pagesBehind = Math.floor(first / self.options.showTotal),
                 firstItem = (pagesBehind * self.options.showTotal);
@@ -1376,12 +1361,12 @@
                         self.multiselected([]);
                         if (direction === 'down') {
                             for (i = begin; i < end + 1; i++) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.visibleIndexes[self.beginIndex + i]].id]);
                             }
                         }
                         if (direction === 'up') {
                             for (i = begin; i > end - 1; i--) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.visibleIndexes[self.beginIndex + i]].id]);
                             }
                         }
                     }
@@ -1742,24 +1727,21 @@
         this.onScroll = debounce(function _scrollHook() {
             var totalVisibleItems = self.visibleIndexes.length;
             if (!self.options.paginate) {
-                if (totalVisibleItems > self.options.naturalScrollLimit) {
-                    m.startComputation();
-                    var $this = $(this);
-                    var scrollTop, itemsHeight, innerHeight, location, index;
-                    itemsHeight = self.calculateHeight();
-                    innerHeight = $this.children('.tb-tbody-inner').outerHeight();
-                    scrollTop = $this.scrollTop();
-                    location = scrollTop / innerHeight * 100;
-                    index = Math.floor(location / 100 * totalVisibleItems);
-                    self.rangeMargin = index * self.options.rowHeight; // space the rows will have from the top.
-                    self.refreshRange(index, false); // which actual rows to show
-                    self.lastLocation = scrollTop;
-                    self.highlightMultiselect();
-                    m.endComputation();
-                }
+                m.startComputation();
+                var scrollTop, itemsHeight, innerHeight, location, index;
+                innerHeight = self.innerElement.innerHeight();
+                scrollTop = self.element.scrollTop();
+                location = scrollTop / innerHeight * 100;
+                index = Math.floor(scrollTop / self.options.rowHeight);
+                self.rangeMargin = index * self.options.rowHeight; // space the rows will have from the top.
+                self.lastLocation = scrollTop;
+                self.highlightMultiselect();
                 if (self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
                 }
+                m.endComputation();
+                self.refreshRange(index); // which actual rows to show
+
             }
         }, this.options.scrollDebounce);
 
@@ -1772,11 +1754,7 @@
             var containerHeight = self.select('#tb-tbody').height(),
                 titles = self.select('.tb-row-titles'),
                 columns = self.select('.tb-th');
-            if(self.options.naturalScrollLimit){
-                self.options.showTotal = self.options.naturalScrollLimit;
-            } else {
                 self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
-            }
 
             self.remainder = (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
@@ -1794,7 +1772,10 @@
                 self.select('.tb-row').removeClass(self.options.hoverClass);
             });
             // Main scrolling functionality
-            self.select('#tb-tbody').scroll(self.onScroll);
+            self.element = self.select('#tb-tbody');
+            self.innerElement = self.element.children('.tb-tbody-inner');
+            self.element.scroll(self.onScroll);
+
 
             function _resizeCols() {
                 var parentWidth = titles.width(),
@@ -2149,7 +2130,7 @@
                                  * showRange has the several items that get shown at a time. It's key to view optimization
                                  * showRange values change with scroll, filter, folder toggling etc.
                                  */
-                                ctrl.showRange.map(function _mapRangeView(item, index) {
+                                ctrl.visibleIndexes.slice(ctrl.beginIndex, ctrl.beginIndex + ctrl.options.showTotal).map(function _mapRangeView(item, index) {
                                     var oddEvenClass = ctrl.options.oddEvenClass.odd,
                                         indent = ctrl.flatData[item].depth,
                                         id = ctrl.flatData[item].id,
