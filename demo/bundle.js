@@ -4769,28 +4769,29 @@ if (typeof exports == "object") {
             self.flatData = [];
 
             (function doFlatten(data, parentIsOpen) {
-                for (var i = 0; i < data.length; i++) {
-                    Indexes[data[i].id] = data[i];
+                $.each(data, function(index, item) {
+                    Indexes[item.id] = item;
 
                     self.flatData.push({
                         show: parentIsOpen,
 
-                        id: data[i].id,
-                        row: data[i].data,
-                        depth: data[i].depth,
+                        id: item.id,
+                        row: item.data,
+                        depth: item.depth,
                     });
 
-                    if (data[i].children.length > 0)
-                    doFlatten(data[i].children, parentIsOpen && data[i].open);
-                }
-
-                self.calculateVisible(visibleTop);
-                self.calculateHeight();
-                m.redraw(true);
-                if (self.options.redrawComplete) {
-                    self.options.redrawComplete.call(self);
-                }
+                    if (item.children.length > 0) {
+                        doFlatten(item.children, parentIsOpen && item.open);
+                    }
+                });
             })(value, true);
+
+            self.calculateVisible(visibleTop);
+            self.calculateHeight();
+            m.redraw(true);
+            if (self.options.redrawComplete) {
+                self.options.redrawComplete.call(self);
+            }
 
             return value;
         };
