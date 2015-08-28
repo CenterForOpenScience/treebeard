@@ -1707,45 +1707,31 @@
          */
         this.flatten = function _flatten(value, visibleTop) {
             self.flatData = [];
-            var openLevel,
-                recursive = function redo(data, show, topLevel) {
-                    var length = data.length,
-                        i,
-                        children,
-                        flat;
-                    for (i = 0; i < length; i++) {
-                        if (openLevel && data[i].depth <= openLevel) {
-                            show = true;
-                        }
-                        children = data[i].children;
-                        flat = {
-                            id: data[i].id,
-                            depth: data[i].depth,
-                            row: data[i].data
-                        };
-                        flat.show = show;
-                        if (data[i].children.length > 0 && !data[i].open) {
-                            show = false;
-                            if (!openLevel || openLevel > data[i].depth) {
-                                openLevel = data[i].depth;
-                            }
-                        }
-                        self.flatData.push(flat); // add to flatlist
-                        if (children.length > 0) {
-                            redo(children, show, false);
-                        }
-                        Indexes[data[i].id] = data[i];
-                        if (topLevel && i === length - 1) {
-                            self.calculateVisible(visibleTop);
-                            self.calculateHeight();
-                            m.redraw(true);
-                            if (self.options.redrawComplete) {
-                                self.options.redrawComplete.call(self);
-                            }
-                        }
-                    }
-                };
-            recursive(value, true, true);
+
+            (function doFlatten(data, parentIsOpen) {
+                for (var i = 0; i < data.length; i++) {
+                    Indexes[data[i].id] = data[i];
+
+                    self.flatData.push({
+                        show: parentIsOpen,
+
+                        id: data[i].id,
+                        row: data[i].data,
+                        depth: data[i].depth,
+                    });
+
+                    if (data[i].children.length > 0)
+                    doFlatten(data[i].children, parentIsOpen && data[i].open);
+                }
+
+                self.calculateVisible(visibleTop);
+                self.calculateHeight();
+                m.redraw(true);
+                if (self.options.redrawComplete) {
+                    self.options.redrawComplete.call(self);
+                }
+            })(value, true);
+
             return value;
         };
 
