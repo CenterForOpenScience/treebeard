@@ -134,10 +134,17 @@
      */
     function ascByAttr(data, sortType) {
         if (sortType === "number") {
-            return function _numcompare(a, b) {
+            return function _numCompare(a, b) {
                 var num1 = a.data[data];
                 var num2 = b.data[data];
                 return num1 - num2;
+            };
+        }
+        if (sortType === 'date') {
+            return function _dateCompare(a, b) {
+                var date1 = new Date(a.data[data]);
+                var date2 = new Date(b.data[data]);
+                return date1 - date2;
             };
         }
         return function _compare(a, b) {
@@ -161,10 +168,17 @@
      */
     function descByAttr(data, sortType) {
         if (sortType === "number") {
-            return function _numcompare(a, b) {
+            return function _numCompare(a, b) {
                 var num1 = a.data[data];
                 var num2 = b.data[data];
                 return num2 - num1;
+            };
+        }
+        if (sortType === 'date') {
+            return function _dateCompare(a, b) {
+                var date1 = new Date(a.data[data]);
+                var date2 = new Date(b.data[data]);
+                return date2 - date1;
             };
         }
         return function _compare(a, b) {
