@@ -221,7 +221,10 @@
             },
             hideColumnTitles : true,
             hScroll : null,
-            hiddenFilterRows : ['person', 'age']
+            hiddenFilterRows : ['person', 'age'],
+            onselectrow : function (row){
+                console.log(row);
+            }
         }
 
 
@@ -248,7 +251,7 @@
                         css : 'tb-draggable'
                     },
                     {
-                        data : "person",
+                        data : "date",
                         filter : true
                     },
                     {
@@ -288,8 +291,27 @@
                 }
             },
             hideColumnTitles : false,
-            hScroll : 500
-
+            hScroll : 500,
+            columnTitles : function() { // REQUIRED: Adjust this array based on data needs.
+                return [{
+                    title: "Title",
+                    width: "50%",
+                    sortType: "text",
+                    sort: true
+                }, {
+                    title: "Date",
+                    width: "25%",
+                    sortType: "date",
+                    sort: true
+                }, {
+                    title: "Age",
+                    width: "10%",
+                    sortType: "number"
+                }, {
+                    title: "Actions",
+                    width: "15%"
+                }];
+            }
         }
 
 
