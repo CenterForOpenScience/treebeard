@@ -3197,14 +3197,18 @@ if (typeof exports == "object") {
             return function _numCompare(a, b) {
                 var num1 = a.data[data];
                 var num2 = b.data[data];
-                return num1 - num2;
+                var compareNum = num1 - num2;
+                if(compareNum === 0) return a.id < b.id;
+                return compareNum;
             };
         }
         if (sortType === 'date') {
             return function _dateCompare(a, b) {
                 var date1 = new Date(a.data[data]);
                 var date2 = new Date(b.data[data]);
-                return date1 - date2;
+                var compareDates = date1 - date2;
+                if(compareDates === 0) return a.id < b.id;
+                return compareDates;
             };
         }
         return function _compare(a, b) {
@@ -3216,7 +3220,7 @@ if (typeof exports == "object") {
             if (titleA > titleB) {
                 return 1;
             }
-            return 0;
+            return a.id < b.id;
         };
     }
 
@@ -3231,14 +3235,18 @@ if (typeof exports == "object") {
             return function _numCompare(a, b) {
                 var num1 = a.data[data];
                 var num2 = b.data[data];
-                return num2 - num1;
+                var compareNum = num2 - num1;
+                if(compareNum === 0) return a.id < b.id;
+                return compareNum;
             };
         }
         if (sortType === 'date') {
             return function _dateCompare(a, b) {
                 var date1 = new Date(a.data[data]);
                 var date2 = new Date(b.data[data]);
-                return date2 - date1;
+                var compareDates = date2 - date1;
+                if(compareDates === 0) return a.id < b.id;
+                return compareDates;
             };
         }
         return function _compare(a, b) {
@@ -3250,7 +3258,7 @@ if (typeof exports == "object") {
             if (titleA < titleB) {
                 return 1;
             }
-            return 0;
+            return a.id < b.id;
         };
     }
 
