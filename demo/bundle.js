@@ -3198,7 +3198,7 @@ if (typeof exports == "object") {
                 var num1 = a.data[data];
                 var num2 = b.data[data];
                 var compareNum = num1 - num2;
-                if(compareNum === 0) return a.id < b.id;
+                if(compareNum === 0) return a.id - b.id;
                 return compareNum;
             };
         }
@@ -3207,7 +3207,7 @@ if (typeof exports == "object") {
                 var date1 = new Date(a.data[data]);
                 var date2 = new Date(b.data[data]);
                 var compareDates = date1 - date2;
-                if(compareDates === 0) return a.id < b.id;
+                if(compareDates === 0) return a.id - b.id;
                 return compareDates;
             };
         }
@@ -3220,7 +3220,7 @@ if (typeof exports == "object") {
             if (titleA > titleB) {
                 return 1;
             }
-            return a.id < b.id;
+            return a.id < b.id ? -1 : +1;
         };
     }
 
@@ -3236,7 +3236,7 @@ if (typeof exports == "object") {
                 var num1 = a.data[data];
                 var num2 = b.data[data];
                 var compareNum = num2 - num1;
-                if(compareNum === 0) return a.id < b.id;
+                if(compareNum === 0) return b.id - a.id;
                 return compareNum;
             };
         }
@@ -3245,7 +3245,7 @@ if (typeof exports == "object") {
                 var date1 = new Date(a.data[data]);
                 var date2 = new Date(b.data[data]);
                 var compareDates = date2 - date1;
-                if(compareDates === 0) return a.id < b.id;
+                if(compareDates === 0) return b.id - a.id;
                 return compareDates;
             };
         }
@@ -3258,7 +3258,7 @@ if (typeof exports == "object") {
             if (titleA < titleB) {
                 return 1;
             }
-            return a.id < b.id;
+            return a.id > b.id ? -1 : +1;
         };
     }
 
