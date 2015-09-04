@@ -135,8 +135,8 @@
     function ascByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numCompare(a, b) {
-                var num1 = a.data[data];
-                var num2 = b.data[data];
+                var num1 = a.data[data] ? a.data[data] : 0;
+                var num2 = b.data[data] ? b.data[data] : 0;
                 var compareNum = num1 - num2;
                 if(compareNum === 0) return a.id - b.id;
                 return compareNum;
@@ -144,20 +144,20 @@
         }
         if (sortType === 'date') {
             return function _dateCompare(a, b) {
-                var date1 = new Date(a.data[data]);
-                var date2 = new Date(b.data[data]);
+                var date1 = a.data[data] ? new Date(a.data[data]) : new Date(0);
+                var date2 = b.data[data] ? new Date(b.data[data]) : new Date(0);
                 var compareDates = date1 - date2;
                 if(compareDates === 0) return a.id - b.id;
                 return compareDates;
             };
         }
         return function _compare(a, b) {
-            var titleA = a.data[data].toString().toLowerCase().replace(/\s+/g, " ").trim(),
-                titleB = b.data[data].toString().toLowerCase().replace(/\s+/g, " ").trim();
-            if (titleA < titleB) {
+            var textA = a.data[data] ? a.data[data].toString().toLowerCase().replace(/\s/g, '').trim() : '',
+                textB = b.data[data] ? b.data[data].toString().toLowerCase().replace(/\s/g, '').trim() : '';
+            if (textA < textB) {
                 return -1;
             }
-            if (titleA > titleB) {
+            if (textA > textB) {
                 return 1;
             }
             return a.id < b.id ? -1 : +1;
@@ -173,8 +173,8 @@
     function descByAttr(data, sortType) {
         if (sortType === "number") {
             return function _numCompare(a, b) {
-                var num1 = a.data[data];
-                var num2 = b.data[data];
+                var num1 = a.data[data] ? a.data[data] : 0;
+                var num2 = b.data[data] ? b.data[data] : 0;
                 var compareNum = num2 - num1;
                 if(compareNum === 0) return b.id - a.id;
                 return compareNum;
@@ -182,20 +182,20 @@
         }
         if (sortType === 'date') {
             return function _dateCompare(a, b) {
-                var date1 = new Date(a.data[data]);
-                var date2 = new Date(b.data[data]);
+                var date1 = a.data[data] ? new Date(a.data[data]) : new Date(0);
+                var date2 = b.data[data] ? new Date(b.data[data]) : new Date(0);
                 var compareDates = date2 - date1;
                 if(compareDates === 0) return b.id - a.id;
                 return compareDates;
             };
         }
         return function _compare(a, b) {
-            var titleA = a.data[data].toString().toLowerCase().replace(/\s/g, ''),
-                titleB = b.data[data].toString().toLowerCase().replace(/\s/g, '');
-            if (titleA > titleB) {
+            var textA = a.data[data] ? a.data[data].toString().toLowerCase().replace(/\s/g, '') : '',
+                textB = b.data[data] ? b.data[data].toString().toLowerCase().replace(/\s/g, '') : '';
+            if (textA > textB) {
                 return -1;
             }
-            if (titleA < titleB) {
+            if (textA < textB) {
                 return 1;
             }
             return a.id > b.id ? -1 : +1;
