@@ -32,22 +32,6 @@
             img.logo {
                 width: 300px;
             }
-            .hoverClass {
-                background: yellow;
-            }
-
-            .list-group-item {
-                position: relative;
-                display: block;
-                padding: 10px 0 0 15px;
-                background-color: #fff;
-                border: none;
-            }
-
-            .list-group {
-                margin-bottom: 0px;
-                box-shadow: none;
-            }
         </style>
     </head>
     <body>
@@ -114,7 +98,7 @@
             multiselect : true,
             hoverClass : 'hoverClass',
             moveClass : 'tb-draggable',
-            resolveRows : function (item) {
+            resolveRows : function () {
                 return [            // Defines columns based on data
                     {
                         data : "title",  // Data field name
@@ -134,7 +118,7 @@
                         data : "action",
                         sortInclude : false,
                         filter : false,
-                        custom : function (row, col) {
+                        custom : function (row) {
                             var that = this;
                             return m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
@@ -182,7 +166,7 @@
             multiselect : true,
             hoverClass : 'hoverClass',
             moveClass : 'tb-draggable',
-            resolveRows : function (item) {
+            resolveRows : function () {
                 return [            // Defines columns based on data
                     {
                         data : "title",  // Data field name
@@ -194,7 +178,7 @@
                         data : "action",
                         sortInclude : false,
                         filter : false,
-                        custom : function (row, col) {
+                        custom : function (row) {
                             var that = this;
                             return m("button.tb-button", {
                                 onclick: function _deleteClick(e) {
@@ -228,7 +212,7 @@
             onselectrow : function (row){
                 console.log(row);
             }
-        }
+        };
 
 
         var options3 = {
@@ -245,7 +229,7 @@
             multiselect : true,
             hoverClass : 'hoverClass',
             moveClass : 'tb-draggable',
-            resolveRows : function (item) {
+            resolveRows : function () {
                 return [            // Defines columns based on data
                     {
                         data : "title",  // Data field name
@@ -262,7 +246,7 @@
                         filter : false
                     },
                     {
-                        data : "confName",
+                        data : "category",
                         sortInclude : false,
                         filter : false
 
@@ -296,13 +280,13 @@
                     sortType: "number",
                     sort: true
                 }, {
-                    title: "ConfName",
+                    title: "Category",
                     width: "15%",
                     sortType: "text",
                     sort: true
                 }];
             }
-        }
+        };
 
 
         /*
