@@ -3212,8 +3212,8 @@ if (typeof exports == "object") {
             };
         }
         return function _compare(a, b) {
-            var titleA = a.data[data].toLowerCase().replace(/\s+/g, " ").trim(),
-                titleB = b.data[data].toLowerCase().replace(/\s+/g, " ").trim();
+            var titleA = a.data[data].toString().toLowerCase().replace(/\s+/g, " ").trim(),
+                titleB = b.data[data].toString().toLowerCase().replace(/\s+/g, " ").trim();
             if (titleA < titleB) {
                 return -1;
             }
@@ -3250,8 +3250,8 @@ if (typeof exports == "object") {
             };
         }
         return function _compare(a, b) {
-            var titleA = a.data[data].toLowerCase().replace(/\s/g, ''),
-                titleB = b.data[data].toLowerCase().replace(/\s/g, '');
+            var titleA = a.data[data].toString().toLowerCase().replace(/\s/g, ''),
+                titleB = b.data[data].toString().toLowerCase().replace(/\s/g, '');
             if (titleA > titleB) {
                 return -1;
             }
