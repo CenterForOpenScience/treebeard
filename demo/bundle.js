@@ -5709,23 +5709,26 @@ if (typeof exports == "object") {
      * @param {Object} options The options user passes in; will be expanded with defaults.
      * @returns {*}
      */
-    var runTB = function _treebeardRun(options) {
+    var runTB = function _treebeardRun(options, component) {
         var defaults = new Options();
         var finalOptions = $.extend(defaults, options);
-        var tb = {};
-        tb.controller = function() {
-            this.tbController = new Treebeard.controller(finalOptions);
-        };
-        tb.view = function(ctrl) {
-            return Treebeard.view(ctrl.tbController);
-        };
+        //var tb = {};
+        //tb.controller = function() {
+        //    this.tbController = new Treebeard.controller(finalOptions);
+        //};
+        //tb.view = function(ctrl) {
+        //    return Treebeard.view(ctrl.tbController);
+        //};
         // Weird fix for IE 9, does not harm regular load
         if (window.navigator.userAgent.indexOf('MSIE')) {
             setTimeout(function() {
                 m.redraw();
             }, 1000);
         }
-        return m.module(document.getElementById(finalOptions.divID), tb);
+        if(!component){ // If not added as component into mithril view then mount it
+            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { options : finalOptions }));
+        }
+        return m.component(Treebeard, { options : finalOptions });
     };
 
     // Expose some internal classes to the public
