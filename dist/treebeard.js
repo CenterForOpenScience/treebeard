@@ -2038,8 +2038,7 @@
      * @param {Object} ctrl The entire Treebeard.controller object with its values and methods. Refer to as ctrl.
      */
     Treebeard.view = function treebeardView(ctrl) {
-        return [
-            m('.gridWrapper', { style : 'overflow-x: auto' }, [
+        return m('.gridWrapper', { style : 'overflow-x: auto' }, [
                 m(".tb-table", { style : 'width:' + ctrl.tableWidth() }, [
                     /**
                      * Template for the head row, includes whether filter or title should be shown.
@@ -2380,7 +2379,6 @@
                     }())
                 ])
             ])
-        ];
     };
 
     /**
@@ -2652,13 +2650,6 @@
     var runTB = function _treebeardRun(options, component) {
         var defaults = new Options();
         var finalOptions = $.extend(defaults, options);
-        //var tb = {};
-        //tb.controller = function() {
-        //    this.tbController = new Treebeard.controller(finalOptions);
-        //};
-        //tb.view = function(ctrl) {
-        //    return Treebeard.view(ctrl.tbController);
-        //};
         // Weird fix for IE 9, does not harm regular load
         if (window.navigator.userAgent.indexOf('MSIE')) {
             setTimeout(function() {
@@ -2668,8 +2659,9 @@
         if(!component){ // If not added as component into mithril view then mount it
             return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { options : finalOptions }));
         }
-        return m.component(Treebeard, { options : finalOptions });
+        return m.component(Treebeard, {options : finalOptions}); // Return component instead
     };
+
 
     // Expose some internal classes to the public
     runTB.Notify = Notify;
