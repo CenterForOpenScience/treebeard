@@ -3679,7 +3679,7 @@ if (typeof exports == "object") {
 
         this.mredraw = function _mredraw() {
             m.redraw();
-        }
+        };
         /**
          * Prepend selector with ID of root DOM node
          * @param {String} selector CSS selector
@@ -4522,7 +4522,7 @@ if (typeof exports == "object") {
                 self.options.onafterselectwitharrow.call(this, row, direction);
             }
 
-        }
+        };
 
         // Handles the toggling of folders with the right and left arrow keypress
         this.keyboardFolderToggle = function (action) {
@@ -4533,7 +4533,7 @@ if (typeof exports == "object") {
                     self.toggleFolder(index, null);
                 }
             }
-        }
+        };
 
         // Handles what the up, down, left, right arrow keys do.
         this.handleArrowKeys = function (e) {
@@ -4557,7 +4557,7 @@ if (typeof exports == "object") {
             if(key === 39) {
                 self.keyboardFolderToggle('open');
             }
-        }
+        };
 
 
 
@@ -5058,7 +5058,7 @@ if (typeof exports == "object") {
             } else {
                 self.tableWidth('auto;');
             }
-        }
+        };
         /**
          * Resets keys that are hung up. Other window onblur event actions can be added in here.
          */
@@ -5701,30 +5701,30 @@ if (typeof exports == "object") {
         this.scrollDebounce = 15; // milliseconds
     };
 
-    /**
-     * Starts treebard with user options
-     * This may seem convoluted but is useful to encapsulate Treebeard instances.
-     * @param {Object} options The options user passes in; will be expanded with defaults.
-     * @returns {*}
-     */
-    var runTB = function _treebeardRun(options, component) {
-        var defaults = new Options();
-        var finalOptions = $.extend(defaults, options);
-        // Weird fix for IE 9, does not harm regular load
-        if (window.navigator.userAgent.indexOf('MSIE')) {
-            setTimeout(function() {
-                m.redraw();
-            }, 1000);
-        }
-        if(!component){ // If not added as component into mithril view then mount it
-            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { options : finalOptions }));
-        }
-        return m.component(Treebeard, finalOptions); // Return component instead
-    };
+    ///**
+    // * Starts treebard with user options
+    // * This may seem convoluted but is useful to encapsulate Treebeard instances.
+    // * @param {Object} options The options user passes in; will be expanded with defaults.
+    // * @returns {*}
+    // */
+    //var runTB = function _treebeardRun(options, component) {
+    //    var defaults = new Options();
+    //    var finalOptions = $.extend(defaults, options);
+    //    // Weird fix for IE 9, does not harm regular load
+    //    if (window.navigator.userAgent.indexOf('MSIE')) {
+    //        setTimeout(function() {
+    //            m.redraw();
+    //        }, 1000);
+    //    }
+    //    if(!component){ // If not added as component into mithril view then mount it
+    //        return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { options : finalOptions }));
+    //    }
+    //    return m.component(Treebeard, finalOptions); // Return component instead
+    //};
 
 
     // Expose some internal classes to the public
-    runTB.Notify = Notify;
+    Treebeard.Notify = Notify;
 
-    return runTB;
+    return Treebeard;
 }));
