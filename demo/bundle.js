@@ -4086,118 +4086,44 @@ if (typeof exports == "object") {
             var len = self.flatData.length,
                 tree = Indexes[self.flatData[index].id],
                 item = self.flatData[index],
-                child,
                 skip = false,
                 skipLevel = item.depth,
                 level = item.depth,
-                i,
                 j,
                 o,
-                t,
-                lazyLoad,
-                icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon'),
-                iconTemplate;
-            if (icon.get(0)) {
-                m.render(icon.get(0), self.options.resolveRefreshIcon());
+                t;
+            for (j = index + 1; j < len; j++) {
+                o = self.flatData[j];
+                t = Indexes[self.flatData[j].id];
+                if (o.depth <= level) {
+                    break;
+                }
+                if (skip && o.depth > skipLevel) {
+                    continue;
+                }
+                if (o.depth === skipLevel) {
+                    skip = false;
+                }
+                if (tree.open) { // closing
+                    o.show = false;
+                } else { // opening
+                    o.show = true;
+                    if (!t.open) {
+                        skipLevel = o.depth;
+                        skip = true;
+                    }
+                }
             }
-            $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
-                lazyLoad = url;
-                if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
-                    tree.children = [];
-                    m.request({
-                        method: "GET",
-                        url: lazyLoad,
-                        config: self.options.xhrconfig
-                    })
-                        .then(function _getUrlBuildtree(value) {
-                            if (!value) {
-                                self.options.lazyLoadError.call(self, tree);
-                                iconTemplate = self.options.resolveToggle.call(self, tree);
-                                if (icon.get(0)) {
-                                    m.render(icon.get(0), iconTemplate);
-                                }
-                            } else {
-                                if (self.options.lazyLoadPreprocess) {
-                                    value = self.options.lazyLoadPreprocess.call(self, value);
-                                }
-                                if (!$.isArray(value)) {
-                                    value = value.data;
-                                }
-                                var isUploadItem = function(element) {
-                                    return element.data.tmpID;
-                                };
-                                tree.children = tree.children.filter(isUploadItem);
-                                for (i = 0; i < value.length; i++) {
-                                    child = self.buildTree(value[i], tree);
-                                    tree.add(child);
-                                }
-                                tree.open = true;
-                                tree.load = true;
-                                // this redundancy is important to get the proper state
-                                iconTemplate = self.options.resolveToggle.call(self, tree);
-                                if (icon.get(0)) {
-                                    m.render(icon.get(0), iconTemplate);
-                                }
-                            }
-                        }, function (info) {
-                            self.options.lazyLoadError.call(self, tree);
-                            iconTemplate = self.options.resolveToggle.call(self, tree);
-                            if (icon.get(0)) {
-                                    m.render(icon.get(0), iconTemplate);
-                                }
-                        })
-                        .then(function _getUrlFlatten() {
-                            self.flatten(self.treeData.children, self.visibleTop);
-                            if (self.options.lazyLoadOnLoad) {
-                                self.options.lazyLoadOnLoad.call(self, tree, event);
-                            }
-                            if (self.options.ontogglefolder) {
-                                self.options.ontogglefolder.call(self, tree, event);
-                            }
-                            if (callback) {
-                                callback.call(self, tree, event);
-                            }
-                        });
-
-                } else {
-                    for (j = index + 1; j < len; j++) {
-                        o = self.flatData[j];
-                        t = Indexes[self.flatData[j].id];
-                        if (o.depth <= level) {
-                            break;
-                        }
-                        if (skip && o.depth > skipLevel) {
-                            continue;
-                        }
-                        if (o.depth === skipLevel) {
-                            skip = false;
-                        }
-                        if (tree.open) { // closing
-                            o.show = false;
-                        } else { // opening
-                            o.show = true;
-                            if (!t.open) {
-                                skipLevel = o.depth;
-                                skip = true;
-                            }
-                        }
-                    }
-                    tree.open = !tree.open;
-                    self.calculateVisible(self.visibleTop);
-                    self.calculateHeight();
-                    m.redraw(true);
-                    var iconTemplate = self.options.resolveToggle.call(self, tree);
-                    if (icon.get(0)) {
-                        m.render(icon.get(0), iconTemplate);
-                    }
-                    if (self.options.ontogglefolder) {
-                        self.options.ontogglefolder.call(self, tree, event);
-                    }
-                }
-                if (self.options.allowMove) {
-                    self.moveOn();
-                }
-            });
+            tree.open = !tree.open;
+            self.calculateVisible(self.visibleTop);
+            self.calculateHeight();
+            m.redraw(true);
+            if (self.options.ontogglefolder) {
+                self.options.ontogglefolder.call(self, tree, event);
+            }
+            if (self.options.allowMove) {
+                self.moveOn();
+            }
         };
 
         /**
@@ -4710,56 +4636,22 @@ if (typeof exports == "object") {
          * Loads the data pushed in to Treebeard and handles it to comply with treebeard data structure.
          * @param {Array, String} data Data sent in as an array of objects or a url in string form
          */
-        function _loadData(data) {
-                // Order of operations: Gewt data -> build tree -> flatten for view -> calculations for view: visible, height
-            if ($.isArray(data)) {
-                $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
-                    self.treeData = value;
-                    Indexes[self.treeData.id] = value;
-                    self.flatten(self.treeData.children);
-                    return value;
-                }).done(function _buildTreeDone() {
-                    self.calculateVisible();
-                    self.calculateHeight();
-                    self.initialized = true;
-                    if ($.isFunction(self.options.ondataload)) {
-                        self.options.ondataload.call(self);
-                    }
-                });
-            } else {
-                // then we assume it's a sring with a valiud url
-                // I took out url validation because it does more harm than good here.
-                m.request({
-                    method: 'GET',
-                    url: data,
-                    config: self.options.xhrconfig,
-                    extract: function (xhr, xhrOpts) {
-                        if (xhr.status !== 200) {
-                            return self.options.ondataloaderror(xhr);
-                        }
-                        return xhr.responseText;
-                    }
-                })
-                    .then(function _requestBuildtree(value) {
-                        if (self.options.lazyLoadPreprocess) {
-                            value = self.options.lazyLoadPreprocess.call(self, value);
-                        }
-                        self.treeData = self.buildTree(value);
-                    })
-                    .then(function _requestFlatten() {
-                        Indexes[self.treeData.id] = self.treeData;
-                        self.flatten(self.treeData.children);
-                    })
-                    .then(function _requestCalculate() {
-                        self.calculateVisible();
-                        self.calculateHeight();
-                        self.initialized = true;
-                        if ($.isFunction(self.options.ondataload)) {
-                            self.options.ondataload.call(self);
-                        }
-                    });
-            }
-        }
+        this.processData = function _processData(data){
+            // Order of operations: Get data -> build tree -> flatten for view -> calculations for view: visible, height
+            $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
+                self.treeData = value;
+                Indexes[self.treeData.id] = value;
+                return self.flatten(self.treeData.children);
+            }).done(function _buildTreeDone(flatData) {
+                self.calculateVisible();
+                self.calculateHeight();
+                self.initialized = true;
+                if ($.isFunction(self.options.ondataload)) {
+                    self.options.ondataload.call(self);
+                }
+            });
+            return self.flatData;
+        };
             // Rebuilds the tree data with an API
         this.buildTree = function _buildTree(data, parent) {
             var tree, children, len, child, i;
@@ -5082,22 +4974,14 @@ if (typeof exports == "object") {
                 _destroyDropzone();
             } // Destroy existing dropzone setup
         };
-
-        /**
-         * Checks if there is filesData option, fails if there isn't, initiates the entire app if it does.
-         */
-        if (self.options.filesData) {
-            _loadData(self.options.filesData);
-        } else {
-            throw new Error("Treebeard Error: You need to define a data source through 'options.filesData'");
-        }
     };
 
     /**
      * Mithril View. Documentation is here: (http://lhorie.github.io/mithril/mithril.html) Use m() for templating.
      * @param {Object} ctrl The entire Treebeard.controller object with its values and methods. Refer to as ctrl.
      */
-    Treebeard.view = function treebeardView(ctrl) {
+    Treebeard.view = function treebeardView(ctrl, args) {
+        var flatData = ctrl.flatData.length > 0 ? ctrl.flatData : ctrl.processData(args.data());
         return m('.gridWrapper', { style : 'overflow-x: auto' }, [
                 m(".tb-table", { style : 'width:' + ctrl.tableWidth() }, [
                     /**
@@ -5114,7 +4998,6 @@ if (typeof exports == "object") {
                                 /**
                                  * Render column titles based on the columnTitles option.
                                  */
-
                                 ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
                                     var sortView = "",
                                         up,
@@ -5232,10 +5115,11 @@ if (typeof exports == "object") {
                                  */
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
                                     var oddEvenClass = ctrl.options.oddEvenClass.odd,
-                                        indent = ctrl.flatData[item].depth,
-                                        id = ctrl.flatData[item].id,
+                                        flatItem = flatData[item],
+                                        indent = flatItem.depth,
+                                        id = flatItem.id,
                                         tree = Indexes[id],
-                                        row = ctrl.flatData[item].row,
+                                        row = flatItem.row,
                                         padding,
                                         css = tree.css || "",
                                         rowCols = ctrl.options.resolveRows.call(ctrl, tree);
@@ -5438,7 +5322,7 @@ if (typeof exports == "object") {
                         }
                     }())
                 ])
-            ])
+            ]);
     };
 
     /**
@@ -5665,25 +5549,25 @@ if (typeof exports == "object") {
             // Item = item acted on return item.data.ursl.upload
             return "/upload";
         };
-        this.resolveLazyloadUrl = function(item) {
-            // this = treebeard object;
-            // Item = item acted on
-            return false;
-        };
-        this.lazyLoadError = function(item) {
-            // this = treebeard object;
-            // Item = item acted on
-        };
-        this.lazyLoadOnLoad = function(item) {
-            // this = treebeard object;
-            // Item = item acted on
-        };
+        //this.resolveLazyloadUrl = function(item) {
+        //    // this = treebeard object;
+        //    // Item = item acted on
+        //    return false;
+        //};
+        //this.lazyLoadError = function(item) {
+        //    // this = treebeard object;
+        //    // Item = item acted on
+        //};
+        //this.lazyLoadOnLoad = function(item) {
+        //    // this = treebeard object;
+        //    // Item = item acted on
+        //};
         this.ondataload = function(item) {
             // this = treebeard object;
         };
-        this.ondataloaderror = function(xhr){
-            // xhr with non-200 status code
-        };
+        //this.ondataloaderror = function(xhr){
+        //    // xhr with non-200 status code
+        //};
         this.onbeforeselectwitharrow = function(item, direction){
             // this = treebeard object;
             // Item = item where selection is going to
@@ -5694,10 +5578,10 @@ if (typeof exports == "object") {
             // Item = item where selection is coming from
             // direction = the directino of the arrow key
         };
-        this.xhrconfig = function(xhr, options){
-            // xhr = xml http request
-            // options = xhr options
-        };
+        //this.xhrconfig = function(xhr, options){
+        //    // xhr = xml http request
+        //    // options = xhr options
+        //};
         this.scrollDebounce = 15; // milliseconds
     };
 
@@ -5710,6 +5594,11 @@ if (typeof exports == "object") {
     var runTB = function _treebeardRun(data, options, component) {
         var defaults = new Options();
         var finalOptions = $.extend(defaults, options);
+        if(!data){
+            console.error("Treebeard Error: No data was provided. Treebeard expects an array of objects.")
+            return;
+        }
+        var data = m.prop(data);
         // Weird fix for IE 9, does not harm regular load
         if (window.navigator.userAgent.indexOf('MSIE')) {
             setTimeout(function() {
