@@ -1654,18 +1654,52 @@
          */
         this.processData = function _processData(data){
             // Order of operations: Get data -> build tree -> flatten for view -> calculations for view: visible, height
-            $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
-                self.treeData = value;
-                Indexes[self.treeData.id] = value;
-                return self.flatten(self.treeData.children);
-            }).done(function _buildTreeDone(flatData) {
-                self.calculateVisible();
-                self.calculateHeight();
-                self.initialized = true;
-                if ($.isFunction(self.options.ondataload)) {
-                    self.options.ondataload.call(self);
-                }
-            });
+            if ($.isArray(data)) {
+                $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
+                    self.treeData = value;
+                    Indexes[self.treeData.id] = value;
+                    return self.flatten(self.treeData.children);
+                }).done(function _buildTreeDone(flatData) {
+                    self.calculateVisible();
+                    self.calculateHeight();
+                    self.initialized = true;
+                    if ($.isFunction(self.options.ondataload)) {
+                        self.options.ondataload.call(self);
+                    }
+                });
+            } else {
+                // then we assume it's a sring with a valiud url
+                // I took out url validation because it does more harm than good here.
+                m.request({
+                    method: 'GET',
+                    url: data,
+                    config: self.options.xhrconfig,
+                    extract: function (xhr, xhrOpts) {
+                        if (xhr.status !== 200) {
+                            return self.options.ondataloaderror(xhr);
+                        }
+                        return xhr.responseText;
+                    }
+                })
+                .then(function _requestBuildtree(value) {
+                    if (self.options.lazyLoadPreprocess) {
+                        value = self.options.lazyLoadPreprocess.call(self, value);
+                    }
+                    self.treeData = self.buildTree(value);
+                })
+                .then(function _requestFlatten() {
+                    Indexes[self.treeData.id] = self.treeData;
+                    self.flatten(self.treeData.children);
+                })
+                .then(function _requestCalculate() {
+                    self.calculateVisible();
+                    self.calculateHeight();
+                    self.initialized = true;
+                    if ($.isFunction(self.options.ondataload)) {
+                        self.options.ondataload.call(self);
+                    }
+                });
+            }
             return self.flatData;
         };
             // Rebuilds the tree data with an API
