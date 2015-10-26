@@ -3641,7 +3641,7 @@ if (typeof exports == "object") {
     };
 
     // Treebeard methods
-    Treebeard.controller = function _treebeardController(opts) {
+    Treebeard.controller = function _treebeardController(args) {
         // private variables
         var self = this; // Treebard.controller
         var lastLocation = 0; // The last scrollTop location, updates on every scroll.
@@ -3653,7 +3653,7 @@ if (typeof exports == "object") {
         this.treeData = {}; // The data in hierarchical form
         this.filterText = m.prop(""); // value of the filtertext input
         this.showRange = []; // Array of indexes that the range shows
-        this.options = opts; // User defined options
+        this.options = args.options; // User defined options
         this.selected = undefined; // The row selected on click.
         this.rangeMargin = 0; // Top margin, required for proper scrolling
         this.visibleIndexes = []; // List of items viewable as a result of an operation like filter.
@@ -5701,30 +5701,30 @@ if (typeof exports == "object") {
         this.scrollDebounce = 15; // milliseconds
     };
 
-    ///**
-    // * Starts treebard with user options
-    // * This may seem convoluted but is useful to encapsulate Treebeard instances.
-    // * @param {Object} options The options user passes in; will be expanded with defaults.
-    // * @returns {*}
-    // */
-    //var runTB = function _treebeardRun(options, component) {
-    //    var defaults = new Options();
-    //    var finalOptions = $.extend(defaults, options);
-    //    // Weird fix for IE 9, does not harm regular load
-    //    if (window.navigator.userAgent.indexOf('MSIE')) {
-    //        setTimeout(function() {
-    //            m.redraw();
-    //        }, 1000);
-    //    }
-    //    if(!component){ // If not added as component into mithril view then mount it
-    //        return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { options : finalOptions }));
-    //    }
-    //    return m.component(Treebeard, finalOptions); // Return component instead
-    //};
+    /**
+     * Starts treebard with user options
+     * This may seem convoluted but is useful to encapsulate Treebeard instances.
+     * @param {Object} options The options user passes in; will be expanded with defaults.
+     * @returns {*}
+     */
+    var runTB = function _treebeardRun(data, options, component) {
+        var defaults = new Options();
+        var finalOptions = $.extend(defaults, options);
+        // Weird fix for IE 9, does not harm regular load
+        if (window.navigator.userAgent.indexOf('MSIE')) {
+            setTimeout(function() {
+                m.redraw();
+            }, 1000);
+        }
+        if(!component){ // If not added as component into mithril view then mount it
+            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { data : data, options : finalOptions }));
+        }
+        return m.component(Treebeard, { data : data, options : finalOptions }); // Return component instead
+    };
 
 
     // Expose some internal classes to the public
-    Treebeard.Notify = Notify;
+    runTB.Notify = Notify;
 
-    return Treebeard;
+    return runTB;
 }));
