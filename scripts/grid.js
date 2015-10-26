@@ -176,7 +176,7 @@
                 var num1 = a.data[data] ? a.data[data] : 0;
                 var num2 = b.data[data] ? b.data[data] : 0;
                 var compareNum = num2 - num1;
-                if(compareNum === 0) return b.id - a.id;
+                if(compareNum === 0) { return b.id - a.id };
                 return compareNum;
             };
         }
@@ -185,7 +185,7 @@
                 var date1 = a.data[data] ? new Date(a.data[data]) : new Date(0);
                 var date2 = b.data[data] ? new Date(b.data[data]) : new Date(0);
                 var compareDates = date2 - date1;
-                if(compareDates === 0) return b.id - a.id;
+                if(compareDates === 0) { return b.id - a.id };
                 return compareDates;
             };
         }
@@ -985,8 +985,17 @@
             if (tb.options.onfilterreset) {
                 tb.options.onfilterreset.call(tb, filter);
             }
-        }
+        };
 
+        this.addChildren = function(data, parent){
+            parent.children = [];
+            var child, i;
+            for (i = 0; i < data.length; i++) {
+                child = self.buildTree(data[i], parent);
+                parent.add(child);
+            }
+            parent.open = true;
+        };
 
         /**
          * Updates content of the folder with new data or refreshes from lazyload
@@ -996,14 +1005,7 @@
          */
         this.updateFolder = function (data, parent, callback) {
             if (data) {
-                parent.children = [];
-                var child, i;
-                for (i = 0; i < data.length; i++) {
-                    child = self.buildTree(data[i], parent);
-                    parent.add(child);
-                }
-                parent.open = true;
-                //return;
+                self.addChildren(data, parent);
             }
             var index = self.returnIndex(parent.id);
             parent.open = false;
@@ -1026,44 +1028,118 @@
             var len = self.flatData.length,
                 tree = Indexes[self.flatData[index].id],
                 item = self.flatData[index],
+                child,
                 skip = false,
                 skipLevel = item.depth,
                 level = item.depth,
+                i,
                 j,
                 o,
-                t;
-            for (j = index + 1; j < len; j++) {
-                o = self.flatData[j];
-                t = Indexes[self.flatData[j].id];
-                if (o.depth <= level) {
-                    break;
-                }
-                if (skip && o.depth > skipLevel) {
-                    continue;
-                }
-                if (o.depth === skipLevel) {
-                    skip = false;
-                }
-                if (tree.open) { // closing
-                    o.show = false;
-                } else { // opening
-                    o.show = true;
-                    if (!t.open) {
-                        skipLevel = o.depth;
-                        skip = true;
+                t,
+                lazyLoad,
+                icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon'),
+                iconTemplate;
+            if (icon.get(0)) {
+                m.render(icon.get(0), self.options.resolveRefreshIcon());
+            }
+            $.when(self.options.resolveLazyloadUrl.call(self, tree)).done(function _resolveLazyloadDone(url) {
+                lazyLoad = url;
+                if (lazyLoad && item.row.kind === "folder" && tree.open === false && tree.load === false) {
+                    tree.children = [];
+                    m.request({
+                        method: "GET",
+                        url: lazyLoad,
+                        config: self.options.xhrconfig
+                    })
+                        .then(function _getUrlBuildtree(value) {
+                            if (!value) {
+                                self.options.lazyLoadError.call(self, tree);
+                                iconTemplate = self.options.resolveToggle.call(self, tree);
+                                if (icon.get(0)) {
+                                    m.render(icon.get(0), iconTemplate);
+                                }
+                            } else {
+                                if (self.options.lazyLoadPreprocess) {
+                                    value = self.options.lazyLoadPreprocess.call(self, value);
+                                }
+                                if (!$.isArray(value)) {
+                                    value = value.data;
+                                }
+                                var isUploadItem = function(element) {
+                                    return element.data.tmpID;
+                                };
+                                tree.children = tree.children.filter(isUploadItem);
+                                for (i = 0; i < value.length; i++) {
+                                    child = self.buildTree(value[i], tree);
+                                    tree.add(child);
+                                }
+                                tree.open = true;
+                                tree.load = true;
+                                // this redundancy is important to get the proper state
+                                iconTemplate = self.options.resolveToggle.call(self, tree);
+                                if (icon.get(0)) {
+                                    m.render(icon.get(0), iconTemplate);
+                                }
+                            }
+                        }, function (info) {
+                            self.options.lazyLoadError.call(self, tree);
+                            iconTemplate = self.options.resolveToggle.call(self, tree);
+                            if (icon.get(0)) {
+                                m.render(icon.get(0), iconTemplate);
+                            }
+                        })
+                        .then(function _getUrlFlatten() {
+                            self.flatten(self.treeData.children, self.visibleTop);
+                            if (self.options.lazyLoadOnLoad) {
+                                self.options.lazyLoadOnLoad.call(self, tree, event);
+                            }
+                            if (self.options.ontogglefolder) {
+                                self.options.ontogglefolder.call(self, tree, event);
+                            }
+                            if (callback) {
+                                callback.call(self, tree, event);
+                            }
+                        });
+
+                } else {
+                    for (j = index + 1; j < len; j++) {
+                        o = self.flatData[j];
+                        t = Indexes[self.flatData[j].id];
+                        if (o.depth <= level) {
+                            break;
+                        }
+                        if (skip && o.depth > skipLevel) {
+                            continue;
+                        }
+                        if (o.depth === skipLevel) {
+                            skip = false;
+                        }
+                        if (tree.open) { // closing
+                            o.show = false;
+                        } else { // opening
+                            o.show = true;
+                            if (!t.open) {
+                                skipLevel = o.depth;
+                                skip = true;
+                            }
+                        }
+                    }
+                    tree.open = !tree.open;
+                    self.calculateVisible(self.visibleTop);
+                    self.calculateHeight();
+                    m.redraw(true);
+                    var iconTemplate = self.options.resolveToggle.call(self, tree);
+                    if (icon.get(0)) {
+                        m.render(icon.get(0), iconTemplate);
+                    }
+                    if (self.options.ontogglefolder) {
+                        self.options.ontogglefolder.call(self, tree, event);
                     }
                 }
-            }
-            tree.open = !tree.open;
-            self.calculateVisible(self.visibleTop);
-            self.calculateHeight();
-            m.redraw(true);
-            if (self.options.ontogglefolder) {
-                self.options.ontogglefolder.call(self, tree, event);
-            }
-            if (self.options.allowMove) {
-                self.moveOn();
-            }
+                if (self.options.allowMove) {
+                    self.moveOn();
+                }
+            });
         };
 
         /**
@@ -2489,25 +2565,25 @@
             // Item = item acted on return item.data.ursl.upload
             return "/upload";
         };
-        //this.resolveLazyloadUrl = function(item) {
-        //    // this = treebeard object;
-        //    // Item = item acted on
-        //    return false;
-        //};
-        //this.lazyLoadError = function(item) {
-        //    // this = treebeard object;
-        //    // Item = item acted on
-        //};
-        //this.lazyLoadOnLoad = function(item) {
-        //    // this = treebeard object;
-        //    // Item = item acted on
-        //};
+        this.resolveLazyloadUrl = function(item) {
+            // this = treebeard object;
+            // Item = item acted on
+            return false;
+        };
+        this.lazyLoadError = function(item) {
+            // this = treebeard object;
+            // Item = item acted on
+        };
+        this.lazyLoadOnLoad = function(item) {
+            // this = treebeard object;
+            // Item = item acted on
+        };
         this.ondataload = function(item) {
             // this = treebeard object;
         };
-        //this.ondataloaderror = function(xhr){
-        //    // xhr with non-200 status code
-        //};
+        this.ondataloaderror = function(xhr){
+            // xhr with non-200 status code
+        };
         this.onbeforeselectwitharrow = function(item, direction){
             // this = treebeard object;
             // Item = item where selection is going to
@@ -2518,10 +2594,10 @@
             // Item = item where selection is coming from
             // direction = the directino of the arrow key
         };
-        //this.xhrconfig = function(xhr, options){
-        //    // xhr = xml http request
-        //    // options = xhr options
-        //};
+        this.xhrconfig = function(xhr, options){
+            // xhr = xml http request
+            // options = xhr options
+        };
         this.scrollDebounce = 15; // milliseconds
     };
 

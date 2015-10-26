@@ -134,7 +134,16 @@
                 }
             },
             hideColumnTitles : true,
-            hScroll : 300
+            hScroll : 300,
+            preToggle : function (parent){
+                var tb = this;
+                $.ajax({
+                    url: "tree.json"
+                }).done(function(result) {
+                    tb.addChildren(result, parent);
+                });
+
+            }
 
         }
 
