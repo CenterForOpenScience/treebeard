@@ -30,3 +30,11 @@ body {
     width: 30px;
     min-height: 20px;
 }
+
+.tb-inner {
+    position: relative;
+}
+
+.tb-row-container {
+    position: absolute;
+}
