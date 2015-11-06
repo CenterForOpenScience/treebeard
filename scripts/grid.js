@@ -1621,8 +1621,8 @@
                 },
                 queuecomplete: function _dropzoneComplete(file) {
                     self.isUploading(false);
-                    if ($.isFunction(self.options.dropzoneEvents.quecomplete)) {
-                        self.options.dropzoneEvents.complete.call(this, self, file);
+                    if ($.isFunction(self.options.dropzoneEvents.queuecomplete)) {
+                        self.options.dropzoneEvents.queuecomplete.call(this, self, file);
                     }
                 },
                 addedfile: function _dropzoneAddedFile(file) {
