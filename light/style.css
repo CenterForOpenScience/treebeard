@@ -1,0 +1,32 @@
+body {
+    background: #f8f8f8;
+    text-align: center;
+    padding-top: 20px;
+}
+#grid {
+    margin: 40px auto;
+    width: 600px;
+    height: 500px;
+    background: #FFFFFF;
+    border: 1px solid #eeeeee;
+    overflow: auto;
+    text-align: left;
+}
+
+.tb-row {
+    overflow: hidden;
+    border-bottom: 1px solid #f8f8f8;
+    padding: 3px 6px;
+}
+
+.tb-col {
+    display: inline-block;
+    float: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tb-toggle-icon {
+    width: 30px;
+    min-height: 20px;
+}

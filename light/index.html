@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Treebeard Light</title>
+    <link rel="stylesheet" href="../bower_components/jquery-ui/themes/base/all.css">
+    <link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="bundle.css">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<div id="grid"></div>
+
+<script src="bundle.js"></script>
+<script src="grid.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    var request = $.ajax({
+        url: "../demo/tree2.json",
+        method: "GET"
+    });
+
+    request.done(function( data ) {
+        console.log("Data", data);
+        var tb = new Treebeard(data, {container : '#grid'});
+        console.log(tb);
+    });
+
+    request.fail(function( jqXHR, textStatus ) {
+        console.log("Failed");
+    });
+})
+</script>
+</body>
+</html>

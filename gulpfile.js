@@ -14,7 +14,7 @@ gulp.task('test', function () {
 var paths = {
     cssfiles : [
         //"./bower_components/bootstrap/dist/css/*.min.css",
-        "./less/*.css",
+        //"./less/*.css",
         "./css/*.css"
     ],
     jsfiles : [
@@ -24,7 +24,7 @@ var paths = {
         "./bower_components/bootstrap/dist/js/*.min.js",
         "./bower_components/mithril/mithril.js",
         "./scripts/dropzone.js",
-        "./scripts/grid.js"
+        "./light/grid.js"
     ],
     json : "./sample.json",
     less : "./less/*.less"
@@ -60,13 +60,13 @@ gulp.task('css', ["less"], function () {
     return gulp.src(paths.cssfiles)
         .pipe(concat('bundle.css'))
         .pipe(minifyCSS({keepBreaks: true}))
-        .pipe(gulp.dest('./demo/'));
+        .pipe(gulp.dest('./light/'));
 });
 
 gulp.task('js', function(){
     return gulp.src(paths.jsfiles)
         .pipe(concat('bundle.js'))
-        .pipe(gulp.dest('./demo/'));
+        .pipe(gulp.dest('./light/'));
 });
 
 gulp.task('watch', function () {
