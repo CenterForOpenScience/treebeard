@@ -28,6 +28,7 @@ var m = (function app(window, undefined) {
 	var type = {}.toString;
 	var parser = /(?:(^|#|\.)([^#\.\[\]]+))|(\[.+?\])/g, attrParser = /\[(.+?)(?:=("|'|)(.*?)\2)?\]/;
 	var voidElements = /^(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|KEYGEN|LINK|META|PARAM|SOURCE|TRACK|WBR)$/;
+	var noop = function() {}
 
 	// caching commonly used variables
 	var $document, $location, $requestAnimationFrame, $cancelAnimationFrame;
@@ -58,7 +59,7 @@ var m = (function app(window, undefined) {
 	 */
 	function m() {
 		var args = [].slice.call(arguments);
-		var hasAttrs = args[1] != null && type.call(args[1]) === OBJECT && !("tag" in args[1]) && !("subtree" in args[1]);
+		var hasAttrs = args[1] != null && type.call(args[1]) === OBJECT && !("tag" in args[1] || "view" in args[1]) && !("subtree" in args[1]);
 		var attrs = hasAttrs ? args[1] : {};
 		var classAttrName = "class" in attrs ? "class" : "className";
 		var cell = {tag: "div", attrs: {}};
@@ -73,23 +74,26 @@ var m = (function app(window, undefined) {
 				cell.attrs[pair[1]] = pair[3] || (pair[2] ? "" :true)
 			}
 		}
-		if (classes.length > 0) cell.attrs[classAttrName] = classes.join(" ");
 
-
-		var children = hasAttrs ? args[2] : args[1];
-		if (type.call(children) === ARRAY) {
-			cell.children = children
+		var children = hasAttrs ? args.slice(2) : args.slice(1);
+		if (children.length === 1 && type.call(children[0]) === ARRAY) {
+			cell.children = children[0]
 		}
 		else {
-			cell.children = hasAttrs ? args.slice(2) : args.slice(1)
+			cell.children = children
 		}
-
+		
 		for (var attrName in attrs) {
-			if (attrName === classAttrName) {
-				if (attrs[attrName] !== "") cell.attrs[attrName] = (cell.attrs[attrName] || "") + " " + attrs[attrName];
+			if (attrs.hasOwnProperty(attrName)) {
+				if (attrName === classAttrName && attrs[attrName] != null && attrs[attrName] !== "") {
+					classes.push(attrs[attrName])
+					cell.attrs[attrName] = "" //create key in correct iteration order
+				}
+				else cell.attrs[attrName] = attrs[attrName]
 			}
-			else cell.attrs[attrName] = attrs[attrName]
 		}
+		if (classes.length > 0) cell.attrs[classAttrName] = classes.join(" ");
+		
 		return cell
 	}
 	function build(parentElement, parentTag, parentCache, parentIndex, data, cached, shouldReattach, index, editable, namespace, configs) {
@@ -118,8 +122,8 @@ var m = (function app(window, undefined) {
 		//there's logic that relies on the assumption that null and undefined data are equivalent to empty strings
 		//- this prevents lifecycle surprises from procedural helpers that mix implicit and explicit return statements (e.g. function foo() {if (cond) return m("div")}
 		//- it simplifies diffing code
-		//data.toString() is null if data is the return value of Console.log in Firefox
-		if (data == null || data.toString() == null) data = "";
+		//data.toString() might throw or return null if data is the return value of Console.log in Firefox (behavior depends on version)
+		try {if (data == null || data.toString() == null) data = "";} catch (e) {data = ""}
 		if (data.subtree === "retain") return cached;
 		var cachedType = type.call(cached), dataType = type.call(data);
 		if (cached == null || cachedType !== dataType) {
@@ -142,6 +146,7 @@ var m = (function app(window, undefined) {
 				if (type.call(data[i]) === ARRAY) {
 					data = data.concat.apply([], data);
 					i-- //check current index again and flatten until there are no more nested arrays at that index
+					len = data.length
 				}
 			}
 			
@@ -152,18 +157,26 @@ var m = (function app(window, undefined) {
 			//2) add new keys to map and mark them for addition
 			//3) if key exists in new list, change action from deletion to a move
 			//4) for each key, handle its corresponding action as marked in previous steps
-			//5) copy unkeyed items into their respective gaps
 			var DELETION = 1, INSERTION = 2 , MOVE = 3;
-			var existing = {}, unkeyed = [], shouldMaintainIdentities = false;
+			var existing = {}, shouldMaintainIdentities = false;
 			for (var i = 0; i < cached.length; i++) {
 				if (cached[i] && cached[i].attrs && cached[i].attrs.key != null) {
 					shouldMaintainIdentities = true;
 					existing[cached[i].attrs.key] = {action: DELETION, index: i}
 				}
 			}
+			
+			var guid = 0
+			for (var i = 0, len = data.length; i < len; i++) {
+				if (data[i] && data[i].attrs && data[i].attrs.key != null) {
+					for (var j = 0, len = data.length; j < len; j++) {
+						if (data[j] && data[j].attrs && data[j].attrs.key == null) data[j].attrs.key = "__mithril__" + guid++
+					}
+					break
+				}
+			}
+			
 			if (shouldMaintainIdentities) {
-				if (data.indexOf(null) > -1) data = data.filter(function(x) {return x != null})
-				
 				var keysDiffer = false
 				if (data.length != cached.length) keysDiffer = true
 				else for (var i = 0, cachedCell, dataCell; cachedCell = cached[i], dataCell = data[i]; i++) {
@@ -186,13 +199,13 @@ var m = (function app(window, undefined) {
 									element: cached.nodes[existing[key].index] || $document.createElement("div")
 								}
 							}
-							else unkeyed.push({index: i, element: parentElement.childNodes[i] || $document.createElement("div")})
 						}
 					}
 					var actions = []
 					for (var prop in existing) actions.push(existing[prop])
 					var changes = actions.sort(sortChanges);
 					var newCached = new Array(cached.length)
+					newCached.nodes = cached.nodes.slice()
 
 					for (var i = 0, change; change = changes[i]; i++) {
 						if (change.action === DELETION) {
@@ -204,6 +217,7 @@ var m = (function app(window, undefined) {
 							dummy.key = data[change.index].attrs.key;
 							parentElement.insertBefore(dummy, parentElement.childNodes[change.index] || null);
 							newCached.splice(change.index, 0, {attrs: {key: data[change.index].attrs.key}, nodes: [dummy]})
+							newCached.nodes[change.index] = dummy
 						}
 
 						if (change.action === MOVE) {
@@ -211,16 +225,10 @@ var m = (function app(window, undefined) {
 								parentElement.insertBefore(change.element, parentElement.childNodes[change.index] || null)
 							}
 							newCached[change.index] = cached[change.from]
+							newCached.nodes[change.index] = change.element
 						}
 					}
-					for (var i = 0, len = unkeyed.length; i < len; i++) {
-						var change = unkeyed[i];
-						parentElement.insertBefore(change.element, parentElement.childNodes[change.index] || null);
-						newCached[change.index] = cached[change.index]
-					}
 					cached = newCached;
-					cached.nodes = new Array(parentElement.childNodes.length);
-					for (var i = 0, child; child = parentElement.childNodes[i]; i++) cached.nodes[i] = child
 				}
 			}
 			//end key algorithm
@@ -234,7 +242,7 @@ var m = (function app(window, undefined) {
 					//fix offset of next element if item was a trusted string w/ more than one html element
 					//the first clause in the regexp matches elements
 					//the second clause (after the pipe) matches text nodes
-					subArrayCount += (item.match(/<[^\/]|\>\s*[^<]/g) || []).length
+					subArrayCount += (item.match(/<[^\/]|\>\s*[^<]/g) || [0]).length
 				}
 				else subArrayCount += type.call(item) === ARRAY ? item.length : 1;
 				cached[cacheCount++] = item
@@ -256,15 +264,37 @@ var m = (function app(window, undefined) {
 			}
 		}
 		else if (data != null && dataType === OBJECT) {
+			var views = [], controllers = []
+			while (data.view) {
+				var view = data.view.$original || data.view
+				var controllerIndex = m.redraw.strategy() == "diff" && cached.views ? cached.views.indexOf(view) : -1
+				var controller = controllerIndex > -1 ? cached.controllers[controllerIndex] : new (data.controller || noop)
+				var key = data && data.attrs && data.attrs.key
+				data = pendingRequests == 0 || (cached && cached.controllers && cached.controllers.indexOf(controller) > -1) ? data.view(controller) : {tag: "placeholder"}
+				if (data.subtree === "retain") return cached;
+				if (key) {
+					if (!data.attrs) data.attrs = {}
+					data.attrs.key = key
+				}
+				if (controller.onunload) unloaders.push({controller: controller, handler: controller.onunload})
+				views.push(view)
+				controllers.push(controller)
+			}
+			if (!data.tag && controllers.length) throw new Error("Component template must return a virtual element, not an array, string, etc.")
 			if (!data.attrs) data.attrs = {};
 			if (!cached.attrs) cached.attrs = {};
 
 			var dataAttrKeys = Object.keys(data.attrs)
 			var hasKeys = dataAttrKeys.length > ("key" in data.attrs ? 1 : 0)
 			//if an element is different enough from the one in cache, recreate it
-			if (data.tag != cached.tag || dataAttrKeys.join() != Object.keys(cached.attrs).join() || data.attrs.id != cached.attrs.id) {
+			if (data.tag != cached.tag || dataAttrKeys.sort().join() != Object.keys(cached.attrs).sort().join() || data.attrs.id != cached.attrs.id || data.attrs.key != cached.attrs.key || (m.redraw.strategy() == "all" && (!cached.configContext || cached.configContext.retain !== true)) || (m.redraw.strategy() == "diff" && cached.configContext && cached.configContext.retain === false)) {
 				if (cached.nodes.length) clear(cached.nodes);
 				if (cached.configContext && typeof cached.configContext.onunload === FUNCTION) cached.configContext.onunload()
+				if (cached.controllers) {
+					for (var i = 0, controller; controller = cached.controllers[i]; i++) {
+						if (typeof controller.onunload === FUNCTION) controller.onunload({preventDefault: noop})
+					}
+				}
 			}
 			if (type.call(data.tag) != STRING) return;
 
@@ -272,6 +302,7 @@ var m = (function app(window, undefined) {
 			if (data.attrs.xmlns) namespace = data.attrs.xmlns;
 			else if (data.tag === "svg") namespace = "http://www.w3.org/2000/svg";
 			else if (data.tag === "math") namespace = "http://www.w3.org/1998/Math/MathML";
+			
 			if (isNew) {
 				if (data.attrs.is) node = namespace === undefined ? $document.createElement(data.tag, data.attrs.is) : $document.createElementNS(namespace, data.tag, data.attrs.is);
 				else node = namespace === undefined ? $document.createElement(data.tag) : $document.createElementNS(namespace, data.tag);
@@ -284,9 +315,22 @@ var m = (function app(window, undefined) {
 						data.children,
 					nodes: [node]
 				};
+				if (controllers.length) {
+					cached.views = views
+					cached.controllers = controllers
+					for (var i = 0, controller; controller = controllers[i]; i++) {
+						if (controller.onunload && controller.onunload.$old) controller.onunload = controller.onunload.$old
+						if (pendingRequests && controller.onunload) {
+							var onunload = controller.onunload
+							controller.onunload = noop
+							controller.onunload.$old = onunload
+						}
+					}
+				}
+				
 				if (cached.children && !cached.children.nodes) cached.children.nodes = [];
 				//edge case: setting value on <select> doesn't work before children exist, so set it again after children have been created
-				if (data.tag === "select" && data.attrs.value) setAttributes(node, data.tag, {value: data.attrs.value}, {}, namespace);
+				if (data.tag === "select" && "value" in data.attrs) setAttributes(node, data.tag, {value: data.attrs.value}, {}, namespace);
 				parentElement.insertBefore(node, parentElement.childNodes[index] || null)
 			}
 			else {
@@ -294,6 +338,10 @@ var m = (function app(window, undefined) {
 				if (hasKeys) setAttributes(node, data.tag, data.attrs, cached.attrs, namespace);
 				cached.children = build(node, data.tag, undefined, undefined, data.children, cached.children, false, 0, data.attrs.contenteditable ? node : editable, namespace, configs);
 				cached.nodes.intact = true;
+				if (controllers.length) {
+					cached.views = views
+					cached.controllers = controllers
+				}
 				if (shouldReattach === true && node != null) parentElement.insertBefore(node, parentElement.childNodes[index] || null)
 			}
 			//schedule configs to be called. They are called after `build` finishes running
@@ -309,7 +357,7 @@ var m = (function app(window, undefined) {
 				configs.push(callback(data, [node, !isNew, context, cached]))
 			}
 		}
-		else if (typeof dataType != FUNCTION) {
+		else if (typeof data != FUNCTION) {
 			//handle text nodes
 			var nodes;
 			if (cached.nodes.length === 0) {
@@ -385,7 +433,7 @@ var m = (function app(window, undefined) {
 					//handle cases that are properties (but ignore cases where we should use setAttribute instead)
 					//- list and form are typically used as strings, but are DOM element references in js
 					//- when using CSS selectors (e.g. `m("[style='']")`), style is used as a string, but it's an object in js
-					else if (attrName in node && !(attrName === "list" || attrName === "style" || attrName === "form" || attrName === "type")) {
+					else if (attrName in node && !(attrName === "list" || attrName === "style" || attrName === "form" || attrName === "type" || attrName === "width" || attrName === "height")) {
 						//#348 don't set the value if not needed otherwise cursor placement breaks in Chrome
 						if (tag !== "input" || node[attrName] !== dataAttr) node[attrName] = dataAttr
 					}
@@ -415,7 +463,15 @@ var m = (function app(window, undefined) {
 		if (nodes.length != 0) nodes.length = 0
 	}
 	function unload(cached) {
-		if (cached.configContext && typeof cached.configContext.onunload === FUNCTION) cached.configContext.onunload();
+		if (cached.configContext && typeof cached.configContext.onunload === FUNCTION) {
+			cached.configContext.onunload();
+			cached.configContext.onunload = null
+		}
+		if (cached.controllers) {
+			for (var i = 0, controller; controller = cached.controllers[i]; i++) {
+				if (typeof controller.onunload === FUNCTION) controller.onunload({preventDefault: noop});
+			}
+		}
 		if (cached.children) {
 			if (type.call(cached.children) === ARRAY) {
 				for (var i = 0, child; child = cached.children[i]; i++) unload(child)
@@ -473,7 +529,7 @@ var m = (function app(window, undefined) {
 	var nodeCache = [], cellCache = {};
 	m.render = function(root, cell, forceRecreation) {
 		var configs = [];
-		if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.");
+		if (!root) throw new Error("Ensure the DOM element being passed to m.route/m.mount/m.render is not undefined.");
 		var id = getCellCacheKey(root);
 		var isDocumentRoot = root === $document;
 		var node = isDocumentRoot || root === $document.documentElement ? documentNode : root;
@@ -516,42 +572,75 @@ var m = (function app(window, undefined) {
 		return gettersetter(store)
 	};
 
-	var roots = [], modules = [], controllers = [], lastRedrawId = null, lastRedrawCallTime = 0, computePostRedrawHook = null, prevented = false, topModule;
+	var roots = [], components = [], controllers = [], lastRedrawId = null, lastRedrawCallTime = 0, computePreRedrawHook = null, computePostRedrawHook = null, prevented = false, topComponent, unloaders = [];
 	var FRAME_BUDGET = 16; //60 frames per second = 1 call per 16 ms
-	m.module = function(root, module) {
+	function parameterize(component, args) {
+		var controller = function() {
+			return (component.controller || noop).apply(this, args) || this
+		}
+		var view = function(ctrl) {
+			if (arguments.length > 1) args = args.concat([].slice.call(arguments, 1))
+			return component.view.apply(component, args ? [ctrl].concat(args) : [ctrl])
+		}
+		view.$original = component.view
+		var output = {controller: controller, view: view}
+		if (args[0] && args[0].key != null) output.attrs = {key: args[0].key}
+		return output
+	}
+	m.component = function(component) {
+		return parameterize(component, [].slice.call(arguments, 1))
+	}
+	m.mount = m.module = function(root, component) {
 		if (!root) throw new Error("Please ensure the DOM element exists before rendering a template into it.");
 		var index = roots.indexOf(root);
 		if (index < 0) index = roots.length;
+		
 		var isPrevented = false;
+		var event = {preventDefault: function() {
+			isPrevented = true;
+			computePreRedrawHook = computePostRedrawHook = null;
+		}};
+		for (var i = 0, unloader; unloader = unloaders[i]; i++) {
+			unloader.handler.call(unloader.controller, event)
+			unloader.controller.onunload = null
+		}
+		if (isPrevented) {
+			for (var i = 0, unloader; unloader = unloaders[i]; i++) unloader.controller.onunload = unloader.handler
+		}
+		else unloaders = []
+		
 		if (controllers[index] && typeof controllers[index].onunload === FUNCTION) {
-			var event = {
-				preventDefault: function() {isPrevented = true}
-			};
 			controllers[index].onunload(event)
 		}
+		
 		if (!isPrevented) {
 			m.redraw.strategy("all");
 			m.startComputation();
 			roots[index] = root;
-			var currentModule = topModule = module = module || {};
-			var controller = new (module.controller || function() {});
-			//controllers may call m.module recursively (via m.route redirects, for example)
-			//this conditional ensures only the last recursive m.module call is applied
-			if (currentModule === topModule) {
+			if (arguments.length > 2) component = subcomponent(component, [].slice.call(arguments, 2))
+			var currentComponent = topComponent = component = component || {controller: function() {}};
+			var constructor = component.controller || noop
+			var controller = new constructor;
+			//controllers may call m.mount recursively (via m.route redirects, for example)
+			//this conditional ensures only the last recursive m.mount call is applied
+			if (currentComponent === topComponent) {
 				controllers[index] = controller;
-				modules[index] = module
+				components[index] = component
 			}
 			endFirstComputation();
 			return controllers[index]
 		}
 	};
+	var redrawing = false
 	m.redraw = function(force) {
+		if (redrawing) return
+		redrawing = true
 		//lastRedrawId is a positive number if a second redraw is requested before the next animation frame
 		//lastRedrawID is null if it's the first redraw and not an event handler
 		if (lastRedrawId && force !== true) {
 			//when setTimeout: only reschedule redraw if time between now and previous redraw is bigger than a frame, otherwise keep currently scheduled timeout
 			//when rAF: always reschedule redraw
-			if (new Date - lastRedrawCallTime > FRAME_BUDGET || $requestAnimationFrame === window.requestAnimationFrame) {
+			if ($requestAnimationFrame === window.requestAnimationFrame || new Date - lastRedrawCallTime > FRAME_BUDGET) {
 				if (lastRedrawId > 0) $cancelAnimationFrame(lastRedrawId);
 				lastRedrawId = $requestAnimationFrame(redraw, FRAME_BUDGET)
 			}
@@ -560,14 +649,18 @@ var m = (function app(window, undefined) {
 			redraw();
 			lastRedrawId = $requestAnimationFrame(function() {lastRedrawId = null}, FRAME_BUDGET)
 		}
+		redrawing = false
 	};
 	m.redraw.strategy = m.prop();
-	var blank = function() {return ""}
 	function redraw() {
-		var forceRedraw = m.redraw.strategy() === "all";
+		if (computePreRedrawHook) {
+			computePreRedrawHook()
+			computePreRedrawHook = null
+		}
 		for (var i = 0, root; root = roots[i]; i++) {
 			if (controllers[i]) {
-				m.render(root, (modules[i].view || blank)(controllers[i]), forceRedraw)
+				var args = components[i].controller && components[i].controller.$$args ? [controllers[i]].concat(components[i].controller.$$args) : [controllers[i]]
+				m.render(root, components[i].view ? components[i].view(controllers[i], args) : "")
 			}
 		}
 		//after rendering within a routed context, we need to scroll back to the top, and fetch the document title for history.pushState
@@ -604,7 +697,7 @@ var m = (function app(window, undefined) {
 
 	//routing
 	var modes = {pathname: "", hash: "#", search: "?"};
-	var redirect = function() {}, routeParams, currentRoute;
+	var redirect = noop, routeParams, currentRoute, isDefaultRoute = false;
 	m.route = function() {
 		//m.route()
 		if (arguments.length === 0) return currentRoute;
@@ -614,7 +707,10 @@ var m = (function app(window, undefined) {
 			redirect = function(source) {
 				var path = currentRoute = normalizeRoute(source);
 				if (!routeByValue(root, router, path)) {
+					if (isDefaultRoute) throw new Error("Ensure the default route matches one of the routes defined in m.route")
+					isDefaultRoute = true
 					m.route(defaultRoute, true)
+					isDefaultRoute = false
 				}
 			};
 			var listener = m.route.mode === "hash" ? "onhashchange" : "onpopstate";
@@ -625,20 +721,28 @@ var m = (function app(window, undefined) {
 					redirect(path)
 				}
 			};
-			computePostRedrawHook = setScroll;
+			computePreRedrawHook = setScroll;
 			window[listener]()
 		}
 		//config: m.route
-		else if (arguments[0].addEventListener) {
+		else if (arguments[0].addEventListener || arguments[0].attachEvent) {
 			var element = arguments[0];
 			var isInitialized = arguments[1];
 			var context = arguments[2];
-			element.href = (m.route.mode !== 'pathname' ? $location.pathname : '') + modes[m.route.mode] + this.attrs.href;
-			element.removeEventListener("click", routeUnobtrusive);
-			element.addEventListener("click", routeUnobtrusive)
+			var vdom = arguments[3];
+			element.href = (m.route.mode !== 'pathname' ? $location.pathname : '') + modes[m.route.mode] + vdom.attrs.href;
+			if (element.addEventListener) {
+				element.removeEventListener("click", routeUnobtrusive);
+				element.addEventListener("click", routeUnobtrusive)
+			}
+			else {
+				element.detachEvent("onclick", routeUnobtrusive);
+				element.attachEvent("onclick", routeUnobtrusive)
+			}
 		}
-		//m.route(route, params)
+		//m.route(route, params, shouldReplaceHistoryEntry)
 		else if (type.call(arguments[0]) === STRING) {
+			var oldRoute = currentRoute;
 			currentRoute = arguments[0];
 			var args = arguments[1] || {}
 			var queryIndex = currentRoute.indexOf("?")
@@ -648,16 +752,19 @@ var m = (function app(window, undefined) {
 			var currentPath = queryIndex > -1 ? currentRoute.slice(0, queryIndex) : currentRoute
 			if (querystring) currentRoute = currentPath + (currentPath.indexOf("?") === -1 ? "?" : "&") + querystring;
 
-			var shouldReplaceHistoryEntry = (arguments.length === 3 ? arguments[2] : arguments[1]) === true || currentRoute === arguments[0];
+			var shouldReplaceHistoryEntry = (arguments.length === 3 ? arguments[2] : arguments[1]) === true || oldRoute === arguments[0];
 
 			if (window.history.pushState) {
+				computePreRedrawHook = setScroll
 				computePostRedrawHook = function() {
 					window.history[shouldReplaceHistoryEntry ? "replaceState" : "pushState"](null, $document.title, modes[m.route.mode] + currentRoute);
-					setScroll()
 				};
 				redirect(modes[m.route.mode] + currentRoute)
 			}
-			else $location[m.route.mode] = currentRoute
+			else {
+				$location[m.route.mode] = currentRoute
+				redirect(modes[m.route.mode] + currentRoute)
+			}
 		}
 	};
 	m.route.param = function(key) {
@@ -677,9 +784,18 @@ var m = (function app(window, undefined) {
 			path = path.substr(0, queryStart)
 		}
 
+		// Get all routes and check if there's
+		// an exact match for the current path
+		var keys = Object.keys(router);
+		var index = keys.indexOf(path);
+		if(index !== -1){
+			m.mount(root, router[keys [index]]);
+			return true;
+		}
+
 		for (var route in router) {
 			if (route === path) {
-				m.module(root, router[route]);
+				m.mount(root, router[route]);
 				return true
 			}
 
@@ -690,7 +806,7 @@ var m = (function app(window, undefined) {
 					var keys = route.match(/:[^\/]+/g) || [];
 					var values = [].slice.call(arguments, 1, -2);
 					for (var i = 0, len = keys.length; i < len; i++) routeParams[keys[i].replace(/:|\./g, "")] = decodeURIComponent(values[i])
-					m.module(root, router[route])
+					m.mount(root, router[route])
 				});
 				return true
 			}
@@ -701,8 +817,9 @@ var m = (function app(window, undefined) {
 		if (e.ctrlKey || e.metaKey || e.which === 2) return;
 		if (e.preventDefault) e.preventDefault();
 		else e.returnValue = false;
-		var currentTarget = e.currentTarget || this;
+		var currentTarget = e.currentTarget || e.srcElement;
 		var args = m.route.mode === "pathname" && currentTarget.search ? parseQueryString(currentTarget.search.slice(1)) : {};
+		while (currentTarget && currentTarget.nodeName.toUpperCase() != "A") currentTarget = currentTarget.parentNode
 		m.route(currentTarget[m.route.mode].slice(modes[m.route.mode].length), args)
 	}
 	function setScroll() {
@@ -710,28 +827,46 @@ var m = (function app(window, undefined) {
 		else window.scrollTo(0, 0)
 	}
 	function buildQueryString(object, prefix) {
-		var str = [];
-		for(var prop in object) {
-			var key = prefix ? prefix + "[" + prop + "]" : prop, value = object[prop];
+		var duplicates = {}
+		var str = []
+		for (var prop in object) {
+			var key = prefix ? prefix + "[" + prop + "]" : prop
+			var value = object[prop]
 			var valueType = type.call(value)
-			var pair = value != null && (valueType === OBJECT) ?
-				buildQueryString(value, key) :
-				valueType === ARRAY ?
-					value.map(function(item) {return encodeURIComponent(key) + "=" + encodeURIComponent(item)}).join("&") :
-					encodeURIComponent(key) + "=" + encodeURIComponent(value)
-			str.push(pair)
+			var pair = (value === null) ? encodeURIComponent(key) :
+				valueType === OBJECT ? buildQueryString(value, key) :
+				valueType === ARRAY ? value.reduce(function(memo, item) {
+					if (!duplicates[key]) duplicates[key] = {}
+					if (!duplicates[key][item]) {
+						duplicates[key][item] = true
+						return memo.concat(encodeURIComponent(key) + "=" + encodeURIComponent(item))
+					}
+					return memo
+				}, []).join("&") :
+				encodeURIComponent(key) + "=" + encodeURIComponent(value)
+			if (value !== undefined) str.push(pair)
 		}
 		return str.join("&")
 	}
-	
 	function parseQueryString(str) {
+		if (str.charAt(0) === "?") str = str.substring(1);
+		
 		var pairs = str.split("&"), params = {};
 		for (var i = 0, len = pairs.length; i < len; i++) {
 			var pair = pairs[i].split("=");
-			params[decodeURIComponent(pair[0])] = pair[1] ? decodeURIComponent(pair[1]) : ""
+			var key = decodeURIComponent(pair[0])
+			var value = pair.length == 2 ? decodeURIComponent(pair[1]) : null
+			if (params[key] != null) {
+				if (type.call(params[key]) !== ARRAY) params[key] = [params[key]]
+				params[key].push(value)
+			}
+			else params[key] = value
 		}
 		return params
 	}
+	m.route.buildQueryString = buildQueryString
+	m.route.parseQueryString = parseQueryString
+	
 	function reset(root) {
 		var cacheKey = getCellCacheKey(root);
 		clear(root.childNodes, cellCache[cacheKey]);
@@ -743,11 +878,11 @@ var m = (function app(window, undefined) {
 		deferred.promise = propify(deferred.promise);
 		return deferred
 	};
-	function propify(promise) {
-		var prop = m.prop();
+	function propify(promise, initialValue) {
+		var prop = m.prop(initialValue);
 		promise.then(prop);
 		prop.then = function(resolve, reject) {
-			return propify(promise.then(resolve, reject))
+			return propify(promise.then(resolve, reject), initialValue)
 		};
 		return prop
 	}
@@ -1000,20 +1135,21 @@ var m = (function app(window, undefined) {
 
 	m.request = function(xhrOptions) {
 		if (xhrOptions.background !== true) m.startComputation();
-		var deferred = m.deferred();
+		var deferred = new Deferred();
 		var isJSONP = xhrOptions.dataType && xhrOptions.dataType.toLowerCase() === "jsonp";
 		var serialize = xhrOptions.serialize = isJSONP ? identity : xhrOptions.serialize || JSON.stringify;
 		var deserialize = xhrOptions.deserialize = isJSONP ? identity : xhrOptions.deserialize || JSON.parse;
-		var extract = xhrOptions.extract || function(xhr) {
+		var extract = isJSONP ? function(jsonp) {return jsonp.responseText} : xhrOptions.extract || function(xhr) {
 			return xhr.responseText.length === 0 && deserialize === JSON.parse ? null : xhr.responseText
 		};
+		xhrOptions.method = (xhrOptions.method || 'GET').toUpperCase();
 		xhrOptions.url = parameterizeUrl(xhrOptions.url, xhrOptions.data);
 		xhrOptions = bindData(xhrOptions, xhrOptions.data, serialize);
 		xhrOptions.onload = xhrOptions.onerror = function(e) {
 			try {
 				e = e || event;
 				var unwrap = (e.type === "load" ? xhrOptions.unwrapSuccess : xhrOptions.unwrapError) || identity;
-				var response = unwrap(deserialize(extract(e.target, xhrOptions)));
+				var response = unwrap(deserialize(extract(e.target, xhrOptions)), e.target);
 				if (e.type === "load") {
 					if (type.call(response) === ARRAY && xhrOptions.type) {
 						for (var i = 0; i < response.length; i++) response[i] = new xhrOptions.type(response[i])
@@ -1029,7 +1165,7 @@ var m = (function app(window, undefined) {
 			if (xhrOptions.background !== true) m.endComputation()
 		};
 		ajax(xhrOptions);
-		deferred.promise(xhrOptions.initialValue);
+		deferred.promise = propify(deferred.promise, xhrOptions.initialValue);
 		return deferred.promise
 	};
 
@@ -2967,6 +3103,48 @@ if (typeof exports == "object") {
         return oldmrequest.apply(this, arguments);
     };
 
+    // From Underscore.js, MIT License
+    //
+    // Returns a function, that, as long as it continues to be invoked, will not
+    // be triggered. The function will be called after it stops being called for
+    // N milliseconds. If `immediate` is passed, trigger the function on the
+    // leading edge, instead of the trailing.
+    var debounce = function(func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+
+        var later = function() {
+            var last = new Date().getTime() - timestamp;
+
+            if (last < wait && last >= 0) {
+                timeout = setTimeout(later, wait - last);
+            } else {
+                timeout = null;
+                if (!immediate) {
+                    result = func.apply(context, args);
+                    if (!timeout) {
+                        context = args = null;
+                    }
+                }
+            }
+        };
+
+        return function() {
+            context = this;
+            args = arguments;
+            timestamp = new Date().getTime();
+            var callNow = immediate && !timeout;
+            if (!timeout) {
+                timeout = setTimeout(later, wait);
+            }
+            if (callNow) {
+                result = func.apply(context, args);
+                context = args = null;
+            }
+
+            return result;
+        };
+    };
+
     // Indexes by id, shortcuts to the tree objects. Use example: var item = Indexes[23];
     var Indexes = {},
         // Item constructor
@@ -3016,22 +3194,33 @@ if (typeof exports == "object") {
      */
     function ascByAttr(data, sortType) {
         if (sortType === "number") {
-            return function _numcompare(a, b) {
-                var num1 = a.data[data];
-                var num2 = b.data[data];
-                return num1 - num2;
+            return function _numCompare(a, b) {
+                var num1 = a.data[data] ? a.data[data] : 0;
+                var num2 = b.data[data] ? b.data[data] : 0;
+                var compareNum = num1 - num2;
+                if(compareNum === 0) return a.id - b.id;
+                return compareNum;
+            };
+        }
+        if (sortType === 'date') {
+            return function _dateCompare(a, b) {
+                var date1 = a.data[data] ? new Date(a.data[data]) : new Date(0);
+                var date2 = b.data[data] ? new Date(b.data[data]) : new Date(0);
+                var compareDates = date1 - date2;
+                if(compareDates === 0) return a.id - b.id;
+                return compareDates;
             };
         }
         return function _compare(a, b) {
-            var titleA = a.data[data].toLowerCase().replace(/\s+/g, " "),
-                titleB = b.data[data].toLowerCase().replace(/\s+/g, " ");
-            if (titleA < titleB) {
+            var textA = a.data[data] ? a.data[data].toString().toLowerCase().replace(/\s/g, '').trim() : '',
+                textB = b.data[data] ? b.data[data].toString().toLowerCase().replace(/\s/g, '').trim() : '';
+            if (textA < textB) {
                 return -1;
             }
-            if (titleA > titleB) {
+            if (textA > textB) {
                 return 1;
             }
-            return 0;
+            return a.id < b.id ? -1 : +1;
         };
     }
 
@@ -3043,22 +3232,33 @@ if (typeof exports == "object") {
      */
     function descByAttr(data, sortType) {
         if (sortType === "number") {
-            return function _numcompare(a, b) {
-                var num1 = a.data[data];
-                var num2 = b.data[data];
-                return num2 - num1;
+            return function _numCompare(a, b) {
+                var num1 = a.data[data] ? a.data[data] : 0;
+                var num2 = b.data[data] ? b.data[data] : 0;
+                var compareNum = num2 - num1;
+                if(compareNum === 0) { return b.id - a.id };
+                return compareNum;
+            };
+        }
+        if (sortType === 'date') {
+            return function _dateCompare(a, b) {
+                var date1 = a.data[data] ? new Date(a.data[data]) : new Date(0);
+                var date2 = b.data[data] ? new Date(b.data[data]) : new Date(0);
+                var compareDates = date2 - date1;
+                if(compareDates === 0) { return b.id - a.id };
+                return compareDates;
             };
         }
         return function _compare(a, b) {
-            var titleA = a.data[data].toLowerCase().replace(/\s/g, ''),
-                titleB = b.data[data].toLowerCase().replace(/\s/g, '');
-            if (titleA > titleB) {
+            var textA = a.data[data] ? a.data[data].toString().toLowerCase().replace(/\s/g, '') : '',
+                textB = b.data[data] ? b.data[data].toString().toLowerCase().replace(/\s/g, '') : '';
+            if (textA > textB) {
                 return -1;
             }
-            if (titleA < titleB) {
+            if (textA < textB) {
                 return 1;
             }
-            return 0;
+            return a.id > b.id ? -1 : +1;
         };
     }
 
@@ -3146,6 +3346,8 @@ if (typeof exports == "object") {
         this.on = false;
         this.timeout = false;
         this.css = '';
+        this.padding = '50px 100px;';
+        this.header = null;
         this.content = null;
         this.actions = null;
         this.height = el.height();
@@ -3168,8 +3370,11 @@ if (typeof exports == "object") {
             this.on = !this.on;
             m.redraw(true);
         };
-        this.update = function (contentMithril, actions) {
+        this.update = function (contentMithril, actions, header) {
             self.updateSize();
+            if (header) {
+                this.header = header;
+            }
             if (contentMithril) {
                 this.content = contentMithril;
             }
@@ -3179,13 +3384,19 @@ if (typeof exports == "object") {
             this.on = true;
             m.redraw(true);
         };
+
         this.updateSize = function () {
             this.height = ctrl.select('#tb-tbody').height();
             this.width = ctrl.select('#tb-tbody').width();
+            if (this.width < 500) {
+                this.padding = '40px';
+            } else {
+                this.padding = '50px 100px';
+            }
             m.redraw(true);
         };
         this.onmodalshow = function () {
-            var margin = ctrl.select('.tb-tbody-inner>div').css('margin-top');
+            var margin = ctrl.select('#tb-tbody').scrollTop();
             ctrl.select('.tb-modal-shade').css('margin-top', margin);
             ctrl.select('#tb-tbody').css('overflow', 'hidden');
         };
@@ -3247,11 +3458,11 @@ if (typeof exports == "object") {
      * @param {Number} toID Unique id of the container item to move to
      * @returns {Object} this The current item.
      */
-    Item.prototype.move = function _itemMove(toID) {
+    Item.prototype.move = function _itemMove(toID, toTop) {
         var toItem = Indexes[toID],
             parentID = this.parentID,
             parent = Indexes[parentID];
-        toItem.add(this);
+        toItem.add(this, toTop);
         toItem.redoDepth();
         if (parentID > -1) {
             parent.removeChild(parseInt(this.id, 10));
@@ -3430,11 +3641,11 @@ if (typeof exports == "object") {
     };
 
     // Treebeard methods
-    Treebeard.controller = function _treebeardController(opts) {
+    Treebeard.controller = function _treebeardController(args) {
         // private variables
-        var self = this, // Treebard.controller
-            _lastLocation = 0, // The last scrollTop location, updates on every scroll.
-            _lastNonFilterLocation = 0; // The last scrolltop location before filter was used.
+        var self = this; // Treebard.controller
+        var lastLocation = 0; // The last scrollTop location, updates on every scroll.
+        var lastNonFilterLocation = 0; // The last scrolltop location before filter was used.
         this.isSorted = {}; // Temporary variables for sorting
         m.redraw.strategy("all");
         // public variables
@@ -3442,7 +3653,7 @@ if (typeof exports == "object") {
         this.treeData = {}; // The data in hierarchical form
         this.filterText = m.prop(""); // value of the filtertext input
         this.showRange = []; // Array of indexes that the range shows
-        this.options = opts; // User defined options
+        this.options = args.options; // User defined options
         this.selected = undefined; // The row selected on click.
         this.rangeMargin = 0; // Top margin, required for proper scrolling
         this.visibleIndexes = []; // List of items viewable as a result of an operation like filter.
@@ -3451,11 +3662,14 @@ if (typeof exports == "object") {
         this.dropzone = null; // Treebeard's own dropzone object
         this.dropzoneItemCache = undefined; // Cache of the dropped item
         this.filterOn = false; // Filter state for use across the app
-        this.multiselected = [];
+        this.multiselected = m.prop([]);
         this.pressedKey = undefined;
         this.dragOngoing = false;
         this.initialized = false; // Treebeard's own initialization check, turns to true after page loads.
         this.colsizes = {}; // Storing column sizes across the app.
+        this.tableWidth = m.prop('auto;'); // Whether there should be horizontal scrolling
+        this.isUploading = m.prop(false); // Whether an upload is taking place.
+
         /**
          * Helper function to redraw if user makes changes to the item (like deleting through a hook)
          */
@@ -3463,11 +3677,14 @@ if (typeof exports == "object") {
             self.flatten(self.treeData.children, self.visibleTop);
         };
 
+        this.mredraw = function _mredraw() {
+            m.redraw();
+        };
         /**
          * Prepend selector with ID of root DOM node
          * @param {String} selector CSS selector
          */
-        this.select = function(selector) {
+        this.select = function (selector) {
             return $('#' + self.options.divID + ' ' + selector);
         };
 
@@ -3507,10 +3724,10 @@ if (typeof exports == "object") {
                         self.options.dragEvents.drag.call(self, event, ui);
                     } else {
                         if (self.dragText === "") {
-                            if (self.multiselected.length > 1) {
-                                var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected.length - 1) + ' more </b>';
+                            if (self.multiselected().length > 1) {
+                                var newHTML = $(ui.helper).text() + ' <b> + ' + (self.multiselected().length - 1) + ' more </b>';
                                 self.dragText = newHTML;
-                                self.select('.tb-drag-ghost').html(newHTML);
+                                $('.tb-drag-ghost').html(newHTML);
                             }
                         }
                         $(ui.helper).css({
@@ -3520,7 +3737,7 @@ if (typeof exports == "object") {
                     // keep copy of the element and attach it to the mouse location
                     x = event.pageX > 50 ? event.pageX - 50 : 50;
                     y = event.pageY - 10;
-                    self.select('.tb-drag-ghost').css({
+                    $('.tb-drag-ghost').css({
                         'position': 'absolute',
                         top: y,
                         left: x,
@@ -3545,7 +3762,7 @@ if (typeof exports == "object") {
                     item = self.find(thisID);
                     if (!self.isMultiselected(thisID)) {
                         self.clearMultiselect();
-                        self.multiselected.push(item);
+                        self.multiselected().push(item);
                     }
                     self.dragText = '';
                     ghost = $(ui.helper).clone();
@@ -3558,7 +3775,7 @@ if (typeof exports == "object") {
                     self.select('.tb-row').removeClass(self.options.hoverClass + ' tb-h-error tb-h-success');
                 },
                 stop: function (event, ui) {
-                    self.select('.tb-drag-ghost').remove();
+                    $('.tb-drag-ghost').remove();
                     if (self.options.dragEvents.stop) {
                         self.options.dragEvents.stop.call(self, event, ui);
                     }
@@ -3595,18 +3812,8 @@ if (typeof exports == "object") {
                     }
                 },
                 over: function (event, ui) {
-                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'), 10),
-                        last = self.flatData[self.showRange[self.showRange.length - 1]].id,
-                        first = self.flatData[self.showRange[0]].id,
-                        currentScroll;
-                    if (id === last) {
-                        currentScroll = self.select('#tb-tbody').scrollTop();
-                        self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight);
-                    }
-                    if (id === first) {
-                        currentScroll = self.select('#tb-tbody').scrollTop();
-                        self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight);
-                    }
+                    var id = parseInt($(event.target).closest('.tb-row').attr('data-id'), 10);
+                    self.scrollEdges(id);
                     if (self.options.dropEvents.over) {
                         self.options.dropEvents.over.call(self, event, ui);
                     }
@@ -3617,6 +3824,20 @@ if (typeof exports == "object") {
             self.options.dragSelector = self.options.moveClass || 'td-title';
             self.moveOn();
         };
+
+        // Handles scrolling when items are at the beginning or end of visible items.
+        this.scrollEdges = function (id, buffer) {
+            var buffer = buffer || 1,
+                last = self.flatData[self.showRange[self.showRange.length - 1 - buffer]].id,
+                first = self.flatData[self.showRange[0 + buffer]].id,
+                currentScroll = self.select('#tb-tbody').scrollTop();
+            if (id === last) {
+                self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight + 1);
+            }
+            if (id === first) {
+                self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight - 1);
+            }
+        }
 
         /**
          * Turns move on for all elements or elements within a parent container
@@ -3762,11 +3983,20 @@ if (typeof exports == "object") {
                 filter = self.filterText().toLowerCase(),
                 titleResult = false,
                 i,
+                j,
                 o;
             for (i = 0; i < cols.length; i++) {
                 o = cols[i];
-                if (o.filter && item.data[o.data].toLowerCase().indexOf(filter) !== -1) {
+                if (o.filter && item.data[o.data].toString().toLowerCase().indexOf(filter) !== -1) {
                     titleResult = true;
+                }
+            }
+            var hiddenRows = self.options.hiddenFilterRows;
+            if (hiddenRows && hiddenRows.length > 0){
+                for (j = 0; j < hiddenRows.length; j++) {
+                    if (item.data[hiddenRows[j]].toString().toLowerCase().indexOf(filter) !== -1) {
+                        titleResult = true;
+                    }
                 }
             }
             return titleResult;
@@ -3782,18 +4012,11 @@ if (typeof exports == "object") {
             var filter = self.filterText().toLowerCase(),
                 index = self.visibleTop;
             if (filter.length === 0) {
-                self.filterOn = false;
-                self.calculateVisible(0);
-                self.calculateHeight();
-                m.redraw(true);
-                $('#tb-tbody').scrollTop(_lastNonFilterLocation); // restore location of scroll
-                if (self.options.onfilterreset) {
-                    self.options.onfilterreset.call(self, filter);
-                }
+                self.resetFilter();
             } else {
                 if (!self.filterOn) {
                     self.filterOn = true;
-                    _lastNonFilterLocation = _lastLocation;
+                    self.lastNonFilterLocation = self.lastLocation;
                 }
                 if (!self.visibleTop) {
                     index = 0;
@@ -3808,33 +4031,56 @@ if (typeof exports == "object") {
         };
 
         /**
+         * Programatically cancels filtering
+         */
+        this.resetFilter = function _resetFilter(location) {
+            var tb = this;
+            var lastNonFilterLocation = location || self.lastNonFilterLocation;
+            var filter = self.filterText().toLowerCase();
+            tb.filterOn = false;
+            tb.calculateVisible(0);
+            tb.calculateHeight();
+            m.redraw(true);
+            self.select('#tb-tbody').scrollTop(lastNonFilterLocation); // restore location of scroll
+            if (tb.options.onfilterreset) {
+                tb.options.onfilterreset.call(tb, filter);
+            }
+        };
+
+        this.addChildren = function(data, parent){
+            parent.children = [];
+            var child, i;
+            for (i = 0; i < data.length; i++) {
+                child = self.buildTree(data[i], parent);
+                parent.add(child);
+            }
+            parent.open = true;
+        };
+
+        /**
          * Updates content of the folder with new data or refreshes from lazyload
          * @param {Array} data New raw items, may be returned from ajax call
          * @param {Object} parent Item built with the _item constructor
+         * @param {Function} callback A function to be called after loading all data
          */
-        this.updateFolder = function (data, parent) {
+        this.updateFolder = function (data, parent, callback) {
             if (data) {
-                parent.children = [];
-                var child, i;
-                for (i = 0; i < data.length; i++) {
-                    child = self.buildTree(data[i], parent);
-                    parent.add(child);
-                }
-                parent.open = true;
-                //return;
+                self.addChildren(data, parent);
             }
             var index = self.returnIndex(parent.id);
             parent.open = false;
             parent.load = false;
-            self.toggleFolder(index, null);
+
+            self.toggleFolder(index, null, callback);
         };
 
         /**
          * Toggles folder, refreshing the view or reloading in event of lazyload
          * @param {Number} index The index of the item in the flatdata.
          * @param {Event} [event] Toggle click event if this function is triggered by an event.
+         * @param {Function} callback A function to be called after loading all data
          */
-        this.toggleFolder = function _toggleFolder(index, event) {
+        this.toggleFolder = function _toggleFolder(index, event, callback) {
             if (index === undefined || index === null) {
                 self.redraw();
                 return;
@@ -3851,7 +4097,8 @@ if (typeof exports == "object") {
                 o,
                 t,
                 lazyLoad,
-                icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon');
+                icon = $('.tb-row[data-id="' + item.id + '"]').find('.tb-toggle-icon'),
+                iconTemplate;
             if (icon.get(0)) {
                 m.render(icon.get(0), self.options.resolveRefreshIcon());
             }
@@ -3861,11 +4108,16 @@ if (typeof exports == "object") {
                     tree.children = [];
                     m.request({
                         method: "GET",
-                        url: lazyLoad
+                        url: lazyLoad,
+                        config: self.options.xhrconfig
                     })
                         .then(function _getUrlBuildtree(value) {
                             if (!value) {
                                 self.options.lazyLoadError.call(self, tree);
+                                iconTemplate = self.options.resolveToggle.call(self, tree);
+                                if (icon.get(0)) {
+                                    m.render(icon.get(0), iconTemplate);
+                                }
                             } else {
                                 if (self.options.lazyLoadPreprocess) {
                                     value = self.options.lazyLoadPreprocess.call(self, value);
@@ -3883,21 +4135,29 @@ if (typeof exports == "object") {
                                 }
                                 tree.open = true;
                                 tree.load = true;
-                                var iconTemplate = self.options.resolveToggle.call(self, tree);
+                                // this redundancy is important to get the proper state
+                                iconTemplate = self.options.resolveToggle.call(self, tree);
                                 if (icon.get(0)) {
                                     m.render(icon.get(0), iconTemplate);
                                 }
                             }
                         }, function (info) {
                             self.options.lazyLoadError.call(self, tree);
+                            iconTemplate = self.options.resolveToggle.call(self, tree);
+                            if (icon.get(0)) {
+                                m.render(icon.get(0), iconTemplate);
+                            }
                         })
                         .then(function _getUrlFlatten() {
                             self.flatten(self.treeData.children, self.visibleTop);
                             if (self.options.lazyLoadOnLoad) {
-                                self.options.lazyLoadOnLoad.call(self, tree);
+                                self.options.lazyLoadOnLoad.call(self, tree, event);
                             }
                             if (self.options.ontogglefolder) {
                                 self.options.ontogglefolder.call(self, tree, event);
+                            }
+                            if (callback) {
+                                callback.call(self, tree, event);
                             }
                         });
 
@@ -3932,12 +4192,12 @@ if (typeof exports == "object") {
                     if (icon.get(0)) {
                         m.render(icon.get(0), iconTemplate);
                     }
+                    if (self.options.ontogglefolder) {
+                        self.options.ontogglefolder.call(self, tree, event);
+                    }
                 }
                 if (self.options.allowMove) {
                     self.moveOn();
-                }
-                if (self.options.ontogglefolder) {
-                    self.options.ontogglefolder.call(self, tree, event);
                 }
             });
         };
@@ -3946,31 +4206,32 @@ if (typeof exports == "object") {
          * Toggles the sorting when clicked on sort icons.
          * @param {Event} [event] Toggle click event if this function is triggered by an event.
          */
-        this.sortToggle = function _isSortedToggle(ev) {
-            var element = $(ev.target),
-                type = element.attr('data-direction'),
-                index = this,
-                col = element.parent('.tb-th').attr('data-tb-th-col'),
-                sortType = element.attr('data-sortType'),
-                parent = element.parent(),
-                counter = 0,
-                redo;
-            $('.asc-btn, .desc-btn').addClass('tb-sort-inactive'); // turn all styles off
+        this.sortToggle = function _isSortedToggle(ev, col, type, sortType) {
+            var counter = 0;
+            var redo;
+            var element;
+            if(ev){ // If a button is clicked, use the element attributes
+                element = $(ev.target);
+                type = element.attr('data-direction');
+                col = parseInt(element.parent('.tb-th').attr('data-tb-th-col'));
+                sortType = element.attr('data-sortType');
+            }
+            self.select('.asc-btn, .desc-btn').addClass('tb-sort-inactive'); // turn all styles off
             self.isSorted[col].asc = false;
             self.isSorted[col].desc = false;
             if (!self.isSorted[col][type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
-                        item.sortChildren(self, type, sortType, index, self.options.sortDepth);
+                        item.sortChildren(self, type, sortType, col, self.options.sortDepth);
                         if (item.children.length > 0) {
                             redo(item.children);
                         }
                         counter = counter + 1;
                     });
                 };
-                self.treeData.sortChildren(self, type, sortType, index, self.options.sortDepth); // Then start recursive loop
+                self.treeData.sortChildren(self, type, sortType, col, self.options.sortDepth); // Then start recursive loop
                 redo(self.treeData.children);
-                parent.children('.' + type + '-btn').removeClass('tb-sort-inactive');
+                self.select('div[data-tb-th-col=' + col + ']').children('.' + type + '-btn').removeClass('tb-sort-inactive');
                 self.isSorted[col][type] = true;
                 self.flatten(self.treeData.children, 0);
             }
@@ -4027,7 +4288,8 @@ if (typeof exports == "object") {
          * Refreshes the view to start the the location where begin is the starting index
          * @param {Number} begin The index location of visible indexes to start at.
          */
-        this.refreshRange = function _refreshRange(begin) {
+        this.refreshRange = function _refreshRange(begin, redraw) {
+            redraw = redraw !== undefined ? redraw : true; // redraw by default
             var len = self.visibleIndexes.length,
                 range = [],
                 counter = 0,
@@ -4046,7 +4308,11 @@ if (typeof exports == "object") {
                 counter = counter + 1;
             }
             self.showRange = range;
-            m.redraw(true);
+            // TODO: Not sure if the redraw param is necessary. We can probably
+            // Use m.start/endComputtion to avoid successive redraws
+            if (redraw) {
+                m.redraw(true);
+            }
         };
 
         /**
@@ -4126,7 +4392,7 @@ if (typeof exports == "object") {
          */
         this.isMultiselected = function (id) {
             var outcome = false;
-            self.multiselected.map(function (item) {
+            self.multiselected().map(function (item) {
                 if (item.id === id) {
                     outcome = true;
                 }
@@ -4140,7 +4406,7 @@ if (typeof exports == "object") {
          * @returns {Boolean} result Whether the item removal was successful
          */
         this.removeMultiselected = function (id) {
-            self.multiselected.map(function (item, index, arr) {
+            self.multiselected().map(function (item, index, arr) {
                 if (item.id === id) {
                     arr.splice(index, 1);
                     // remove highlight
@@ -4155,7 +4421,7 @@ if (typeof exports == "object") {
          */
         this.highlightMultiselect = function () {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
-            this.multiselected.map(function (item) {
+            self.multiselected().map(function (item) {
                 $('.tb-row[data-id="' + item.id + '"]').addClass(self.options.hoverClassMultiselect);
             });
         };
@@ -4173,14 +4439,17 @@ if (typeof exports == "object") {
                 i,
                 cmdkey,
                 direction;
+            if (self.options.onbeforemultiselect) {
+                self.options.onbeforemultiselect.call(self, event, tree);
+            }
             // if key is shift
             if (self.pressedKey === 16) {
                 // get the index of this and add all visible indexes between this one and last selected
                 // If there is no multiselect yet
-                if (self.multiselected.length === 0) {
-                    self.multiselected.push(tree);
+                if (self.multiselected().length === 0) {
+                    self.multiselected().push(tree);
                 } else {
-                    begin = self.returnRangeIndex(self.multiselected[0].id);
+                    begin = self.returnRangeIndex(self.multiselected()[0].id);
                     end = self.returnRangeIndex(id);
                     if (begin > end) {
                         direction = 'up';
@@ -4188,15 +4457,15 @@ if (typeof exports == "object") {
                         direction = 'down';
                     }
                     if (begin !== end) {
-                        self.multiselected = [];
+                        self.multiselected([]);
                         if (direction === 'down') {
                             for (i = begin; i < end + 1; i++) {
-                                self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
                             }
                         }
                         if (direction === 'up') {
                             for (i = begin; i > end - 1; i--) {
-                                self.multiselected.push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
                             }
                         }
                     }
@@ -4212,7 +4481,7 @@ if (typeof exports == "object") {
             }
             if (self.pressedKey === cmdkey) {
                 if (!self.isMultiselected(tree.id)) {
-                    self.multiselected.push(tree);
+                    self.multiselected().push(tree);
                 } else {
                     self.removeMultiselected(tree.id);
                 }
@@ -4220,7 +4489,7 @@ if (typeof exports == "object") {
             // if there is no key add the one.
             if (!self.pressedKey) {
                 self.clearMultiselect();
-                self.multiselected.push(tree);
+                self.multiselected().push(tree);
             }
 
             if (self.options.onmultiselect) {
@@ -4231,8 +4500,68 @@ if (typeof exports == "object") {
 
         this.clearMultiselect = function () {
             $('.' + self.options.hoverClassMultiselect).removeClass(self.options.hoverClassMultiselect);
-            self.multiselected = [];
+            self.multiselected([]);
         };
+
+        // Handles the up and down arrow keys since they do almost identical work
+        this.multiSelectArrows = function (direction){
+            if ($.isFunction(self.options.onbeforeselectwitharrow)) {
+                self.options.onbeforeselectwitharrow.call(this, self.multiselected()[0], direction);
+            }
+            var val = direction === 'down' ? 1 : -1;
+            var selectedIndex = self.returnIndex(self.multiselected()[0].id);
+            var visibleIndex = self.visibleIndexes.indexOf(selectedIndex);
+            var newIndex = visibleIndex + val;
+            var row = self.flatData[self.visibleIndexes[newIndex]];
+            if(!row){
+                return;
+            }
+            var treeItem = self.find(row.id);
+            self.multiselected([treeItem]);
+            self.scrollEdges(treeItem.id, 0);
+            self.highlightMultiselect.call(self);
+            if ($.isFunction(self.options.onafterselectwitharrow)) {
+                self.options.onafterselectwitharrow.call(this, row, direction);
+            }
+
+        };
+
+        // Handles the toggling of folders with the right and left arrow keypress
+        this.keyboardFolderToggle = function (action) {
+            var item = self.multiselected()[0];
+            if(item.kind === 'folder') {
+                if((item.open === true && action === 'close') || (item.open === false && action === 'open'))  {
+                    var index = self.returnIndex(item.id);
+                    self.toggleFolder(index, null);
+                }
+            }
+        };
+
+        // Handles what the up, down, left, right arrow keys do.
+        this.handleArrowKeys = function (e) {
+            if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+                e.preventDefault();
+            }
+            var key = e.keyCode;
+            // if pressed key is up arrow
+            if(key === 38) {
+                self.multiSelectArrows('up');
+            }
+            // if pressed key is down arrow
+            if(key === 40) {
+                self.multiSelectArrows('down');
+            }
+            // if pressed key is left arrow
+            if(key === 37) {
+                self.keyboardFolderToggle('close');
+            }
+            // if pressed key is right arrow
+            if(key === 39) {
+                self.keyboardFolderToggle('open');
+            }
+        };
+
+
 
         /**
          * Remove dropzone from grid
@@ -4337,12 +4666,24 @@ if (typeof exports == "object") {
                     }
                 },
                 sending: function _dropzoneSending(file, xhr, formData) {
+                    var filesArr = this.getQueuedFiles();
+                    if (filesArr.length  > 0) {
+                        self.isUploading(true);
+                    } else {
+                        self.isUploading(false);
+                    }
                     if ($.isFunction(self.options.dropzoneEvents.sending)) {
                         self.options.dropzoneEvents.sending.call(this, self, file, xhr, formData);
                     }
                 },
                 complete: function _dropzoneComplete(file) {
                     if ($.isFunction(self.options.dropzoneEvents.complete)) {
+                        self.options.dropzoneEvents.complete.call(this, self, file);
+                    }
+                },
+                queuecomplete: function _dropzoneComplete(file) {
+                    self.isUploading(false);
+                    if ($.isFunction(self.options.dropzoneEvents.quecomplete)) {
                         self.options.dropzoneEvents.complete.call(this, self, file);
                     }
                 },
@@ -4371,15 +4712,14 @@ if (typeof exports == "object") {
          * Loads the data pushed in to Treebeard and handles it to comply with treebeard data structure.
          * @param {Array, String} data Data sent in as an array of objects or a url in string form
          */
-        function _loadData(data) {
-                // Order of operations: Gewt data -> build tree -> flatten for view -> calculations for view: visible, height
+        this.processData = function _processData(data){
+            // Order of operations: Get data -> build tree -> flatten for view -> calculations for view: visible, height
             if ($.isArray(data)) {
                 $.when(self.buildTree(data)).then(function _buildTreeThen(value) {
                     self.treeData = value;
                     Indexes[self.treeData.id] = value;
-                    self.flatten(self.treeData.children);
-                    return value;
-                }).done(function _buildTreeDone() {
+                    return self.flatten(self.treeData.children);
+                }).done(function _buildTreeDone(flatData) {
                     self.calculateVisible();
                     self.calculateHeight();
                     self.initialized = true;
@@ -4393,6 +4733,7 @@ if (typeof exports == "object") {
                 m.request({
                     method: 'GET',
                     url: data,
+                    config: self.options.xhrconfig,
                     extract: function (xhr, xhrOpts) {
                         if (xhr.status !== 200) {
                             return self.options.ondataloaderror(xhr);
@@ -4400,26 +4741,27 @@ if (typeof exports == "object") {
                         return xhr.responseText;
                     }
                 })
-                    .then(function _requestBuildtree(value) {
-                        if (self.options.lazyLoadPreprocess) {
-                            value = self.options.lazyLoadPreprocess.call(self, value);
-                        }
-                        self.treeData = self.buildTree(value);
-                    })
-                    .then(function _requestFlatten() {
-                        Indexes[self.treeData.id] = self.treeData;
-                        self.flatten(self.treeData.children);
-                    })
-                    .then(function _requestCalculate() {
-                        self.calculateVisible();
-                        self.calculateHeight();
-                        self.initialized = true;
-                        if ($.isFunction(self.options.ondataload)) {
-                            self.options.ondataload.call(self);
-                        }
-                    });
+                .then(function _requestBuildtree(value) {
+                    if (self.options.lazyLoadPreprocess) {
+                        value = self.options.lazyLoadPreprocess.call(self, value);
+                    }
+                    self.treeData = self.buildTree(value);
+                })
+                .then(function _requestFlatten() {
+                    Indexes[self.treeData.id] = self.treeData;
+                    self.flatten(self.treeData.children);
+                })
+                .then(function _requestCalculate() {
+                    self.calculateVisible();
+                    self.calculateHeight();
+                    self.initialized = true;
+                    if ($.isFunction(self.options.ondataload)) {
+                        self.options.ondataload.call(self);
+                    }
+                });
             }
-        }
+            return self.flatData;
+        };
             // Rebuilds the tree data with an API
         this.buildTree = function _buildTree(data, parent) {
             var tree, children, len, child, i;
@@ -4449,69 +4791,61 @@ if (typeof exports == "object") {
          */
         this.flatten = function _flatten(value, visibleTop) {
             self.flatData = [];
-            var openLevel,
-                recursive = function redo(data, show, topLevel) {
-                    var length = data.length,
-                        i,
-                        children,
-                        flat;
-                    for (i = 0; i < length; i++) {
-                        if (openLevel && data[i].depth <= openLevel) {
-                            show = true;
-                        }
-                        children = data[i].children;
-                        flat = {
-                            id: data[i].id,
-                            depth: data[i].depth,
-                            row: data[i].data
-                        };
-                        flat.show = show;
-                        if (data[i].children.length > 0 && !data[i].open) {
-                            show = false;
-                            if (!openLevel || openLevel > data[i].depth) {
-                                openLevel = data[i].depth;
-                            }
-                        }
-                        self.flatData.push(flat); // add to flatlist
-                        if (children.length > 0) {
-                            redo(children, show, false);
-                        }
-                        Indexes[data[i].id] = data[i];
-                        if (topLevel && i === length - 1) {
-                            self.calculateVisible(visibleTop);
-                            self.calculateHeight();
-                            m.redraw(true);
-                            if (self.options.redrawComplete) {
-                                self.options.redrawComplete.call(self);
-                            }
-                        }
+
+            (function doFlatten(data, parentIsOpen) {
+                $.each(data, function(index, item) {
+                    Indexes[item.id] = item;
+
+                    self.flatData.push({
+                        show: parentIsOpen,
+
+                        id: item.id,
+                        row: item.data,
+                        depth: item.depth,
+                    });
+
+                    if (item.children.length > 0) {
+                        doFlatten(item.children, parentIsOpen && item.open);
                     }
-                };
-            recursive(value, true, true);
+                });
+            })(value, true);
+
+            self.calculateVisible(visibleTop);
+            self.calculateHeight();
+            m.redraw(true);
+            if (self.options.redrawComplete) {
+                self.options.redrawComplete.call(self);
+            }
+
             return value;
         };
 
         /**
          * Update view on scrolling the table
          */
-        this.onScroll = function _scrollHook() {
+        this.onScroll = debounce(function _scrollHook() {
+            var totalVisibleItems = self.visibleIndexes.length;
             if (!self.options.paginate) {
-                var scrollTop, itemsHeight, innerHeight, location, index;
-                itemsHeight = self.calculateHeight();
-                innerHeight = $(this).children('.tb-tbody-inner').outerHeight();
-                scrollTop = $(this).scrollTop();
-                location = scrollTop / innerHeight * 100;
-                index = Math.round(location / 100 * self.visibleIndexes.length);
-                self.rangeMargin = Math.floor(itemsHeight * (scrollTop / innerHeight));
-                self.refreshRange(index);
-                m.redraw(true);
-                _lastLocation = scrollTop;
-                self.highlightMultiselect();
+                if (totalVisibleItems > self.options.naturalScrollLimit) {
+                    m.startComputation();
+                    var $this = $(this);
+                    var scrollTop, itemsHeight, innerHeight, location, index;
+                    itemsHeight = self.calculateHeight();
+                    innerHeight = $this.children('.tb-tbody-inner').outerHeight();
+                    scrollTop = $this.scrollTop();
+                    location = scrollTop / innerHeight * 100;
+                    index = Math.floor(location / 100 * totalVisibleItems);
+                    self.rangeMargin = index * self.options.rowHeight; // space the rows will have from the top.
+                    self.refreshRange(index, false); // which actual rows to show
+                    self.lastLocation = scrollTop;
+                    self.highlightMultiselect();
+                    m.endComputation();
+                }
                 if (self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
                 }
             }
-        };
+        }, this.options.scrollDebounce);
 
         /**
          * Initialization functions after the main body of the table is loaded
@@ -4522,7 +4856,12 @@ if (typeof exports == "object") {
             var containerHeight = self.select('#tb-tbody').height(),
                 titles = self.select('.tb-row-titles'),
                 columns = self.select('.tb-th');
-            self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
+            if(self.options.naturalScrollLimit){
+                self.options.showTotal = self.options.naturalScrollLimit;
+            } else {
+                self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
+            }
+
             self.remainder = (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
             if (self.options.allowMove) {
@@ -4684,6 +5023,11 @@ if (typeof exports == "object") {
             if ($.isFunction(self.options.onload)) {
                 self.options.onload.call(self);
             }
+            $(window).on('keydown', function(event){
+                if(self.options.allowArrows && self.multiselected().length === 1) {
+                    self.handleArrowKeys(event);
+                }
+            });
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
@@ -4703,8 +5047,20 @@ if (typeof exports == "object") {
                 }
             });
             window.onblur = self.resetKeyPress;
+
+            $(window).resize(function () {
+                self.setScrollMode();
+            });
+            self.setScrollMode();
         };
 
+        this.setScrollMode = function _setScrollMode() {
+            if(self.options.hScroll && $('#' + self.options.divID).width() < self.options.hScroll){
+                self.tableWidth(self.options.hScroll + 'px;');
+            } else {
+                self.tableWidth('auto;');
+            }
+        };
         /**
          * Resets keys that are hung up. Other window onblur event actions can be added in here.
          */
@@ -4716,74 +5072,42 @@ if (typeof exports == "object") {
              * Because DOM objects are removed their events are going to be cleaned up.
              */
         this.destroy = function _destroy() {
-            window.treebeardCounter = -1;
-            $('#' + self.options.divID).html(''); // Empty HTML
+            var el = document.getElementById(self.options.divID);
+            var parent = el.parentNode;
+            var clone = el.cloneNode(true);
+            while (clone.firstChild) {
+                clone.removeChild(clone.firstChild);
+            }
+            parent.removeChild(el);
+            parent.appendChild(clone);
             if (self.dropzone) {
                 _destroyDropzone();
             } // Destroy existing dropzone setup
         };
-
-        /**
-         * Checks if there is filesData option, fails if there isn't, initiates the entire app if it does.
-         */
-        if (self.options.filesData) {
-            _loadData(self.options.filesData);
-        } else {
-            throw new Error("Treebeard Error: You need to define a data source through 'options.filesData'");
-        }
     };
 
     /**
      * Mithril View. Documentation is here: (http://lhorie.github.io/mithril/mithril.html) Use m() for templating.
      * @param {Object} ctrl The entire Treebeard.controller object with its values and methods. Refer to as ctrl.
      */
-    Treebeard.view = function treebeardView(ctrl) {
-        return [
-            m('.gridWrapper', [
-                m(".tb-table", [
+    Treebeard.view = function treebeardView(ctrl, args) {
+        var flatData = ctrl.flatData.length > 0 ? ctrl.flatData : ctrl.processData(args.data());
+        return m('.gridWrapper', { style : 'overflow-x: auto' }, [
+                m(".tb-table", { style : 'width:' + ctrl.tableWidth() }, [
                     /**
                      * Template for the head row, includes whether filter or title should be shown.
                      */
                     (function showHeadA() {
-                        var titleContent = functionOrString(ctrl.options.title);
-                        if (ctrl.options.showFilter || titleContent) {
-                            var filterWidth;
-                            var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, titleContent);
-                            if (ctrl.options.filterFullWidth) {
-                                filterWidth = '';
-                            } else {
-                                filterWidth = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
-                            }
-                            var filter = m(".tb-head-filter.col-xs-12" + filterWidth, {}, [
-                                (function showFilterA() {
-                                    if (ctrl.options.showFilter) {
-                                        return m("input.pull-right.form-control[placeholder='" + ctrl.options.filterPlaceholder + "'][type='text']", {
-                                            style: "width:100%;display:inline;",
-                                            onkeyup: ctrl.filter,
-                                            value: ctrl.filterText()
-                                        });
-                                    }
-                                }())
-                            ]);
-                            if (ctrl.options.title) {
-                                return m('.tb-head.row', [
-                                    title,
-                                    filter
-                                ]);
-                            } else {
-                                return m('.tb-head.row', [
-                                    filter
-                                ]);
-                            }
-
+                        if(ctrl.options.toolbarComponent) {
+                            return m.component(ctrl.options.toolbarComponent, {treebeard : ctrl, mode : null });
                         }
+                        return ctrl.options.headerTemplate.call(ctrl);
                     }()), (function () {
                         if (!ctrl.options.hideColumnTitles) {
                             return m(".tb-row-titles", [
                                 /**
                                  * Render column titles based on the columnTitles option.
                                  */
-
                                 ctrl.options.columnTitles.call(ctrl).map(function _mapColumnTitles(col, index, arr) {
                                     var sortView = "",
                                         up,
@@ -4797,9 +5121,11 @@ if (typeof exports == "object") {
                                         resizable = '';
                                     }
                                     if (col.sort) { // Add sort buttons with their onclick functions
-                                        ctrl.isSorted[index] = {
-                                            asc: false,
-                                            desc: false
+                                        if(!ctrl.isSorted[index]) {
+                                            ctrl.isSorted[index] = {
+                                                asc: false,
+                                                desc: false
+                                            }
                                         };
                                         if (ctrl.options.sortButtonSelector.up) {
                                             up = ctrl.options.sortButtonSelector.up;
@@ -4844,27 +5170,51 @@ if (typeof exports == "object") {
                          * In case a modal needs to be shown, check Modal object
                          */
                         (function showModal() {
-                            if (ctrl.modal.on) {
-                                return m('.tb-modal-shade', {
-                                    config: ctrl.modal.onmodalshow,
-                                    style: 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;'
-                                }, [
-                                    m('.tb-modal-inner', {
-                                        'class': ctrl.modal.css
-                                    }, [
-                                        m('.tb-modal-dismiss', {
+                            var dissmissTemplate = m('button.close', {
                                             'onclick': function() {
                                                 ctrl.modal.dismiss();
                                             }
-                                        }, [ctrl.options.removeIcon()]),
-                                        m('.tb-modal-content', ctrl.modal.content),
-                                        m('.tb-modal-footer', ctrl.modal.actions)
+                                        }, [ctrl.options.removeIcon()]);
+                            if (ctrl.modal.on) {
+                                return m('.tb-modal-shade', {
+                                    config: ctrl.modal.onmodalshow,
+                                    style: 'width:' + ctrl.modal.width + 'px; height:' + ctrl.modal.height + 'px;padding:' + ctrl.modal.padding,
+                                    onclick : function(event) {
+                                        ctrl.modal.dismiss();
+                                    }
+                                }, [
+                                    m('.modal-content', {
+                                        'class': ctrl.modal.css,
+                                        onclick : function() {
+                                            event.stopPropagation();
+                                            return true;
+                                        }
+                                    }, [
+                                        (function checkHeader(){
+                                            if(ctrl.modal.header){
+                                                return [ m('.modal-header', [
+                                                    dissmissTemplate,
+                                                    ctrl.modal.header
+                                                    ]),
+                                                 m('.modal-body', ctrl.modal.content)
+                                                ];
+                                            } else {
+                                                return [
+                                                m('.modal-body', [
+                                                    dissmissTemplate,
+                                                    ctrl.modal.content
+                                                    ])
+                                                ];
+                                            }
+                                        }()),
+                                        m('.modal-footer', ctrl.modal.actions)
                                     ])
                                 ]);
                             }
                         }()),
                         m('.tb-tbody-inner', {
                             style: 'height: ' + ctrl.innerHeight + 'px;'
+
                         }, [
                             m('', {
                                 style: "margin-top:" + ctrl.rangeMargin + 'px;'
@@ -4875,10 +5225,11 @@ if (typeof exports == "object") {
                                  */
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
                                     var oddEvenClass = ctrl.options.oddEvenClass.odd,
-                                        indent = ctrl.flatData[item].depth,
-                                        id = ctrl.flatData[item].id,
+                                        flatItem = flatData[item],
+                                        indent = flatItem.depth,
+                                        id = flatItem.id,
                                         tree = Indexes[id],
-                                        row = ctrl.flatData[item].row,
+                                        row = flatItem.row,
                                         padding,
                                         css = tree.css || "",
                                         rowCols = ctrl.options.resolveRows.call(ctrl, tree);
@@ -4891,10 +5242,9 @@ if (typeof exports == "object") {
                                         padding = (indent - 1) * 20;
                                     }
                                     if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
-                                        return m('.tb-row', [
+                                        return m('.tb-row',{'style': "height: " + ctrl.options.rowHeight + "px;"}, [
                                             m('.tb-notify.alert-' + tree.notify.type, {
-                                                'class': tree.notify.css,
-                                                'style': "height: " + ctrl.options.rowHeight + "px;padding-top:4px;"
+                                                'class': tree.notify.css
                                             }, [
                                                 m('span', tree.notify.message)
                                             ])
@@ -4909,6 +5259,10 @@ if (typeof exports == "object") {
                                             "data-rIndex": index,
                                             style: "height: " + ctrl.options.rowHeight + "px;",
                                             onclick: function _rowClick(event) {
+                                                var el = $(event.target);
+                                                if(el.hasClass('tb-toggle-icon') || el.hasClass('fa-plus') || el.hasClass('fa-minus')) {
+                                                    return;
+                                                }
                                                 if (ctrl.options.multiselect) {
                                                     ctrl.handleMultiselect(id, index, event);
                                                 }
@@ -5078,8 +5432,7 @@ if (typeof exports == "object") {
                         }
                     }())
                 ])
-            ])
-        ];
+            ]);
     };
 
     /**
@@ -5094,6 +5447,7 @@ if (typeof exports == "object") {
         this.paginateToggle = false; // Show the buttons that allow users to switch between scroll and paginate.
         this.uploads = false; // Turns dropzone on/off.
         this.multiselect = false; // turns ability to multiselect with shift or command keys
+        this.naturalScrollLimit = 50; // If items to show is below this number, onscroll should not be run.
         this.columnTitles = function() { // REQUIRED: Adjust this array based on data needs.
             return [{
                 title: "Title",
@@ -5121,6 +5475,7 @@ if (typeof exports == "object") {
                 filter: true
             }];
         };
+        this.hScroll  = 400; // Number which is the cut off for horizontal scrolling, can also be null;
         this.filterPlaceholder = 'Search';
         this.resizeColumns = true; // whether the table columns can be resized.
         this.hoverClass = undefined; // Css class for hovering over rows
@@ -5128,6 +5483,7 @@ if (typeof exports == "object") {
         this.showFilter = true; // Gives the option to filter by showing the filter box.
         this.title = null; // Title of the grid, boolean, string OR function that returns a string.
         this.allowMove = true; // Turn moving on or off.
+        this.allowArrows = false;
         this.moveClass = undefined; // Css class for which elements can be moved. Your login needs to add these to appropriate elements.
         this.sortButtonSelector = {}; // custom buttons for sort, needed because not everyone uses FontAwesome
         this.dragOptions = {}; // jQuery UI draggable options without the methods
@@ -5147,6 +5503,46 @@ if (typeof exports == "object") {
             // item = folder to toggle
             return true;
         };
+        this.filterTemplate = function () {
+            var tb = this;
+            return m("input.pull-right.form-control[placeholder='" + tb.options.filterPlaceholder + "'][type='text']", {
+                style: "width:100%;display:inline;",
+                onkeyup: tb.filter,
+                value: tb.filterText()
+            });
+        };
+        this.toolbarComponent = null;
+        this.headerTemplate = function () {
+            var ctrl = this;
+            var titleContent = functionOrString(ctrl.options.title);
+            if (ctrl.options.showFilter || titleContent) {
+                var filterWidth;
+                var title = m('.tb-head-title.col-xs-12.col-sm-6', {}, titleContent);
+                if (ctrl.options.filterFullWidth) {
+                    filterWidth = '';
+                } else {
+                    filterWidth = ctrl.options.title ? '.col-sm-6' : '.col-sm-6.col-sm-offset-6';
+                }
+                var filter = m(".tb-head-filter.col-xs-12" + filterWidth, {}, [
+                    (function showFilterA() {
+                        if (ctrl.options.showFilter) {
+                            return ctrl.options.filterTemplate.call(ctrl);
+                        }
+                    }())
+                ]);
+                if (ctrl.options.title) {
+                    return m('.tb-head', [
+                        title,
+                        filter
+                    ]);
+                } else {
+                    return m('.tb-head', [
+                        filter
+                    ]);
+                }
+
+            }
+        }
         this.onfilter = function(filterText) { // Fires on keyup when filter text is changed.
             // this = treebeard object;
             // filterText = the value of the filtertext input box.
@@ -5193,6 +5589,11 @@ if (typeof exports == "object") {
             // row = item selected
             // event = mouse click event object
         };
+        this.onbeforemultiselect = function(event, tree) {
+            // this = treebeard object
+            // tree = item currently clicked on
+            // event = mouse click event object
+        };
         this.onmultiselect = function(event, tree) {
             // this = treebeard object
             // tree = item currently clicked on
@@ -5208,7 +5609,7 @@ if (typeof exports == "object") {
             // item = toggled folder item
         };
         this.dropzone = { // All dropzone options.
-            url: "http://www.torrentplease.com/dropzone.php" // When users provide single URL for all uploads
+            url: null // When users provide single URL for all uploads
         };
         this.dropzoneEvents = {};
         this.resolveIcon = function(item) { // Here the user can interject and add their own icons, uses m()
@@ -5277,6 +5678,21 @@ if (typeof exports == "object") {
         this.ondataloaderror = function(xhr){
             // xhr with non-200 status code
         };
+        this.onbeforeselectwitharrow = function(item, direction){
+            // this = treebeard object;
+            // Item = item where selection is going to
+            // direction =  the directino of the arrow key
+        };
+        this.onafterselectwitharrow = function(item, direction){
+            // this = treebeard object;
+            // Item = item where selection is coming from
+            // direction = the directino of the arrow key
+        };
+        this.xhrconfig = function(xhr, options){
+            // xhr = xml http request
+            // options = xhr options
+        };
+        this.scrollDebounce = 15; // milliseconds
     };
 
     /**
@@ -5285,24 +5701,26 @@ if (typeof exports == "object") {
      * @param {Object} options The options user passes in; will be expanded with defaults.
      * @returns {*}
      */
-    var runTB = function _treebeardRun(options) {
+    var runTB = function _treebeardRun(data, options, component) {
         var defaults = new Options();
         var finalOptions = $.extend(defaults, options);
-        var tb = {};
-        tb.controller = function() {
-            this.tbController = new Treebeard.controller(finalOptions);
-        };
-        tb.view = function(ctrl) {
-            return Treebeard.view(ctrl.tbController);
-        };
+        if(!data){
+            console.error("Treebeard Error: No data was provided. Treebeard expects an array of objects.")
+            return;
+        }
+        var data = m.prop(data);
         // Weird fix for IE 9, does not harm regular load
         if (window.navigator.userAgent.indexOf('MSIE')) {
             setTimeout(function() {
                 m.redraw();
             }, 1000);
         }
-        return m.module(document.getElementById(finalOptions.divID), tb);
+        if(!component){ // If not added as component into mithril view then mount it
+            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { data : data, options : finalOptions }));
+        }
+        return m.component(Treebeard, { data : data, options : finalOptions }); // Return component instead
     };
+
 
     // Expose some internal classes to the public
     runTB.Notify = Notify;
