@@ -654,7 +654,7 @@
             draggableOptions = {
                 helper: 'clone',
                 cursor: 'move',
-                containment: '.tb-tbody-inner',
+                containment: self.options.dragContainment,
                 delay: 100,
                 drag: function (event, ui) {
                     if (self.pressedKey === 27) {
@@ -2436,6 +2436,7 @@
         this.dropOptions = {}; // jQuery UI droppable options without the methods
         this.dragEvents = {}; // users can override draggable options and events
         this.dropEvents = {}; // users can override droppable options and events
+        this.dragContainment = '.tb-tbody-inner';
         this.sortDepth = 0;
         this.oddEvenClass = {
             odd: 'tb-odd',
