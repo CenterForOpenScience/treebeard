@@ -2660,7 +2660,7 @@
             return Treebeard.view(ctrl.tbController);
         };
         // Weird fix for IE 9, does not harm regular load
-        if (window.navigator.userAgent.indexOf('MSIE')) {
+        if (window.navigator.userAgent.indexOf('MSIE') !== -1) {
             setTimeout(function() {
                 m.redraw();
             }, 1000);
