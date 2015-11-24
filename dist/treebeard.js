@@ -592,7 +592,7 @@
         this.flatData = []; // Flat data, gets regenerated often
         this.treeData = {}; // The data in hierarchical form
         this.filterText = m.prop(""); // value of the filtertext input
-        this.showRange = []; // Array of indexes that the range shows
+        this.range = { first : null, last : null }; // Array of indexes that the range shows
         this.options = opts; // User defined options
         this.selected = undefined; // The row selected on click.
         this.rangeMargin = 0; // Top margin, required for proper scrolling
@@ -768,8 +768,8 @@
         // Handles scrolling when items are at the beginning or end of visible items.
         this.scrollEdges = function (id, buffer) {
             var buffer = buffer || 1,
-                last = self.flatData[self.showRange[self.showRange.length - 1 - buffer]].id,
-                first = self.flatData[self.showRange[0 + buffer]].id,
+                last = self.flatData[self.range.last].id,
+                first = self.flatData[self.range.last].id,
                 currentScroll = self.select('#tb-tbody').scrollTop();
             if (id === last) {
                 self.select('#tb-tbody').scrollTop(currentScroll + self.options.rowHeight + 1);
@@ -887,23 +887,6 @@
                 i, o;
             for (i = 0; i < len; i++) {
                 o = self.flatData[i];
-                if (o.id === id) {
-                    return i;
-                }
-            }
-            return undefined;
-        };
-
-        /**
-         * Returns the index of an item in the showRange list (self.showRange)
-         * @param {Number} id Unique id of the item acted on (usually item.id) .
-         * @returns {Number} i The index at which the item is found or undefined if nothing is found.
-         */
-        this.returnRangeIndex = function _returnRangeIndex(id) {
-            var len = self.showRange.length,
-                i, o;
-            for (i = 0; i < len; i++) {
-                o = self.flatData[self.showRange[i]];
                 if (o.id === id) {
                     return i;
                 }
@@ -1195,7 +1178,7 @@
         /**
          * Calculates total number of visible items to return a row height
          * @param {Number} rangeIndex The index to start refreshing range
-         * @returns {Number} total Number of items visible (not in showrange but total).
+         * @returns {Number} total Number of items visible.
          */
         this.calculateVisible = function _calculateVisible(rangeIndex) {
             rangeIndex = rangeIndex || 0;
@@ -1227,29 +1210,9 @@
          * @param {Number} begin The index location of visible indexes to start at.
          */
         this.refreshRange = function _refreshRange(begin, redraw) {
-            redraw = redraw !== undefined ? redraw : true; // redraw by default
-            var len = self.visibleIndexes.length,
-                range = [],
-                counter = 0,
-                i,
-                index;
-            if (!begin || begin > self.flatData.length) {
-                begin = 0;
-            }
-            self.visibleTop = begin;
-            for (i = begin; i < len; i++) {
-                if (range.length === self.options.showTotal) {
-                    break;
-                }
-                index = self.visibleIndexes[i];
-                range.push(index);
-                counter = counter + 1;
-            }
-            self.showRange = range;
-            // TODO: Not sure if the redraw param is necessary. We can probably
-            // Use m.start/endComputtion to avoid successive redraws
-            if (redraw) {
-                m.redraw(true);
+            self.range = {
+                first : begin,
+                last : begin + self.options.showTotal
             }
         };
 
@@ -1268,7 +1231,7 @@
          * Changes view to pagination when clicked on the paginate button
          */
         this.togglePaginate = function _togglePaginate() {
-            var firstIndex = self.showRange[0],
+            var firstIndex = self.range.first,
                 first = self.visibleIndexes.indexOf(firstIndex),
                 pagesBehind = Math.floor(first / self.options.showTotal),
                 firstItem = (pagesBehind * self.options.showTotal);
@@ -1285,7 +1248,7 @@
          */
         this.pageUp = function _pageUp() {
             // get last shown item index and refresh view from that item onwards
-            var lastIndex = self.showRange[self.options.showTotal - 1],
+            var lastIndex = self.range.last,
                 last = self.visibleIndexes.indexOf(lastIndex);
             if (last > -1 && last + 1 < self.visibleIndexes.length) {
                 self.refreshRange(last + 1);
@@ -1299,7 +1262,7 @@
          * During pagination goes DOWN one page
          */
         this.pageDown = function _pageDown() {
-            var firstIndex = self.showRange[0],
+            var firstIndex = self.first,
                 first = self.visibleIndexes.indexOf(firstIndex);
             if (first && first > 0) {
                 self.refreshRange(first - self.options.showTotal);
@@ -1370,6 +1333,7 @@
          * @param {Number} [index] The showRange index of the item
          * @param {Event} [event] Click event on the item
          */
+        // TODO This will break
         this.handleMultiselect = function (id, index, event) {
             var tree = Indexes[id],
                 begin,
@@ -1764,7 +1728,6 @@
         this.onScroll = debounce(function _scrollHook() {
             var totalVisibleItems = self.visibleIndexes.length;
             if (!self.options.paginate) {
-                if (totalVisibleItems > self.options.naturalScrollLimit) {
                     m.startComputation();
                     var $this = $(this);
                     var scrollTop, itemsHeight, innerHeight, location, index;
@@ -1778,7 +1741,6 @@
                     self.lastLocation = scrollTop;
                     self.highlightMultiselect();
                     m.endComputation();
-                }
                 if (self.options.onscrollcomplete) {
                     self.options.onscrollcomplete.call(self);
                 }
@@ -1794,12 +1756,7 @@
             var containerHeight = self.select('#tb-tbody').height(),
                 titles = self.select('.tb-row-titles'),
                 columns = self.select('.tb-th');
-            if(self.options.naturalScrollLimit){
-                self.options.showTotal = self.options.naturalScrollLimit;
-            } else {
                 self.options.showTotal = Math.floor(containerHeight / self.options.rowHeight) + 1;
-            }
-
             self.remainder = (containerHeight / self.options.rowHeight) + self.options.rowHeight;
             // reapply move on view change.
             if (self.options.allowMove) {
@@ -2166,150 +2123,149 @@
                             m('', {
                                 style: "margin-top:" + ctrl.rangeMargin + 'px;'
                             }, [
-                                /**
-                                 * showRange has the several items that get shown at a time. It's key to view optimization
-                                 * showRange values change with scroll, filter, folder toggling etc.
-                                 */
-                                ctrl.showRange.map(function _mapRangeView(item, index) {
-                                    var oddEvenClass = ctrl.options.oddEvenClass.odd,
-                                        indent = ctrl.flatData[item].depth,
-                                        id = ctrl.flatData[item].id,
-                                        tree = Indexes[id],
-                                        row = ctrl.flatData[item].row,
-                                        padding,
-                                        css = tree.css || "",
-                                        rowCols = ctrl.options.resolveRows.call(ctrl, tree);
-                                    if (index % 2 === 0) {
-                                        oddEvenClass = ctrl.options.oddEvenClass.even;
-                                    }
-                                    if (ctrl.filterOn) {
-                                        padding = 20;
-                                    } else {
-                                        padding = (indent - 1) * 20;
-                                    }
-                                    if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
-                                        return m('.tb-row',{'style': "height: " + ctrl.options.rowHeight + "px;"}, [
-                                            m('.tb-notify.alert-' + tree.notify.type, {
-                                                'class': tree.notify.css
+                                (function(){
+                                    var i;
+                                    for (i = ctrl.visibleIndexes[ctrl.range.first]; i < ctrl.visibleIndexes[ctrl.range.last]; i++){
+                                        var item = ctrl.flatData[ctrl.visibleIndexes[i]].item;
+                                        var oddEvenClass = ctrl.options.oddEvenClass.odd,
+                                            indent = ctrl.flatData[item].depth,
+                                            id = ctrl.flatData[item].id,
+                                            tree = Indexes[id],
+                                            row = ctrl.flatData[item].row,
+                                            padding,
+                                            css = tree.css || "",
+                                            rowCols = ctrl.options.resolveRows.call(ctrl, tree);
+                                        if (index % 2 === 0) {
+                                            oddEvenClass = ctrl.options.oddEvenClass.even;
+                                        }
+                                        if (ctrl.filterOn) {
+                                            padding = 20;
+                                        } else {
+                                            padding = (indent - 1) * 20;
+                                        }
+                                        if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
+                                            return m('.tb-row',{'style': "height: " + ctrl.options.rowHeight + "px;"}, [
+                                                m('.tb-notify.alert-' + tree.notify.type, {
+                                                    'class': tree.notify.css
+                                                }, [
+                                                    m('span', tree.notify.message)
+                                                ])
+                                            ]);
+                                        } else {
+                                            return m(".tb-row", { // Events and attribtues for entire row
+                                                "key": id,
+                                                "class": css + " " + oddEvenClass,
+                                                "data-id": id,
+                                                "data-level": indent,
+                                                "data-index": item,
+                                                "data-rIndex": index,
+                                                style: "height: " + ctrl.options.rowHeight + "px;",
+                                                onclick: function _rowClick(event) {
+                                                    var el = $(event.target);
+                                                    if(el.hasClass('tb-toggle-icon') || el.hasClass('fa-plus') || el.hasClass('fa-minus')) {
+                                                        return;
+                                                    }
+                                                    if (ctrl.options.multiselect) {
+                                                        ctrl.handleMultiselect(id, index, event);
+                                                    }
+                                                    ctrl.selected = id;
+                                                    if (ctrl.options.onselectrow) {
+                                                        ctrl.options.onselectrow.call(ctrl, tree, event);
+                                                    }
+                                                },
+                                                onmouseover: function _rowMouseover(event) {
+                                                    ctrl.mouseon = id;
+                                                    if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
+                                                        ctrl.select('.tb-row').removeClass(ctrl.options.hoverClass);
+                                                        $(this).addClass(ctrl.options.hoverClass);
+                                                    }
+                                                    if (ctrl.options.onmouseoverrow) {
+                                                        ctrl.options.onmouseoverrow.call(ctrl, tree, event);
+                                                    }
+                                                }
                                             }, [
-                                                m('span', tree.notify.message)
-                                            ])
-                                        ]);
-                                    } else {
-                                        return m(".tb-row", { // Events and attribtues for entire row
-                                            "key": id,
-                                            "class": css + " " + oddEvenClass,
-                                            "data-id": id,
-                                            "data-level": indent,
-                                            "data-index": item,
-                                            "data-rIndex": index,
-                                            style: "height: " + ctrl.options.rowHeight + "px;",
-                                            onclick: function _rowClick(event) {
-                                                var el = $(event.target);
-                                                if(el.hasClass('tb-toggle-icon') || el.hasClass('fa-plus') || el.hasClass('fa-minus')) {
-                                                    return;
-                                                }
-                                                if (ctrl.options.multiselect) {
-                                                    ctrl.handleMultiselect(id, index, event);
-                                                }
-                                                ctrl.selected = id;
-                                                if (ctrl.options.onselectrow) {
-                                                    ctrl.options.onselectrow.call(ctrl, tree, event);
-                                                }
-                                            },
-                                            onmouseover: function _rowMouseover(event) {
-                                                ctrl.mouseon = id;
-                                                if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
-                                                    ctrl.select('.tb-row').removeClass(ctrl.options.hoverClass);
-                                                    $(this).addClass(ctrl.options.hoverClass);
-                                                }
-                                                if (ctrl.options.onmouseoverrow) {
-                                                    ctrl.options.onmouseoverrow.call(ctrl, tree, event);
-                                                }
-                                            }
-                                        }, [
                                             /**
                                              * Build individual columns depending on the resolveRows
                                              */
-                                            rowCols.map(function _mapColumnsContent(col, index) {
-                                                var cell,
-                                                    title,
-                                                    colInfo = ctrl.options.columnTitles.call(ctrl)[index],
-                                                    colcss = col.css || '';
-                                                var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' : colInfo.width;
-                                                cell = m('.tb-td.tb-col-' + index, {
-                                                    'class': colcss,
-                                                    style: "width:" + width
-                                                }, [
-                                                    m('span', row[col.data])
-                                                ]);
-                                                if (tree.notify.on && tree.notify.column === index) {
-                                                    return m('.tb-td.tb-col-' + index, {
-                                                        style: "width:" + width
-                                                    }, [
-                                                        m('.tb-notify.alert-' + tree.notify.type, {
-                                                            'class': tree.notify.css
-                                                        }, [
-                                                            m('span', tree.notify.message)
-                                                        ])
-                                                    ]);
-                                                }
-                                                if (col.folderIcons) {
-                                                    if (col.custom) {
-                                                        title = m("span.title-text", col.custom.call(ctrl, tree, col));
-                                                    } else {
-                                                        title = m("span.title-text", row[col.data] + " ");
-                                                    }
-                                                    cell = m('.tb-td.td-title.tb-col-' + index, {
-                                                        "data-id": id,
-                                                        'class': colcss,
-                                                        style: "padding-left: " + padding + "px; width:" + width
-                                                    }, [
-                                                        m("span.tb-td-first", // Where toggling and folder icons are
-                                                            (function _toggleView() {
-                                                                var set = [{
-                                                                    'id': 1,
-                                                                    'css': 'tb-expand-icon-holder',
-                                                                    'resolve': ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                }, {
-                                                                    'id': 2,
-                                                                    'css': 'tb-toggle-icon',
-                                                                    'resolve': ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                }];
-                                                                if (ctrl.filterOn) {
-                                                                    return m('span.' + set[0].css, {
-                                                                        key: set [0].id
-                                                                    }, set[0].resolve);
-                                                                }
-                                                                return [m('span.' + set[1].css, {
-                                                                    key: set [1].id,
-                                                                    onclick: function _folderToggleClick(event) {
-                                                                        if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                            ctrl.toggleFolder(item, event);
-                                                                        }
-                                                                    }
-                                                                }, set[1].resolve), m('span.' + set[0].css, {
-                                                                    key: set [0].id
-                                                                }, set[0].resolve)];
-                                                            }())
-                                                        ),
-                                                        title
-                                                    ]);
-                                                }
-                                                if (!col.folderIcons && col.custom) { // If there is a custom call.
+                                                rowCols.map(function _mapColumnsContent(col, index) {
+                                                    var cell,
+                                                        title,
+                                                        colInfo = ctrl.options.columnTitles.call(ctrl)[index],
+                                                        colcss = col.css || '';
+                                                    var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' : colInfo.width;
                                                     cell = m('.tb-td.tb-col-' + index, {
                                                         'class': colcss,
                                                         style: "width:" + width
                                                     }, [
-                                                        col.custom.call(ctrl, tree, col)
+                                                        m('span', row[col.data])
                                                     ]);
-                                                }
-                                                return cell;
-                                            })
-                                        ]);
+                                                    if (tree.notify.on && tree.notify.column === index) {
+                                                        return m('.tb-td.tb-col-' + index, {
+                                                            style: "width:" + width
+                                                        }, [
+                                                            m('.tb-notify.alert-' + tree.notify.type, {
+                                                                'class': tree.notify.css
+                                                            }, [
+                                                                m('span', tree.notify.message)
+                                                            ])
+                                                        ]);
+                                                    }
+                                                    if (col.folderIcons) {
+                                                        if (col.custom) {
+                                                            title = m("span.title-text", col.custom.call(ctrl, tree, col));
+                                                        } else {
+                                                            title = m("span.title-text", row[col.data] + " ");
+                                                        }
+                                                        cell = m('.tb-td.td-title.tb-col-' + index, {
+                                                            "data-id": id,
+                                                            'class': colcss,
+                                                            style: "padding-left: " + padding + "px; width:" + width
+                                                        }, [
+                                                            m("span.tb-td-first", // Where toggling and folder icons are
+                                                                (function _toggleView() {
+                                                                    var set = [{
+                                                                        'id': 1,
+                                                                        'css': 'tb-expand-icon-holder',
+                                                                        'resolve': ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    }, {
+                                                                        'id': 2,
+                                                                        'css': 'tb-toggle-icon',
+                                                                        'resolve': ctrl.options.resolveToggle.call(ctrl, tree)
+                                                                    }];
+                                                                    if (ctrl.filterOn) {
+                                                                        return m('span.' + set[0].css, {
+                                                                            key: set [0].id
+                                                                        }, set[0].resolve);
+                                                                    }
+                                                                    return [m('span.' + set[1].css, {
+                                                                        key: set [1].id,
+                                                                        onclick: function _folderToggleClick(event) {
+                                                                            if (ctrl.options.togglecheck.call(ctrl, tree)) {
+                                                                                ctrl.toggleFolder(item, event);
+                                                                            }
+                                                                        }
+                                                                    }, set[1].resolve), m('span.' + set[0].css, {
+                                                                        key: set [0].id
+                                                                    }, set[0].resolve)];
+                                                                }())
+                                                            ),
+                                                            title
+                                                        ]);
+                                                    }
+                                                    if (!col.folderIcons && col.custom) { // If there is a custom call.
+                                                        cell = m('.tb-td.tb-col-' + index, {
+                                                            'class': colcss,
+                                                            style: "width:" + width
+                                                        }, [
+                                                            col.custom.call(ctrl, tree, col)
+                                                        ]);
+                                                    }
+                                                    return cell;
+                                                })
+                                            ]);
+                                        }
                                     }
-
-                                })
+                                }())
                             ])
 
                         ])
@@ -2393,7 +2349,6 @@
         this.paginateToggle = false; // Show the buttons that allow users to switch between scroll and paginate.
         this.uploads = false; // Turns dropzone on/off.
         this.multiselect = false; // turns ability to multiselect with shift or command keys
-        this.naturalScrollLimit = 50; // If items to show is below this number, onscroll should not be run.
         this.columnTitles = function() { // REQUIRED: Adjust this array based on data needs.
             return [{
                 title: "Title",
@@ -2658,7 +2613,7 @@
             }, 1000);
         }
         if(!component){ // If not added as component into mithril view then mount it
-            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { options : finalOptions }));
+            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, finalOptions));
         }
         return m.component(Treebeard, finalOptions); // Return component instead
     };
