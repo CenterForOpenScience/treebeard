@@ -4270,10 +4270,12 @@ if (typeof exports == "object") {
          * @param {Number} begin The index location of visible indexes to start at.
          */
         this.refreshRange = function _refreshRange(begin, redraw) {
+            var first = begin;
+            var last = self.options.showTotal > self.visibleIndexes.length - begin ? self.visibleIndexes.length-1 : begin + self.options.showTotal;
             self.range = {
                 first : begin,
-                last : begin + self.options.showTotal
-            }
+                last : last
+            };
         };
 
         /**
@@ -5182,20 +5184,21 @@ if (typeof exports == "object") {
                         }, [
                             m('', {
                                 style: "margin-top:" + ctrl.rangeMargin + 'px;'
-                            }, [
+                            },
                                 (function(){
                                     var i;
-                                    for (i = ctrl.visibleIndexes[ctrl.range.first]; i < ctrl.visibleIndexes[ctrl.range.last]; i++){
-                                        var item = ctrl.flatData[ctrl.visibleIndexes[i]].item;
+                                    var templateList = [];
+                                    for (i = ctrl.range.first; i < ctrl.range.last; i++){
+                                        var item = ctrl.flatData[ctrl.visibleIndexes[i]];
                                         var oddEvenClass = ctrl.options.oddEvenClass.odd,
-                                            indent = ctrl.flatData[item].depth,
-                                            id = ctrl.flatData[item].id,
+                                            indent = item.depth,
+                                            id = item.id,
                                             tree = Indexes[id],
-                                            row = ctrl.flatData[item].row,
+                                            row = item.row,
                                             padding,
                                             css = tree.css || "",
                                             rowCols = ctrl.options.resolveRows.call(ctrl, tree);
-                                        if (index % 2 === 0) {
+                                        if (i % 2 === 0) {
                                             oddEvenClass = ctrl.options.oddEvenClass.even;
                                         }
                                         if (ctrl.filterOn) {
@@ -5204,21 +5207,21 @@ if (typeof exports == "object") {
                                             padding = (indent - 1) * 20;
                                         }
                                         if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
-                                            return m('.tb-row',{'style': "height: " + ctrl.options.rowHeight + "px;"}, [
+                                            templateList.push(m('.tb-row',{'style': "height: " + ctrl.options.rowHeight + "px;"}, [
                                                 m('.tb-notify.alert-' + tree.notify.type, {
                                                     'class': tree.notify.css
                                                 }, [
                                                     m('span', tree.notify.message)
                                                 ])
-                                            ]);
+                                            ]));
                                         } else {
-                                            return m(".tb-row", { // Events and attribtues for entire row
+                                            templateList.push(m(".tb-row", { // Events and attribtues for entire row
                                                 "key": id,
                                                 "class": css + " " + oddEvenClass,
                                                 "data-id": id,
                                                 "data-level": indent,
                                                 "data-index": item,
-                                                "data-rIndex": index,
+                                                "data-rIndex": i,
                                                 style: "height: " + ctrl.options.rowHeight + "px;",
                                                 onclick: function _rowClick(event) {
                                                     var el = $(event.target);
@@ -5322,11 +5325,12 @@ if (typeof exports == "object") {
                                                     }
                                                     return cell;
                                                 })
-                                            ]);
+                                            ]));
                                         }
                                     }
+                                    return templateList;
                                 }())
-                            ])
+                            )
 
                         ])
                     ]),
