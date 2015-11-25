@@ -24,7 +24,7 @@ var paths = {
         "./bower_components/bootstrap/dist/js/*.min.js",
         "./bower_components/mithril/mithril.js",
         "./scripts/dropzone.js",
-        "./light/grid.js"
+        //"./light/grid.js"
     ],
     json : "./sample.json",
     less : "./less/*.less"
@@ -70,8 +70,8 @@ gulp.task('js', function(){
 });
 
 gulp.task('watch', function () {
-    gulp.watch(paths.less, ['css', 'css-dist-min']);
-    gulp.watch(paths.jsfiles, ['js', 'js-dist-min', 'js-dist-full']);
+    //gulp.watch(paths.less, ['css', 'css-dist-min']);
+    gulp.watch(paths.jsfiles, ['js']); //, 'js-dist-min', 'js-dist-full']);
 });
 
 gulp.task('css-dist-min', ["less"], function () {
