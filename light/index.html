@@ -25,7 +25,9 @@ $(document).ready(function(){
     request.done(function( data ) {
         console.log("Data", data);
         var tb = new Treebeard(data, {container : '#grid'});
-        console.log(tb);
+        window.setTimeout(function(){
+            console.log(tb);
+        }, 3000);
     });
 
     request.fail(function( jqXHR, textStatus ) {
