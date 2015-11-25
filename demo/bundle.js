@@ -3679,7 +3679,7 @@ if (typeof exports == "object") {
 
         this.mredraw = function _mredraw() {
             m.redraw();
-        }
+        };
         /**
          * Prepend selector with ID of root DOM node
          * @param {String} selector CSS selector
@@ -3837,7 +3837,7 @@ if (typeof exports == "object") {
             if (id === first) {
                 self.select('#tb-tbody').scrollTop(currentScroll - self.options.rowHeight - 1);
             }
-        }
+        };
 
         /**
          * Turns move on for all elements or elements within a parent container
@@ -4028,7 +4028,7 @@ if (typeof exports == "object") {
             if (tb.options.onfilterreset) {
                 tb.options.onfilterreset.call(tb, filter);
             }
-        }
+        };
 
 
         /**
@@ -4488,7 +4488,7 @@ if (typeof exports == "object") {
                 self.options.onafterselectwitharrow.call(this, row, direction);
             }
 
-        }
+        };
 
         // Handles the toggling of folders with the right and left arrow keypress
         this.keyboardFolderToggle = function (action) {
@@ -4499,7 +4499,7 @@ if (typeof exports == "object") {
                     self.toggleFolder(index, null);
                 }
             }
-        }
+        };
 
         // Handles what the up, down, left, right arrow keys do.
         this.handleArrowKeys = function (e) {
@@ -4523,9 +4523,7 @@ if (typeof exports == "object") {
             if(key === 39) {
                 self.keyboardFolderToggle('open');
             }
-        }
-
-
+        };
 
         /**
          * Remove dropzone from grid
@@ -5017,7 +5015,7 @@ if (typeof exports == "object") {
             } else {
                 self.tableWidth('auto;');
             }
-        }
+        };
         /**
          * Resets keys that are hung up. Other window onblur event actions can be added in here.
          */
@@ -5050,7 +5048,168 @@ if (typeof exports == "object") {
         } else {
             throw new Error("Treebeard Error: You need to define a data source through 'options.filesData'");
         }
+
+
+        // TEMPLATES
+        this.rowTemplate = function _rowTemplate(){
+            var tb = this;
+            var i;
+            var templateList = [];
+            var singleRow = function (item) {
+                var oddEvenClass = tb.options.oddEvenClass.odd,
+                    indent = item.depth,
+                    id = item.id,
+                    tree = Indexes[id],
+                    row = item.row,
+                    padding,
+                    css = tree.css || "",
+                    rowCols = tb.options.resolveRows.call(tb, tree),
+                    index = tb.visibleIndexes[i];
+                if (i % 2 === 0) {
+                    oddEvenClass = tb.options.oddEvenClass.even;
+                }
+                if (tb.filterOn) {
+                    padding = 20;
+                } else {
+                    padding = (indent - 1) * 20;
+                }
+                if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
+                    templateList.push(m('.tb-row',{'style': "height: " + tb.options.rowHeight + "px;"}, [
+                        m('.tb-notify.alert-' + tree.notify.type, {
+                            'class': tree.notify.css
+                        }, [
+                            m('span', tree.notify.message)
+                        ])
+                    ]));
+                } else {
+                    templateList.push(m(".tb-row", { // Events and attribtues for entire row
+                        "key": id,
+                        "class": css + " " + oddEvenClass,
+                        "data-id": id,
+                        "data-level": indent,
+                        "data-index": item,
+                        "data-fIndex": index,
+                        style: "height: " + tb.options.rowHeight + "px;",
+                        onclick: function _rowClick(event) {
+                            var el = $(event.target);
+                            if(el.hasClass('tb-toggle-icon') || el.hasClass('fa-plus') || el.hasClass('fa-minus')) {
+                                return;
+                            }
+                            if (tb.options.multiselect) {
+                                tb.handleMultiselect(id, index, event);
+                            }
+                            tb.selected = id;
+                            if (tb.options.onselectrow) {
+                                tb.options.onselectrow.call(tb, tree, event);
+                            }
+                        },
+                        onmouseover: function _rowMouseover(event) {
+                            tb.mouseon = id;
+                            if (tb.options.hoverClass && !tb.dragOngoing) {
+                                tb.select('.tb-row').removeClass(tb.options.hoverClass);
+                                $(this).addClass(tb.options.hoverClass);
+                            }
+                            if (tb.options.onmouseoverrow) {
+                                tb.options.onmouseoverrow.call(tb, tree, event);
+                            }
+                        }
+                    }, [
+                    /**
+                     * Build individual columns depending on the resolveRows
+                     */
+                        rowCols.map(function _mapColumnsContent(col, index) {
+                            var cell,
+                                title,
+                                colInfo = tb.options.columnTitles.call(tb)[index],
+                                colcss = col.css || '';
+                            var width = tb.colsizes[index] ? tb.colsizes[index] + '%' : colInfo.width;
+                            cell = m('.tb-td.tb-col-' + index, {
+                                'class': colcss,
+                                style: "width:" + width
+                            }, [
+                                m('span', row[col.data])
+                            ]);
+                            if (tree.notify.on && tree.notify.column === index) {
+                                return m('.tb-td.tb-col-' + index, {
+                                    style: "width:" + width
+                                }, [
+                                    m('.tb-notify.alert-' + tree.notify.type, {
+                                        'class': tree.notify.css
+                                    }, [
+                                        m('span', tree.notify.message)
+                                    ])
+                                ]);
+                            }
+                            if (col.folderIcons) {
+                                if (col.custom) {
+                                    title = m("span.title-text", col.custom.call(tb, tree, col));
+                                } else {
+                                    title = m("span.title-text", row[col.data] + " ");
+                                }
+                                cell = m('.tb-td.td-title.tb-col-' + index, {
+                                    "data-id": id,
+                                    'class': colcss,
+                                    style: "padding-left: " + padding + "px; width:" + width
+                                }, [
+                                    m("span.tb-td-first", // Where toggling and folder icons are
+                                        (function _toggleView() {
+                                            var set = [{
+                                                'id': 1,
+                                                'css': 'tb-expand-icon-holder',
+                                                'resolve': tb.options.resolveIcon.call(tb, tree)
+                                            }, {
+                                                'id': 2,
+                                                'css': 'tb-toggle-icon',
+                                                'resolve': tb.options.resolveToggle.call(tb, tree)
+                                            }];
+                                            if (tb.filterOn) {
+                                                return m('span.' + set[0].css, {
+                                                    key: set [0].id
+                                                }, set[0].resolve);
+                                            }
+                                            return [m('span.' + set[1].css, {
+                                                key: set [1].id,
+                                                onclick: function _folderToggleClick(event) {
+                                                    if (tb.options.togglecheck.call(tb, tree)) {
+                                                        tb.toggleFolder(index, event);
+                                                    }
+                                                }
+                                            }, set[1].resolve), m('span.' + set[0].css, {
+                                                key: set [0].id
+                                            }, set[0].resolve)];
+                                        }())
+                                    ),
+                                    title
+                                ]);
+                            }
+                            if (!col.folderIcons && col.custom) { // If there is a custom call.
+                                cell = m('.tb-td.tb-col-' + index, {
+                                    'class': colcss,
+                                    style: "width:" + width
+                                }, [
+                                    col.custom.call(tb, tree, col)
+                                ]);
+                            }
+                            return cell;
+                        })
+                    ]));
+                }
+            };
+
+
+            for (i = tb.range.first; i < tb.range.last; i++){
+                var row = tb.flatData[tb.visibleIndexes[i]];
+                singleRow(row);
+            }
+            return templateList;
+        };
+
+
+
+
     };
+
+
 
     /**
      * Mithril View. Documentation is here: (http://lhorie.github.io/mithril/mithril.html) Use m() for templating.
@@ -5091,8 +5250,8 @@ if (typeof exports == "object") {
                                             ctrl.isSorted[index] = {
                                                 asc: false,
                                                 desc: false
-                                            }
-                                        };
+                                            };
+                                        }
                                         if (ctrl.options.sortButtonSelector.up) {
                                             up = ctrl.options.sortButtonSelector.up;
                                         } else {
@@ -5185,152 +5344,7 @@ if (typeof exports == "object") {
                             m('', {
                                 style: "margin-top:" + ctrl.rangeMargin + 'px;'
                             },
-                                (function(){
-                                    var i;
-                                    var templateList = [];
-                                    for (i = ctrl.range.first; i < ctrl.range.last; i++){
-                                        var item = ctrl.flatData[ctrl.visibleIndexes[i]];
-                                        var oddEvenClass = ctrl.options.oddEvenClass.odd,
-                                            indent = item.depth,
-                                            id = item.id,
-                                            tree = Indexes[id],
-                                            row = item.row,
-                                            padding,
-                                            css = tree.css || "",
-                                            rowCols = ctrl.options.resolveRows.call(ctrl, tree),
-                                            index = ctrl.visibleIndexes[i];
-                                        if (i % 2 === 0) {
-                                            oddEvenClass = ctrl.options.oddEvenClass.even;
-                                        }
-                                        if (ctrl.filterOn) {
-                                            padding = 20;
-                                        } else {
-                                            padding = (indent - 1) * 20;
-                                        }
-                                        if (tree.notify.on && !tree.notify.column) { // In case a notification is taking up the column space
-                                            templateList.push(m('.tb-row',{'style': "height: " + ctrl.options.rowHeight + "px;"}, [
-                                                m('.tb-notify.alert-' + tree.notify.type, {
-                                                    'class': tree.notify.css
-                                                }, [
-                                                    m('span', tree.notify.message)
-                                                ])
-                                            ]));
-                                        } else {
-                                            templateList.push(m(".tb-row", { // Events and attribtues for entire row
-                                                "key": id,
-                                                "class": css + " " + oddEvenClass,
-                                                "data-id": id,
-                                                "data-level": indent,
-                                                "data-index": item,
-                                                "data-fIndex": index,
-                                                style: "height: " + ctrl.options.rowHeight + "px;",
-                                                onclick: function _rowClick(event) {
-                                                    var el = $(event.target);
-                                                    if(el.hasClass('tb-toggle-icon') || el.hasClass('fa-plus') || el.hasClass('fa-minus')) {
-                                                        return;
-                                                    }
-                                                    if (ctrl.options.multiselect) {
-                                                        ctrl.handleMultiselect(id, index, event);
-                                                    }
-                                                    ctrl.selected = id;
-                                                    if (ctrl.options.onselectrow) {
-                                                        ctrl.options.onselectrow.call(ctrl, tree, event);
-                                                    }
-                                                },
-                                                onmouseover: function _rowMouseover(event) {
-                                                    ctrl.mouseon = id;
-                                                    if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
-                                                        ctrl.select('.tb-row').removeClass(ctrl.options.hoverClass);
-                                                        $(this).addClass(ctrl.options.hoverClass);
-                                                    }
-                                                    if (ctrl.options.onmouseoverrow) {
-                                                        ctrl.options.onmouseoverrow.call(ctrl, tree, event);
-                                                    }
-                                                }
-                                            }, [
-                                            /**
-                                             * Build individual columns depending on the resolveRows
-                                             */
-                                                rowCols.map(function _mapColumnsContent(col, index) {
-                                                    var cell,
-                                                        title,
-                                                        colInfo = ctrl.options.columnTitles.call(ctrl)[index],
-                                                        colcss = col.css || '';
-                                                    var width = ctrl.colsizes[index] ? ctrl.colsizes[index] + '%' : colInfo.width;
-                                                    cell = m('.tb-td.tb-col-' + index, {
-                                                        'class': colcss,
-                                                        style: "width:" + width
-                                                    }, [
-                                                        m('span', row[col.data])
-                                                    ]);
-                                                    if (tree.notify.on && tree.notify.column === index) {
-                                                        return m('.tb-td.tb-col-' + index, {
-                                                            style: "width:" + width
-                                                        }, [
-                                                            m('.tb-notify.alert-' + tree.notify.type, {
-                                                                'class': tree.notify.css
-                                                            }, [
-                                                                m('span', tree.notify.message)
-                                                            ])
-                                                        ]);
-                                                    }
-                                                    if (col.folderIcons) {
-                                                        if (col.custom) {
-                                                            title = m("span.title-text", col.custom.call(ctrl, tree, col));
-                                                        } else {
-                                                            title = m("span.title-text", row[col.data] + " ");
-                                                        }
-                                                        cell = m('.tb-td.td-title.tb-col-' + index, {
-                                                            "data-id": id,
-                                                            'class': colcss,
-                                                            style: "padding-left: " + padding + "px; width:" + width
-                                                        }, [
-                                                            m("span.tb-td-first", // Where toggling and folder icons are
-                                                                (function _toggleView() {
-                                                                    var set = [{
-                                                                        'id': 1,
-                                                                        'css': 'tb-expand-icon-holder',
-                                                                        'resolve': ctrl.options.resolveIcon.call(ctrl, tree)
-                                                                    }, {
-                                                                        'id': 2,
-                                                                        'css': 'tb-toggle-icon',
-                                                                        'resolve': ctrl.options.resolveToggle.call(ctrl, tree)
-                                                                    }];
-                                                                    if (ctrl.filterOn) {
-                                                                        return m('span.' + set[0].css, {
-                                                                            key: set [0].id
-                                                                        }, set[0].resolve);
-                                                                    }
-                                                                    return [m('span.' + set[1].css, {
-                                                                        key: set [1].id,
-                                                                        onclick: function _folderToggleClick(event) {
-                                                                            if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                                ctrl.toggleFolder(index, event);
-                                                                            }
-                                                                        }
-                                                                    }, set[1].resolve), m('span.' + set[0].css, {
-                                                                        key: set [0].id
-                                                                    }, set[0].resolve)];
-                                                                }())
-                                                            ),
-                                                            title
-                                                        ]);
-                                                    }
-                                                    if (!col.folderIcons && col.custom) { // If there is a custom call.
-                                                        cell = m('.tb-td.tb-col-' + index, {
-                                                            'class': colcss,
-                                                            style: "width:" + width
-                                                        }, [
-                                                            col.custom.call(ctrl, tree, col)
-                                                        ]);
-                                                    }
-                                                    return cell;
-                                                })
-                                            ]));
-                                        }
-                                    }
-                                    return templateList;
-                                }())
+                                ctrl.rowTemplate()
                             )
 
                         ])
@@ -5399,7 +5413,7 @@ if (typeof exports == "object") {
                         }
                     }())
                 ])
-            ])
+            ]);
     };
 
     /**
@@ -5509,7 +5523,7 @@ if (typeof exports == "object") {
                 }
 
             }
-        }
+        };
         this.onfilter = function(filterText) { // Fires on keyup when filter text is changed.
             // this = treebeard object;
             // filterText = the value of the filtertext input box.
@@ -5596,7 +5610,7 @@ if (typeof exports == "object") {
         };
         this.removeIcon = function(){
             return m('i.fa.fa-remove');
-        },
+        };
         this.resolveRefreshIcon = function() {
             return m('i.icon-refresh.icon-spin');
         };
@@ -5666,13 +5680,14 @@ if (typeof exports == "object") {
      * Starts treebard with user options
      * This may seem convoluted but is useful to encapsulate Treebeard instances.
      * @param {Object} options The options user passes in; will be expanded with defaults.
+     * @param {Boolean} component Whether Treebeard should be loaded as component
      * @returns {*}
      */
     var runTB = function _treebeardRun(options, component) {
         var defaults = new Options();
         var finalOptions = $.extend(defaults, options);
         // Weird fix for IE 9, does not harm regular load
-        if (window.navigator.userAgent.indexOf('MSIE')) {
+        if (window.navigator.userAgent.indexOf('MSIE') !== -1) {
             setTimeout(function() {
                 m.redraw();
             }, 1000);
@@ -5682,7 +5697,6 @@ if (typeof exports == "object") {
         }
         return m.component(Treebeard, finalOptions); // Return component instead
     };
-
 
     // Expose some internal classes to the public
     runTB.Notify = Notify;
