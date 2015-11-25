@@ -58,7 +58,12 @@ Treebeard.prototype.view = function() {
     var i;
     $(tb.options.container + '> .tb-inner > .tb-row-container').html('');
     for (i = tb.range.begin; i < tb.range.end; i++) {
-        tb.buildRow(tb.returnVisibleItem(i));
+        var item = tb.returnVisibleItem(i);
+        if(item){
+            tb.buildRow(tb.returnVisibleItem(i));
+        } else {
+            break;
+        }
     }
 };
 
@@ -68,12 +73,12 @@ Treebeard.prototype.buildRow = function(row) {
     var innerTemplate = [];
     var data = row.item; // only the data pertinent to the item information without tb specific helpers
     tb.options.columns.map(function(col, index){
-        //if(index === 0 && row.children.length > 0) {
-        //    toggleIcon = '<i class="fa fa-plus tb-toggle-icon"></i>';
-        //} else {
-        //    toggleIcon = '<i class="tb-toggle-icon">&nbsp;</i>';
-        //}
-        innerTemplate.push('<div class="tb-col" style="width:' + col.width + '">'  + data[col.data] + '</div>');
+        if(index === 0 && data.children.length > 0) {
+            toggleIcon = '<i class="fa fa-plus tb-toggle-icon"></i>';
+        } else {
+            toggleIcon = '<i class="tb-toggle-icon">&nbsp;</i>';
+        }
+        innerTemplate.push('<div class="tb-col" style="width:' + col.width + '">'  + toggleIcon + data[col.data] + '</div>');
     });
     $(tb.options.container + '> .tb-inner > .tb-row-container')
         .css('top', tb.marginTop + 'px')
