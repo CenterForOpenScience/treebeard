@@ -70,8 +70,8 @@ gulp.task('js', function(){
 });
 
 gulp.task('watch', function () {
-    gulp.watch(paths.less, ['css', 'css-dist-min']);
-    gulp.watch(paths.jsfiles, ['js', 'js-dist-min', 'js-dist-full']);
+    gulp.watch(paths.less, ['css']);
+    gulp.watch(paths.jsfiles, ['js']);
 });
 
 gulp.task('css-dist-min', ["less"], function () {
@@ -100,4 +100,6 @@ gulp.task('js-dist-full',  ["js-dist-min"], function () {
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task("default", ["css", "js", "watch", "js-dist-full", "css-dist-full" ]);
+gulp.task("dist", ["css", "js", 'js-dist-full', 'css-dist-full']);
+
+gulp.task("default", ["css", "js", "watch"]);
