@@ -4397,12 +4397,12 @@ if (typeof exports == "object") {
          */
         // TODO This will break
         this.handleMultiselect = function (id, index, event) {
-            var tree = Indexes[id],
-                begin,
-                end,
-                i,
-                cmdkey,
-                direction;
+            var tree = Indexes[id];
+            var begin;
+            var end;
+            var i;
+            var cmdkey;
+            var direction;
             if (self.options.onbeforemultiselect) {
                 self.options.onbeforemultiselect.call(self, event, tree);
             }
@@ -4413,8 +4413,8 @@ if (typeof exports == "object") {
                 if (self.multiselected().length === 0) {
                     self.multiselected().push(tree);
                 } else {
-                    begin = self.returnRangeIndex(self.multiselected()[0].id);
-                    end = self.returnRangeIndex(id);
+                    begin = self.returnIndex(self.multiselected()[0].id);
+                    end = self.returnIndex(id);
                     if (begin > end) {
                         direction = 'up';
                     } else {
@@ -4424,12 +4424,12 @@ if (typeof exports == "object") {
                         self.multiselected([]);
                         if (direction === 'down') {
                             for (i = begin; i < end + 1; i++) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[index].id]);
                             }
                         }
                         if (direction === 'up') {
                             for (i = begin; i > end - 1; i--) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                                self.multiselected().push(Indexes[self.flatData[index].id]);
                             }
                         }
                     }
@@ -5197,7 +5197,8 @@ if (typeof exports == "object") {
                                             row = item.row,
                                             padding,
                                             css = tree.css || "",
-                                            rowCols = ctrl.options.resolveRows.call(ctrl, tree);
+                                            rowCols = ctrl.options.resolveRows.call(ctrl, tree),
+                                            index = ctrl.visibleIndexes[i];
                                         if (i % 2 === 0) {
                                             oddEvenClass = ctrl.options.oddEvenClass.even;
                                         }
@@ -5221,7 +5222,7 @@ if (typeof exports == "object") {
                                                 "data-id": id,
                                                 "data-level": indent,
                                                 "data-index": item,
-                                                "data-rIndex": i,
+                                                "data-fIndex": index,
                                                 style: "height: " + ctrl.options.rowHeight + "px;",
                                                 onclick: function _rowClick(event) {
                                                     var el = $(event.target);
@@ -5304,7 +5305,7 @@ if (typeof exports == "object") {
                                                                         key: set [1].id,
                                                                         onclick: function _folderToggleClick(event) {
                                                                             if (ctrl.options.togglecheck.call(ctrl, tree)) {
-                                                                                ctrl.toggleFolder(item, event);
+                                                                                ctrl.toggleFolder(index, event);
                                                                             }
                                                                         }
                                                                     }, set[1].resolve), m('span.' + set[0].css, {
