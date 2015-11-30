@@ -1335,7 +1335,6 @@
          * @param {Number} [index] The showRange index of the item
          * @param {Event} [event] Click event on the item
          */
-        // TODO This will break
         this.handleMultiselect = function (id, index, event) {
             var tree = Indexes[id];
             var begin;
@@ -1364,12 +1363,12 @@
                         self.multiselected([]);
                         if (direction === 'down') {
                             for (i = begin; i < end + 1; i++) {
-                                self.multiselected().push(Indexes[self.flatData[index].id]);
+                                self.multiselected().push(Indexes[self.flatData[i].id]);
                             }
                         }
                         if (direction === 'up') {
                             for (i = begin; i > end - 1; i--) {
-                                self.multiselected().push(Indexes[self.flatData[index].id]);
+                                self.multiselected().push(Indexes[self.flatData[i].id]);
                             }
                         }
                     }
@@ -1926,9 +1925,12 @@
             if (self.options.multiselect) {
                 $(window).keydown(function (event) {
                     self.pressedKey = event.keyCode;
+                    console.log(self.pressedKey);
                 });
                 $(window).keyup(function (event) {
                     self.pressedKey = undefined;
+                    console.log(self.pressedKey);
+
                 });
             }
             $(window).keydown(function (event) {
