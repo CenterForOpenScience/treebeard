@@ -2217,6 +2217,12 @@
                                                     ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }
                                             },
+                                            ondblclick : function _ondblclick(event){
+                                                var self = this;
+                                                if ($.isFunction(ctrl.options.ondblclickrow)) {
+                                                    ctrl.options.ondblclickrow.call(ctrl, tree, event);
+                                                }
+                                            },
                                             onmouseover: function _rowMouseover(event) {
                                                 ctrl.mouseon = id;
                                                 if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
@@ -2532,6 +2538,11 @@
             // response = what's returned from the server
         };
         this.onselectrow = function(row, event) {
+            // this = treebeard object
+            // row = item selected
+            // event = mouse click event object
+        };
+        this.ondblclickrow = function(row, event) {
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
