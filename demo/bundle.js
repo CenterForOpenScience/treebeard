@@ -5729,7 +5729,7 @@ if (typeof exports == "object") {
             }, 1000);
         }
         if(!component){ // If not added as component into mithril view then mount it
-            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, { options : finalOptions }));
+            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, finalOptions));
         }
         return m.component(Treebeard, finalOptions); // Return component instead
     };
