@@ -1,6 +1,6 @@
 {
   "name": "treebeard",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Hierarchical data renderer built with Mithril",
   "main": "dist/treebeard.js",
   "dependencies": {

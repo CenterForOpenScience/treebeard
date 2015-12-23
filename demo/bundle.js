@@ -4691,6 +4691,12 @@ if (typeof exports == "object") {
                     if ($.isFunction(self.options.dropzoneEvents.addedfile)) {
                         self.options.dropzoneEvents.addedfile.call(this, self, file);
                     }
+                },
+                removedfile: function _dropzoneRemovedFile(file) {
+                    file.treebeardParent = self.dropzoneItemCache;
+                    if ($.isFunction(self.options.dropzoneEvents.removedfile)) {
+                        self.options.dropzoneEvents.removedfile.call(this, self, file);
+                    }
                 }
             }, self.options.dropzone); // Extend default options
             // Add Dropzone with different scenarios of library inclusion, should work for most installations
@@ -5723,7 +5729,7 @@ if (typeof exports == "object") {
             return Treebeard.view(ctrl.tbController);
         };
         // Weird fix for IE 9, does not harm regular load
-        if (window.navigator.userAgent.indexOf('MSIE')) {
+        if (window.navigator.userAgent.indexOf('MSIE') !== -1) {
             setTimeout(function() {
                 m.redraw();
             }, 1000);
