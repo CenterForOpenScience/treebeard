@@ -655,7 +655,7 @@
             draggableOptions = {
                 helper: 'clone',
                 cursor: 'move',
-                containment: self.options.divID,
+                containment: '#' + self.options.divID,
                 delay: 100,
                 drag: function (event, ui) {
                     if (self.pressedKey === 27) {
