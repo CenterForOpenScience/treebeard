@@ -647,6 +647,7 @@
          * Instantiates draggable and droppable on DOM elements with options passed from self.options
          */
         this.initializeMove = function () {
+            var self = this;
             var draggableOptions,
                 droppableOptions,
                 x,
@@ -654,7 +655,7 @@
             draggableOptions = {
                 helper: 'clone',
                 cursor: 'move',
-                containment: '.tb-tbody-inner',
+                containment: self.options.divID,
                 delay: 100,
                 drag: function (event, ui) {
                     if (self.pressedKey === 27) {
@@ -1808,7 +1809,9 @@
             if (isInit) {
                 return;
             }
-            self.initializeMove(); // Needed to run once to establish drag and drop options
+            if (self.options.allowMove) {
+                self.initializeMove(); // Needed to run once to establish drag and drop options
+            }
             if (!self.options.rowHeight) { // If row height is not set get it from CSS
                 self.options.rowHeight = self.select('.tb-row').height();
             }
