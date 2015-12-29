@@ -5333,30 +5333,37 @@ if (typeof exports == "object") {
                                                     }, [
                                                         m("span.tb-td-first", // Where toggling and folder icons are
                                                             (function _toggleView() {
+                                                                var resolveIcon = ctrl.options.resolveIcon.call(ctrl, tree); // Should return false if no icon is needed
+                                                                var resolveToggle = ctrl.options.resolveToggle.call(ctrl, tree); // Should return false if no icon is needed
                                                                 var set = [{
                                                                     'id': 1,
                                                                     'css': 'tb-expand-icon-holder',
-                                                                    'resolve': ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    'resolve': resolveIcon
                                                                 }, {
                                                                     'id': 2,
                                                                     'css': 'tb-toggle-icon',
-                                                                    'resolve': ctrl.options.resolveToggle.call(ctrl, tree)
+                                                                    'resolve': resolveToggle
                                                                 }];
-                                                                if (ctrl.filterOn) {
-                                                                    return m('span.' + set[0].css, {
-                                                                        key: set [0].id
-                                                                    }, set[0].resolve);
-                                                                }
-                                                                return [m('span.' + set[1].css, {
-                                                                    key: set [1].id,
+                                                                var templateIcon = m('span.' + set[0].css, {
+                                                                        key: set[0].id
+                                                                    },
+                                                                    set[0].resolve
+                                                                );
+                                                                var templateToggle = m('span.' + set[1].css, {
+                                                                    key: set[1].id,
                                                                     onclick: function _folderToggleClick(event) {
                                                                         if (ctrl.options.togglecheck.call(ctrl, tree)) {
                                                                             ctrl.toggleFolder(item, event);
                                                                         }
                                                                     }
-                                                                }, set[1].resolve), m('span.' + set[0].css, {
-                                                                    key: set [0].id
-                                                                }, set[0].resolve)];
+                                                                }, set[1].resolve);
+                                                                if (ctrl.filterOn && resolveIcon) {
+                                                                    return templateIcon;
+                                                                }
+                                                                return [
+                                                                    templateToggle, // Don't make toggle optional
+                                                                    resolveIcon ? templateIcon : ''
+                                                                ];
                                                             }())
                                                         ),
                                                         title
