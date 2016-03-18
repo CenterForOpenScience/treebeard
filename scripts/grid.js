@@ -2047,8 +2047,7 @@
      * @param {Object} ctrl The entire Treebeard.controller object with its values and methods. Refer to as ctrl.
      */
     Treebeard.view = function treebeardView(ctrl) {
-        return [
-            m('.gridWrapper', { style : 'overflow-x: auto' }, [
+        return m('.gridWrapper', { style : 'overflow-x: auto' }, [
                 m(".tb-table", { style : 'width:' + ctrl.tableWidth() }, [
                     /**
                      * Template for the head row, includes whether filter or title should be shown.
@@ -2227,6 +2226,12 @@
                                                     ctrl.options.onselectrow.call(ctrl, tree, event);
                                                 }
                                             },
+                                            ondblclick : function _ondblclick(event){
+                                                var self = this;
+                                                if ($.isFunction(ctrl.options.ondblclickrow)) {
+                                                    ctrl.options.ondblclickrow.call(ctrl, tree, event);
+                                                }
+                                            },
                                             onmouseover: function _rowMouseover(event) {
                                                 ctrl.mouseon = id;
                                                 if (ctrl.options.hoverClass && !ctrl.dragOngoing) {
@@ -2277,30 +2282,37 @@
                                                     }, [
                                                         m("span.tb-td-first", // Where toggling and folder icons are
                                                             (function _toggleView() {
+                                                                var resolveIcon = ctrl.options.resolveIcon.call(ctrl, tree); // Should return false if no icon is needed
+                                                                var resolveToggle = ctrl.options.resolveToggle.call(ctrl, tree); // Should return false if no icon is needed
                                                                 var set = [{
                                                                     'id': 1,
                                                                     'css': 'tb-expand-icon-holder',
-                                                                    'resolve': ctrl.options.resolveIcon.call(ctrl, tree)
+                                                                    'resolve': resolveIcon
                                                                 }, {
                                                                     'id': 2,
                                                                     'css': 'tb-toggle-icon',
-                                                                    'resolve': ctrl.options.resolveToggle.call(ctrl, tree)
+                                                                    'resolve': resolveToggle
                                                                 }];
-                                                                if (ctrl.filterOn) {
-                                                                    return m('span.' + set[0].css, {
-                                                                        key: set [0].id
-                                                                    }, set[0].resolve);
-                                                                }
-                                                                return [m('span.' + set[1].css, {
-                                                                    key: set [1].id,
+                                                                var templateIcon = m('span.' + set[0].css, {
+                                                                        key: set[0].id
+                                                                    },
+                                                                    set[0].resolve
+                                                                );
+                                                                var templateToggle = m('span.' + set[1].css, {
+                                                                    key: set[1].id,
                                                                     onclick: function _folderToggleClick(event) {
                                                                         if (ctrl.options.togglecheck.call(ctrl, tree)) {
                                                                             ctrl.toggleFolder(item, event);
                                                                         }
                                                                     }
-                                                                }, set[1].resolve), m('span.' + set[0].css, {
-                                                                    key: set [0].id
-                                                                }, set[0].resolve)];
+                                                                }, set[1].resolve);
+                                                                if (ctrl.filterOn && resolveIcon) {
+                                                                    return templateIcon;
+                                                                }
+                                                                return [
+                                                                    templateToggle, // Don't make toggle optional
+                                                                    resolveIcon ? templateIcon : ''
+                                                                ];
                                                             }())
                                                         ),
                                                         title
@@ -2389,7 +2401,6 @@
                     }())
                 ])
             ])
-        ];
     };
 
     /**
@@ -2447,6 +2458,7 @@
         this.dropOptions = {}; // jQuery UI droppable options without the methods
         this.dragEvents = {}; // users can override draggable options and events
         this.dropEvents = {}; // users can override droppable options and events
+        this.dragContainment = '.tb-tbody-inner';
         this.sortDepth = 0;
         this.oddEvenClass = {
             odd: 'tb-odd',
@@ -2542,6 +2554,11 @@
             // response = what's returned from the server
         };
         this.onselectrow = function(row, event) {
+            // this = treebeard object
+            // row = item selected
+            // event = mouse click event object
+        };
+        this.ondblclickrow = function(row, event) {
             // this = treebeard object
             // row = item selected
             // event = mouse click event object
@@ -2658,24 +2675,21 @@
      * @param {Object} options The options user passes in; will be expanded with defaults.
      * @returns {*}
      */
-    var runTB = function _treebeardRun(options) {
+    var runTB = function _treebeardRun(options, component) {
         var defaults = new Options();
         var finalOptions = $.extend(defaults, options);
-        var tb = {};
-        tb.controller = function() {
-            this.tbController = new Treebeard.controller(finalOptions);
-        };
-        tb.view = function(ctrl) {
-            return Treebeard.view(ctrl.tbController);
-        };
         // Weird fix for IE 9, does not harm regular load
         if (window.navigator.userAgent.indexOf('MSIE') !== -1) {
             setTimeout(function() {
                 m.redraw();
             }, 1000);
         }
-        return m.module(document.getElementById(finalOptions.divID), tb);
+        if(!component){ // If not added as component into mithril view then mount it
+            return m.mount(document.getElementById(finalOptions.divID), m.component(Treebeard, finalOptions));
+        }
+        return m.component(Treebeard, finalOptions); // Return component instead
     };
+
 
     // Expose some internal classes to the public
     runTB.Notify = Notify;
