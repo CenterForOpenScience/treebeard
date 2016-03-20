@@ -2179,6 +2179,9 @@
                                  * showRange has the several items that get shown at a time. It's key to view optimization
                                  * showRange values change with scroll, filter, folder toggling etc.
                                  */
+                                ctrl.showRange.length === 0 && ctrl.filterOn ?
+                                    m('.tb-no-results', 'No results found for this search term.')
+                                    : '',
                                 ctrl.showRange.map(function _mapRangeView(item, index) {
                                     var oddEvenClass = ctrl.options.oddEvenClass.odd,
                                         indent = ctrl.flatData[item].depth,

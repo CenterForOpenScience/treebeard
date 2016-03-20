@@ -705,3 +705,8 @@
 .desc-btn {
   cursor: pointer;
 }
+.tb-no-results {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
