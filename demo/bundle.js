@@ -4055,7 +4055,7 @@ if (typeof exports == "object") {
          * @param {Object} parent Item built with the _item constructor
          * @param {Function} callback A function to be called after loading all data
          */
-        this.updateFolder = function (data, parent, callback) {
+        this.updateFolder = function (data, parent, callback, flatten) {
             if (data) {
                 parent.children = [];
                 var child, i;
@@ -4069,7 +4069,9 @@ if (typeof exports == "object") {
             var index = self.returnIndex(parent.id);
             parent.open = false;
             parent.load = false;
-
+            if(flatten){
+                self.flatten(self.treeData.children, self.visibleTop);
+            }
             self.toggleFolder(index, null, callback);
         };
 
