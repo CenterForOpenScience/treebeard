@@ -4296,7 +4296,7 @@ if (typeof exports == "object") {
                 counter = 0,
                 i,
                 index;
-            if (!begin || begin > self.flatData.length) {
+            if (!begin || begin < 0 || begin > self.flatData.length) {
                 begin = 0;
             }
             self.visibleTop = begin;
