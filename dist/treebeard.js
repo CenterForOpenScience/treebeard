@@ -2143,7 +2143,7 @@
                                 }, [
                                     m('.modal-content', {
                                         'class': ctrl.modal.css,
-                                        onclick : function() {
+                                        onclick : function(event) {
                                             event.stopPropagation();
                                             return true;
                                         }
