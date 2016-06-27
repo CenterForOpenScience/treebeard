@@ -4450,8 +4450,8 @@ if (typeof exports == "object") {
                 if (self.multiselected().length === 0) {
                     self.multiselected().push(tree);
                 } else {
-                    begin = self.returnRangeIndex(self.multiselected()[0].id);
-                    end = self.returnRangeIndex(id);
+                    begin = self.returnIndex(self.multiselected()[0].id);
+                    end = self.returnIndex(id);
                     if (begin > end) {
                         direction = 'up';
                     } else {
@@ -4460,13 +4460,13 @@ if (typeof exports == "object") {
                     if (begin !== end) {
                         self.multiselected([]);
                         if (direction === 'down') {
-                            for (i = begin; i < end + 1; i++) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                            for (i = begin; i <= end; i++) {
+                                self.multiselected().push(Indexes[self.flatData[i].id]);
                             }
                         }
                         if (direction === 'up') {
-                            for (i = begin; i > end - 1; i--) {
-                                self.multiselected().push(Indexes[self.flatData[self.showRange[i]].id]);
+                            for (i = begin; i >= end; i--) {
+                                self.multiselected().push(Indexes[self.flatData[i].id]);
                             }
                         }
                     }
