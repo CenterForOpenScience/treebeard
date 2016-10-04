@@ -1158,8 +1158,10 @@
                 sortType = element.attr('data-sortType');
             }
             self.select('.asc-btn, .desc-btn').addClass('tb-sort-inactive'); // turn all styles off
-            self.isSorted[col].asc = false;
-            self.isSorted[col].desc = false;
+            for(var column in self.isSorted) {
+                self.isSorted[column].asc = false;
+                self.isSorted[column].desc = false;
+            }
             if (!self.isSorted[col][type]) {
                 redo = function _redo(data) {
                     data.map(function _mapToggle(item) {
@@ -1683,10 +1685,18 @@
                     url: data,
                     config: self.options.xhrconfig,
                     extract: function (xhr, xhrOpts) {
-                        if (xhr.status !== 200) {
-                            return self.options.ondataloaderror(xhr);
+                        var responseText = xhr.responseText;
+                        try {
+                            JSON.parse(responseText);
+                        } catch (e) {
+                            responseText = JSON.stringify(responseText);
                         }
-                        return xhr.responseText;
+
+                        if (xhr.status !== 200) {
+                            self.options.ondataloaderror(xhr);
+                        }
+
+                        return responseText;
                     }
                 })
                     .then(function _requestBuildtree(value) {
