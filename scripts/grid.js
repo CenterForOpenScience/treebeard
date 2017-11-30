@@ -1,6 +1,6 @@
 /**
  * Treebeard : hierarchical grid built with Mithril
- * https://github.com/caneruguz/treebeard
+ * https://github.com/CenterForOpenScience/treebeard
  * Built by Center for Open Science -> http://www.cos.io
  */
 ;  // jshint ignore:line

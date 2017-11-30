@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/caneruguz/treebeard.git"
+    "url": "https://github.com/CenterForOpenScience/treebeard.git"
   },
   "keywords": [
     "mithril",

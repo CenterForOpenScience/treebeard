@@ -1,11 +1,11 @@
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/caneruguz/treebeard/master/demo/treebeard.png" alt="Treebeard Logo"/>
+  <img src="https://raw.githubusercontent.com/CenterForOpenScience/treebeard/master/demo/treebeard.png" alt="Treebeard Logo"/>
 </p>
 
-Develop: <img src="https://travis-ci.org/caneruguz/treebeard.svg?branch=develop" alt="Travis build fopr Develop"/>
+Develop: <img src="https://travis-ci.org/CenterForOpenScience/treebeard.svg?branch=develop" alt="Travis build fopr Develop"/>
 
-Master: <img src="https://travis-ci.org/caneruguz/treebeard.svg?branch=master" alt="Travis build for Master"/>
+Master: <img src="https://travis-ci.org/CenterForOpenScience/treebeard.svg?branch=master" alt="Travis build for Master"/>
 
 <i style="text-align:center"> Logo designed by [fayetality](https://github.com/fayetality "fayetality")  </i>
 
@@ -61,7 +61,7 @@ Add the following to your Webpack config.
 ```
 
 * * * 
-Read more about using the library in the Wiki: https://github.com/caneruguz/treebeard/wiki
+Read more about using the library in the Wiki: https://github.com/CenterForOpenScience/treebeard/wiki
 
 * * * 
 
